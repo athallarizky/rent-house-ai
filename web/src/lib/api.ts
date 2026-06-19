@@ -124,11 +124,9 @@ export async function loadArea(
 }
 
 // === Saved Searches ===
-// Phase 5 will add a SQLite-backed `/searches` endpoint. Until then we use
-// localStorage exclusively — the HTTP path is gated behind this flag so we
-// don't spam 404s against a route that doesn't exist yet. Flip to true once
-// the Phase 5 backend ships; the full HTTP code path is already in place.
-const SAVED_SEARCHES_API_ENABLED = false;
+// Phase 5 wires the SQLite-backed `/searches` endpoint. The HTTP path is now
+// enabled; localStorage remains as a fallback if the backend is unreachable.
+const SAVED_SEARCHES_API_ENABLED = true;
 
 const SAVED_SEARCHES_KEY = "kos-ai.saved-searches";
 
