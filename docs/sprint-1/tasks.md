@@ -8,6 +8,8 @@
 
 ## Phase 0 — Repo Setup & Exploration ✅
 
+> 📄 Full report: [`phase-0-report.md`](./phase-0-report.md) — manual run instructions, scrape results, review quality analysis
+
 | ID   | Task                                                                         | Difficulty | Dependencies | Status |
 |------|------------------------------------------------------------------------------|------------|-------------|--------|
 | 0.1  | Clone `google-maps-scraper` → `services/scraper/google-maps-scraper/`        | Easy       | —           | ✅     |
