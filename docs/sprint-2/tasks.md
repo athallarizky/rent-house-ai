@@ -1,6 +1,6 @@
 # Sprint 2 — UI Dashboard + Agentic Chat
 
-> Status: 🟡 Planning | Created: 2026-06-19
+> Status: 🔵 Phase 1 Done | Created: 2026-06-19 | Updated: 2026-06-19
 >
 > **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
 >
@@ -8,15 +8,26 @@
 
 ---
 
-## Phase 1 — Project Scaffold
+## Phase 1 — Project Scaffold ✅
+
+> 📄 Full report: [`reports/phase-1-report.md`](./reports/phase-1-report.md) — project structure, tech stack, design tokens, verification results
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 1.1  | Init Astro + React + Tailwind project in `web/`           | Easy       | —           | ⬜     |
-| 1.2  | Copy slack-rag layout patterns (DashboardLayout, icons)   | Easy       | 1.1         | ⬜     |
-| 1.3  | Setup Tailwind theme (brand colors, shadcn tokens)        | Easy       | 1.1         | ⬜     |
-| 1.4  | Create page routes: `/`, `/search`, `/settings`           | Easy       | 1.1         | ⬜     |
-| 1.5  | Setup API client (`web/src/lib/api.ts`)                   | Easy       | 1.1         | ⬜     |
+| 1.1  | Init Astro + React + Tailwind project in `web/`           | Easy       | —           | ✅     |
+| 1.2  | Copy slack-rag layout patterns (DashboardLayout, icons)   | Easy       | 1.1         | ✅     |
+| 1.3  | Setup Tailwind theme (brand colors, shadcn tokens)        | Easy       | 1.1         | ✅     |
+| 1.4  | Create page routes: `/`, `/search`, `/settings`           | Easy       | 1.1         | ✅     |
+| 1.5  | Setup API client (`web/src/lib/api.ts`)                   | Easy       | 1.1         | ✅     |
+
+### Scaffold Summary
+
+- **Stack:** Astro `^6.1.9` + React `^19.2.5` + Tailwind `4.2.4` + Leaflet + react-markdown (mirrors slack-rag)
+- **Files:** `package.json`, `astro.config.mjs`, `tsconfig.json` (`@/*` alias), `.env`, `globals.css`, `DashboardLayout.astro`, `lib/{api,types,utils}.ts`, 3 page stubs, favicon
+- **Layout:** 240px sidebar (Beranda / Pencarian / Pengaturan) with brand-blue active states; mobile-collapsible
+- **API client:** `searchKos`, `streamSearch` (SSE reader), `resolveLocation`, `expandLocation`, `getHealth`, saved-searches + settings with **localStorage fallback** (Phase 5 swaps in SQLite with zero frontend changes)
+- **Verification:** `astro check` → **0 errors / 0 warnings / 0 hints** · `npm run build` → **3 pages built** in 962ms
+- **Decision:** Pinned `@tailwindcss/vite`/`tailwindcss` to `4.2.4` + `overrides.vite: ^7.3.5` to fix `@tailwindcss/vite@4.3` ↔ Astro 6 Vite-7 type conflict
 
 ---
 
@@ -116,7 +127,7 @@ Phase 6 ────────────────────────
 
 | Phase                    | Tasks | Est. Hours | Status |
 |--------------------------|-------|-----------|--------|
-| 1 — Project Scaffold     | 5     | 3h        | ⬜     |
+| 1 — Project Scaffold     | 5     | 3h        | ✅     |
 | 2 — Landing Page         | 4     | 2h        | ⬜     |
 | 3 — 3-Panel Dashboard    | 11       | 14h       | ⬜     |
 | 4 — Settings Page        | 3     | 2h        | ⬜     |
