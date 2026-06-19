@@ -178,13 +178,23 @@
 
 ---
 
-## Phase 5 — CLI Orchestrator
+## Phase 5 — CLI Orchestrator ✅
+
+> 📄 Full report: [`reports/phase-5-report.md`](./reports/phase-5-report.md) — CLI usage, pipeline flow, architecture
 
 | ID   | Task                                                                                   | Difficulty | Dependencies               | Status |
 |------|----------------------------------------------------------------------------------------|------------|----------------------------|--------|
-| 5.1  | Build CLI entry point — parse natural language → determine area → trigger full pipeline | Hard       | 1.5, 2.3, 3.7, 4.5         | ⬜     |
-| 5.2  | Build conversational state (district picking, follow-up questions)                      | Medium     | 5.1                        | ⬜     |
-| 5.3  | End-to-end test: "Carikan kos di Cengkareng dengan wifi tidak lemot"                    | Hard       | 5.2                        | ⬜     |
+| 5.1  | Build CLI entry point — parse natural language → determine area → trigger full pipeline | Hard       | 1.5, 2.3, 3.7, 4.5         | ✅     |
+| 5.2  | Build conversational state (district picking, follow-up questions)                      | Medium     | 5.1                        | ✅     |
+| 5.3  | End-to-end test: "Carikan kos di Cengkareng dengan wifi kenceng"                        | Hard       | 5.2                        | ✅     |
+
+### Service Summary
+
+- **Runtime:** Python 3.9+
+- **Entry:** `cd services/rag-engine && python -m src.cli --area Cengkareng --query "wifi kenceng"`
+- **Flow:** geo-router (HTTP) → scraper (subprocess) → processor (subprocess) → search (direct)
+- **Cache-first:** All stages skipped if disk cache exists — second run <2s
+- **Output:** Ranked kos with reviews, facilities, phone, LLM summary (optional)
 
 ---
 
