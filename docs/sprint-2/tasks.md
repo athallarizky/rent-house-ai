@@ -1,6 +1,6 @@
 # Sprint 2 — UI Dashboard + Agentic Chat
 
-> Status: 🔵 Phase 2 Done | Created: 2026-06-19 | Updated: 2026-06-19
+> Status: 🔵 Phase 3 Done | Created: 2026-06-19 | Updated: 2026-06-19
 >
 > **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
 >
@@ -54,21 +54,35 @@
 
 ---
 
-## Phase 3 — 3-Panel Dashboard (`/search`)
+## Phase 3 — 3-Panel Dashboard (`/search`) ✅
+
+> 📄 Full report: [`reports/phase-3-report.md`](./reports/phase-3-report.md) — component breakdown, regency→kecamatan flow, SSE protocol, verification
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 3.1  | Left panel: SavedSearches sidebar (load from SQLite API)  | Medium     | 1.5, 2.4    | ⬜     |
-| 3.2  | Left panel: New search, delete saved search               | Easy       | 3.1         | ⬜     |
-| 3.3  | Center panel: ChatWindow (messages, streaming)            | Hard       | 1.5         | ⬜     |
-| 3.3a | Regency detection → kecamatan picker (resolveLocation)     | Medium     | 1.5, 3.3    | ⬜     |
-| 3.3b | KecamatanPicker component (in-chat chip grid)              | Medium     | 3.3a        | ⬜     |
-| 3.4  | Center panel: MessageInput (send query)                   | Medium     | 3.3         | ⬜     |
-| 3.5  | Center panel: SSE streaming (token-by-token render)       | Hard       | 3.3, 1.5    | ⬜     |
-| 3.6  | Right panel: KosCardList (vertical scroll)                | Medium     | 1.5         | ⬜     |
-| 3.7  | Right panel: MapView toggle (Leaflet + OSM)               | Hard       | 3.6         | ⬜     |
-| 3.8  | Filter chips (wifi, AC, parkir, gender) — in-memory       | Medium     | 3.6         | ⬜     |
-| 3.9  | Kos detail expansion (click card → full reviews)          | Medium     | 3.6         | ⬜     |
+| 3.1  | Left panel: SavedSearches sidebar (load from SQLite API)  | Medium     | 1.5, 2.4    | ✅     |
+| 3.2  | Left panel: New search, delete saved search               | Easy       | 3.1         | ✅     |
+| 3.3  | Center panel: ChatWindow (messages, streaming)            | Hard       | 1.5         | ✅     |
+| 3.3a | Regency detection → kecamatan picker (resolveLocation)     | Medium     | 1.5, 3.3    | ✅     |
+| 3.3b | KecamatanPicker component (in-chat chip grid)              | Medium     | 3.3a        | ✅     |
+| 3.4  | Center panel: MessageInput (send query)                   | Medium     | 3.3         | ✅     |
+| 3.5  | Center panel: SSE streaming (token-by-token render)       | Hard       | 3.3, 1.5    | ✅     |
+| 3.6  | Right panel: KosCardList (vertical scroll)                | Medium     | 1.5         | ✅     |
+| 3.7  | Right panel: MapView toggle (Leaflet + OSM)               | Hard       | 3.6         | ✅     |
+| 3.8  | Filter chips (wifi, AC, parkir, gender) — in-memory       | Medium     | 3.6         | ✅     |
+| 3.9  | Kos detail expansion (click card → full reviews)          | Medium     | 3.6         | ✅     |
+
+### Dashboard Summary
+
+- **State owner:** `ChatInterface.tsx` (root, all `useState` — no external state lib)
+- **Left panel:** `SavedSearches.tsx` — New search button, scrollable history (query/area/count/relative time), hover-to-delete, active highlight; persists via `saveSavedSearch`/`deleteSavedSearch` with localStorage fallback
+- **Center panel:** header (panel toggles + current area) → `ChatWindow` (markdown + streaming cursor + bouncing-dots loader + empty state) → `FilterChips` (in-memory) → `MessageInput` (auto-resize, Enter/Shift+Enter)
+- **Right panel:** `KosCardList` with List/Map tabs · list = `KosCard` → click expands `KosDetail` (parsed reviews, click-to-call, Maps link) · map = `MapView` (Leaflet/OSM, marker-icon fix, recenter on select)
+- **Regency flow:** `handleSendMessage` calls `resolveLocation` → if `districts.length > 1`, emits a picker message (`isPicker: true`) and parks `pendingArea`; `onPickKecamatan`/`onPickAllKecamatan` resume the search
+- **SSE streaming:** backend emits `progress` → `results` → `token`… → `done`; tokens bridge subprocess → async via queue+thread; frontend `streamSearch` async-generator appends live
+- **Backend work (done here, supports 3.5):** `summarize_stream()` (OpenAI streaming + chunked fallback), `format_results_stream()` (JSON-line subprocess protocol), `_stream_response()` rewrite; `search_and_rank` now resolves regency → `kecamatan=None` so "Cari di SEMUA" returns cross-district results
+- **Layout:** `/search` is a self-contained full-screen shell (`client:only="react"` — Leaflet needs `window`); panels collapse via header toggles; mobile drawers for left/right
+- **Verification:** `astro check` → **0/0/0** across 22 files · `npm run build` → 3 pages · `/search` island wired to `ChatInterface` chunk · backend Python parses clean
 
 ---
 
@@ -141,7 +155,7 @@ Phase 6 ────────────────────────
 |--------------------------|-------|-----------|--------|
 | 1 — Project Scaffold     | 5     | 3h        | ✅     |
 | 2 — Landing Page         | 4     | 2h        | ✅     |
-| 3 — 3-Panel Dashboard    | 11       | 14h       | ⬜     |
+| 3 — 3-Panel Dashboard    | 11       | 14h       | ✅     |
 | 4 — Settings Page        | 3     | 2h        | ⬜     |
 | 5 — Search History API   | 4     | 3h        | ⬜     |
 | 6 — Polish & Mobile      | 5     | 5h        | ⬜     |

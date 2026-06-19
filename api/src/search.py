@@ -1,7 +1,10 @@
 """POST /search — full kos search pipeline."""
 
+import asyncio
 import json
-from typing import Optional
+import threading
+from queue import Queue
+from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -14,6 +17,7 @@ from .orchestrator import (
     ensure_indexed,
     search_and_rank,
     format_results,
+    format_results_stream,
 )
 
 router = APIRouter()
@@ -74,11 +78,24 @@ async def search(req: SearchRequest):
     results = search_and_rank(req.query, area, req.top_k)
 
     if req.stream:
+        formatted = _format_items(results)
         return StreamingResponse(
-            _stream_response(req.query, results),
+            _stream_response(req.query, area, pipeline_status, formatted, results),
             media_type="text/event-stream",
         )
 
+    items = _format_items(results)
+
+    return {
+        "success": True,
+        "query": req.query,
+        "pipeline": pipeline_status,
+        "results": items,
+        "summary": format_results(results, req.query),
+    }
+
+
+def _format_items(results: List[dict]) -> List[dict]:
     items = []
     for r in results:
         meta = r["metadata"]
@@ -96,20 +113,52 @@ async def search(req: SearchRequest):
             "score": r.get("score", 0),
             "text": r.get("text", ""),
         })
-
-    return {
-        "success": True,
-        "query": req.query,
-        "pipeline": pipeline_status,
-        "results": items,
-        "summary": format_results(results, req.query),
-    }
+    return items
 
 
-async def _stream_response(query: str, results):
-    summary = format_results(results, query)
-    yield f"data: {json.dumps({'type': 'summary', 'content': summary})}\n\n"
-    yield "data: [DONE]\n\n"
+async def _stream_response(query: str, area: str, pipeline: dict, items: List[dict], results: List[dict]):
+    """Emit SSE events: progress → results → token... → done.
+
+    LLM tokens are produced by a sync subprocess generator and bridged to the
+    async event loop via a queue + thread, so tokens reach the client as they
+    arrive instead of being buffered.
+    """
+    yield _sse({"type": "progress", "stage": "search", "message": f"Mencari kos di {area}…"})
+    yield _sse({"type": "pipeline", "pipeline": pipeline})
+    yield _sse({"type": "results", "results": items, "query": query})
+
+    loop = asyncio.get_event_loop()
+    queue: "Queue[object]" = Queue()
+    SENTINEL = object()
+
+    def producer():
+        try:
+            for token in format_results_stream(results, query):
+                queue.put(token)
+        except Exception as exc:  # noqa: BLE001 — surfaced to client
+            queue.put(exc)
+        finally:
+            queue.put(SENTINEL)
+
+    thread = threading.Thread(target=producer, daemon=True)
+    thread.start()
+
+    while True:
+        item = await loop.run_in_executor(None, queue.get)
+        if item is SENTINEL:
+            break
+        if isinstance(item, Exception):
+            yield _sse({"type": "token", "token": f"\n\n_(error: {item})_"})
+            break
+        if item:
+            yield _sse({"type": "token", "token": item})
+
+    thread.join(timeout=2)
+    yield _sse({"type": "done"})
+
+
+def _sse(payload: dict) -> str:
+    return f"data: {json.dumps(payload)}\n\n"
 
 
 def _extract_area(query: str) -> Optional[str]:

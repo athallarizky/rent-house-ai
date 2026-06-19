@@ -37,7 +37,11 @@ def search(
     client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_collection(COLLECTION_NAME)
 
-    model = SentenceTransformer(EMBED_MODEL)
+    # attn_implementation="eager" avoids a PyTorch scaled_dot_product_attention
+    # "Invalid buffer size" failure seen with bge-m3 on some setups.
+    model = SentenceTransformer(
+        EMBED_MODEL, model_kwargs={"attn_implementation": "eager"}
+    )
     query_embedding = model.encode([query_text]).tolist()
 
     where: Optional[Dict] = _build_where(kecamatan, province, min_rating)
