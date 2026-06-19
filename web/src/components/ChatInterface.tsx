@@ -133,7 +133,11 @@ export default function ChatInterface() {
     };
     setMessages((prev) => [...prev, userMsg]);
 
-    const area = areaHint || extractArea(text) || currentDistrict || DEFAULT_AREA;
+    // Query-embedded area wins over the hint, so a regency-level query like
+    // "kos di bandung" re-triggers the district picker even when re-run from a
+    // saved search whose stored area is a specific district.
+    const area =
+      extractArea(text) || areaHint || currentDistrict || DEFAULT_AREA;
 
     try {
       const resolved = await resolveLocation(area);
@@ -218,7 +222,10 @@ export default function ChatInterface() {
       // (avoids spamming history with "kos di X" on every switch).
       const explicit = initialQuery && initialQuery.trim();
       const initialQ = explicit ? initialQuery!.trim() : `kos di ${res.district}`;
-      await queryDataset(initialQ, res.district, { saveSearch: !!explicit });
+      await queryDataset(initialQ, res.district, {
+        saveSearch: !!explicit,
+        regency: res.regency,
+      });
     } catch (e) {
       console.error("loadDistrict failed", e);
       const msg = e instanceof Error ? e.message : "Gagal memuat district";
@@ -231,7 +238,7 @@ export default function ChatInterface() {
   async function queryDataset(
     query: string,
     district: string,
-    opts: { saveSearch?: boolean } = {}
+    opts: { saveSearch?: boolean; regency?: string | null } = {}
   ) {
     const saveSearch = opts.saveSearch !== false;
     setIsLoading(true);
@@ -244,7 +251,12 @@ export default function ChatInterface() {
     let relItems: KosResult[] = [];
 
     try {
-      for await (const event of streamSearch({ query, area: district, top_k: 10 })) {
+      for await (const event of streamSearch({
+        query,
+        area: district,
+        regency: opts.regency ?? currentRegency ?? undefined,
+        top_k: 10,
+      })) {
         const t = event.type as string;
         if (t === "results") {
           relItems = (event.results as KosResult[]) || [];
@@ -367,16 +379,11 @@ export default function ChatInterface() {
 
   const handleSelectSaved = (s: SavedSearch) => {
     setActiveSearchId(s.id);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: uuid(),
-        role: "user",
-        content: s.query_text,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-    void loadDistrict(s.area, undefined, s.query_text);
+    // Re-run through handleSendMessage so the query's intent is re-detected:
+    // a regency-level query ("kos di bandung") re-triggers the district picker,
+    // while a refine query ("wifi kenceng") restores the saved district context.
+    const hint = extractArea(s.query_text) ? undefined : s.area;
+    void handleSendMessage(s.query_text, hint);
   };
 
   const handleDeleteSaved = (id: string) => {

@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import type { KodeposEntry } from "./types.js";
 import { resolve } from "./resolve.js";
 import { expand } from "./expand.js";
-import { isPoi } from "./classify.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -63,10 +62,9 @@ async function main() {
       return { success: false, error: "Missing query parameter: q" };
     }
 
-    if (isPoi(q)) {
-      return { success: true, data: { type: "POI", query: q } };
-    }
-
+    // NOTE: do not short-circuit isPoi() here — resolve() runs an exact-district
+    // check BEFORE its isPoi() so that real districts containing POI words
+    // ("Taman Sari", "Kebon Jeruk") resolve correctly instead of being labeled POI.
     const result = resolve(fuse, rawData, q, regencyNames);
     if (result) {
       return { success: true, data: result };

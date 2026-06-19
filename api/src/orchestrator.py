@@ -126,17 +126,37 @@ def ensure_indexed(area: str) -> Dict[str, Any]:
         return {"status": "indexed", "new": 0, "skipped": 0}
 
 
-def search_and_rank(query: str, area: str, top_k: int = 5) -> List[Dict[str, Any]]:
-    # Resolve so a regency-level area (multiple districts) searches across all
-    # its kecamatan instead of filtering to a non-existent kecamatan name.
+def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str]:
+    """Determine the kecamatan filter for a search.
+
+    When a regency is supplied (the session/switcher flow), look the district up
+    inside that regency for an EXACT match. This avoids the geo-router's
+    direct-resolve mis-hits (e.g. "Buahbatu" fuzzy-matched to "Blahbatuh, Gianyar"
+    instead of "Buahbatu, Bandung" — see RCA-007 / RCA-004).
+
+    Without a regency, fall back to direct resolve: a regency-level area
+    (multiple districts) → None (search all); a single district → its name.
+    """
+    if regency:
+        regency_geo = resolve_area(regency)
+        for d in regency_geo.get("districts", []):
+            if d.get("name", "").lower() == area.lower():
+                return d.get("name", area)
+        # not found inside the regency — fall through to direct resolve
+
     geo = resolve_area(area)
     districts = geo.get("districts", [])
     if len(districts) > 1:
-        kec_filter: Optional[str] = None
-    elif len(districts) == 1:
-        kec_filter = districts[0].get("name", area)
-    else:
-        kec_filter = area
+        return None  # regency-level: search across all kecamatan
+    if len(districts) == 1:
+        return districts[0].get("name", area)
+    return area
+
+
+def search_and_rank(
+    query: str, area: str, top_k: int = 5, regency: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    kec_filter = _resolve_kecamatan(area, regency)
 
     proc = subprocess.run(
         [sys.executable, "-c",
@@ -174,7 +194,7 @@ def format_results(results: List[Dict[str, Any]], query: str) -> str:
          f"print(summarize(data['query'], data['results']))"],
         cwd=str(ROOT / "services" / "rag-engine"),
         input=input_data,
-        timeout=30,
+        timeout=60,
         capture_output=True,
         text=True,
     )
