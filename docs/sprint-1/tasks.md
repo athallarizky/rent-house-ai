@@ -144,18 +144,36 @@
 
 ---
 
-## Phase 4 — RAG Engine (`services/rag-engine/`)
+## Phase 4 — RAG Engine (`services/rag-engine/`) ✅
+
+> 📄 Full report: [`reports/phase-4-report.md`](./reports/phase-4-report.md) — architecture, ChromaDB schema, search flow, LLM integration
 
 | ID   | Task                                                                                  | Difficulty | Dependencies | Status |
 |------|---------------------------------------------------------------------------------------|------------|-------------|--------|
-| 4.1  | Setup ChromaDB persistent + `BAAI/bge-m3` sentence-transformers                       | Easy       | —           | ⬜     |
-| 4.2  | Build `ingest.py` — clean docs → embeddings → ChromaDB (idempotent, `--force` flag)    | Medium     | 3.7, 4.1    | ⬜     |
-| 4.3  | Build `search.py` — vector search + metadata WHERE clause + geo radius (haversine)     | Medium     | 4.2         | ⬜     |
-| 4.4  | Build `rank.py` — composite score (distance + rating + tag match + review sentiment)   | Hard       | 4.3         | ⬜     |
-| 4.5  | Build `summarize.py` — Z.AI `glm-air` via OpenAI-compatible client                     | Medium     | 4.4         | ⬜     |
-| 4.6  | Write tests for search + ranking                                                      | Medium     | 4.5         | ⬜     |
+| 4.1  | Setup ChromaDB persistent + `BAAI/bge-m3` sentence-transformers                       | Easy       | —           | ✅     |
+| 4.2  | Build `ingest.py` — clean docs → embeddings → ChromaDB (idempotent, `--force` flag)   | Medium     | 3.7, 4.1    | ✅     |
+| 4.3  | Build `search.py` — vector search + metadata WHERE clause + geo radius (haversine)    | Medium     | 4.2         | ✅     |
+| 4.4  | Build `rank.py` — composite score (distance + rating + tag match + review count)      | Hard       | 4.3         | ✅     |
+| 4.5  | Build `summarize.py` — Z.AI `glm-air` via OpenAI-compatible client + fallback         | Medium     | 4.4         | ✅     |
+| 4.6  | End-to-end test with Cengkareng data (ingest → search → rank → summarize)             | Medium     | 4.5         | ✅     |
 
-> **Ref:** `docs/sprint-1/data-design.md` — ChromaDB Schema section
+### Test Results (Cengkareng, 152 docs)
+
+| Query | Top Result | Rating | Tags |
+|-------|-----------|--------|------|
+| "wifi kenceng" | Warteg & Kos Nyaman Gemini | 4.8★ | wifi, ac, laundry |
+| "wifi lemot" | Kos ALFA | 4.3★ | — |
+| "ac dingin parkir luas" | Kost ancece258 | 4.5★ | parkir |
+
+### Service Summary
+
+- **Runtime:** Python 3.9+ (chromadb, sentence-transformers, openai)
+- **Files:** `config.py`, `ingest.py`, `search.py`, `rank.py`, `summarize.py`
+- **Embedding:** `BAAI/bge-m3` (1024-dim, multilingual, ~2.3GB first download)
+- **Vector DB:** ChromaDB persistent, HNSW + cosine, single collection `kos_indonesia`
+- **LLM:** Z.AI `glm-air` via `openai.OpenAI(base_url=...)` — falls back to formatted list if no key
+- **Ranking:** 35% rating + 30% tags + 20% reviews + 15% distance
+- **Idempotent:** Re-ingest skips already-indexed docs
 > **Ref:** `docs/sprint-1/architecture.md` — RAG Engine section
 
 ---
