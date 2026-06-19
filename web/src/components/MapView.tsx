@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -22,6 +23,23 @@ interface MapViewProps {
   selected?: KosResult | null;
   onMarkerClick?: (kos: KosResult) => void;
   center?: [number, number];
+}
+
+/** Keep the map sized to its container (handles mount + panel resize/toggle). */
+function AutoResize() {
+  const map = useMap();
+  useEffect(() => {
+    const r = () => map.invalidateSize();
+    r();
+    const t = setTimeout(r, 100);
+    const ro = new ResizeObserver(r);
+    ro.observe(map.getContainer());
+    return () => {
+      clearTimeout(t);
+      ro.disconnect();
+    };
+  }, [map]);
+  return null;
 }
 
 function Recenter({ center }: { center?: [number, number] }) {
@@ -47,46 +65,45 @@ export default function MapView({
     (valid[0] ? [valid[0].lat, valid[0].lon] : [-6.147, 106.727]);
 
   return (
-    <div className="h-full w-full">
-      <MapContainer
-        center={defaultCenter}
-        zoom={14}
-        scrollWheelZoom={false}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        />
-        <Recenter center={selected ? [selected.lat, selected.lon] : center} />
-        {valid.map((m) => (
-          <Marker
-            key={m.place_id || m.name}
-            position={[m.lat, m.lon]}
-            eventHandlers={{ click: () => onMarkerClick?.(m) }}
-          >
-            <Popup>
-              <div className="min-w-[160px]">
-                <div className="font-semibold text-sm flex items-center gap-1">
-                  {m.name}
-                  <span className="text-amber-500 flex items-center gap-0.5">
-                    <Star className="w-3 h-3 fill-amber-500" />
-                    {typeof m.rating === "number" ? m.rating.toFixed(1) : m.rating}
-                  </span>
-                </div>
-                {m.kecamatan && (
-                  <div className="text-xs text-slate-500">{m.kecamatan}</div>
-                )}
-                {m.tags?.length > 0 && (
-                  <div className="text-xs text-slate-600 mt-1">
-                    {m.tags.slice(0, 5).map(tagLabel).join(" · ")}
-                  </div>
-                )}
+    <MapContainer
+      center={defaultCenter}
+      zoom={14}
+      scrollWheelZoom={false}
+      style={{ height: "100%", width: "100%" }}
+    >
+      <AutoResize />
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      />
+      <Recenter center={selected ? [selected.lat, selected.lon] : center} />
+      {valid.map((m) => (
+        <Marker
+          key={m.place_id || m.name}
+          position={[m.lat, m.lon]}
+          eventHandlers={{ click: () => onMarkerClick?.(m) }}
+        >
+          <Popup>
+            <div className="min-w-[160px]">
+              <div className="font-semibold text-sm flex items-center gap-1">
+                {m.name}
+                <span className="text-amber-500 flex items-center gap-0.5">
+                  <Star className="w-3 h-3 fill-amber-500" />
+                  {typeof m.rating === "number" ? m.rating.toFixed(1) : m.rating}
+                </span>
               </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </div>
+              {m.kecamatan && (
+                <div className="text-xs text-slate-500">{m.kecamatan}</div>
+              )}
+              {m.tags?.length > 0 && (
+                <div className="text-xs text-slate-600 mt-1">
+                  {m.tags.slice(0, 5).map(tagLabel).join(" · ")}
+                </div>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
   );
 }
