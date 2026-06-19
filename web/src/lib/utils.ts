@@ -81,3 +81,18 @@ export function uuid(): string {
   }
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
+
+/** Map low-level fetch/network errors to a friendly Indonesian message. */
+export function friendlyError(e: unknown, fallback: string): string {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+    return "Tidak bisa terhubung ke server. Pastikan FastAPI (:8080) & geo-router (:3001) berjalan.";
+  }
+  if (/resolveLocation failed \(502\)|geo-router unavailable/i.test(msg)) {
+    return "Geo-router tidak tersedia (:3001). Jalankan `npm run dev` di services/geo-router.";
+  }
+  if (/502|bad gateway/i.test(msg)) {
+    return "Server upstream tidak tersedia (502). Cek service backend.";
+  }
+  return fallback || msg;
+}

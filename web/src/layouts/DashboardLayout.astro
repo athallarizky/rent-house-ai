@@ -1,5 +1,8 @@
 ---
 import '../styles/globals.css';
+import { noFlashScript } from '../lib/theme';
+import ThemeToggle from '../components/ThemeToggle';
+import MobileNav from '../components/MobileNav';
 
 interface Props {
   title?: string;
@@ -19,6 +22,7 @@ const isActive = (key: string, href: string) =>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+    <script is:inline set:html={noFlashScript} />
   </head>
   <body>
     <div class="flex h-screen bg-background">
@@ -70,13 +74,23 @@ const isActive = (key: string, href: string) =>
           </a>
         </nav>
 
-        <div class="border-t border-border p-4">
+        <div class="border-t border-border p-3 space-y-2">
+          <ThemeToggle client:load />
           <p class="text-xs text-muted-foreground">Kos AI v0.1.0</p>
         </div>
       </aside>
 
       <!-- Main Content -->
       <main class="flex-1 overflow-hidden flex flex-col">
+        <!-- Mobile top bar (global nav hamburger). Desktop uses the sidebar. -->
+        <header class="md:hidden flex items-center gap-2 border-b border-border bg-card px-3 py-2.5">
+          <MobileNav currentPath={currentPath} client:load />
+          <a href="/" class="flex items-center gap-2">
+            <span class="text-lg">🏠</span>
+            <span class="font-bold text-sm">Kos AI</span>
+          </a>
+          <div class="ml-auto"><ThemeToggle client:load compact /></div>
+        </header>
         <slot />
       </main>
     </div>
