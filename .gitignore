@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+
+# Build artifacts
+dist/
+*.egg-info/
+
+# Runtime data (scraper output, databases, cache)
+data/raw/
+data/cleaned/
+data/chroma_db/
+
+# Symlink target
+data/kodepos.json
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Go binary
+services/scraper/google-maps-scraper/gmaps-scraper
+
+# Kodepos node_modules
+services/geo-router/kodepos/node_modules/
