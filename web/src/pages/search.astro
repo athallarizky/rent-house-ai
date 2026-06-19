@@ -1,9 +1,17 @@
 ---
-import DashboardLayout from '../layouts/DashboardLayout.astro';
+import '../styles/globals.css';
+import ChatInterface from '../components/ChatInterface';
 ---
 
-<DashboardLayout title="Pencarian - Kos AI" active="search">
-  <div class="p-8">
-    <p class="text-muted-foreground">3-panel dashboard — dibangun di Phase 3.</p>
-  </div>
-</DashboardLayout>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Pencarian — Kos AI</title>
+  </head>
+  <body>
+    <ChatInterface client:only="react" />
+  </body>
+</html>

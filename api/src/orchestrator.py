@@ -105,11 +105,22 @@ def ensure_indexed(area: str) -> Dict[str, Any]:
 
 
 def search_and_rank(query: str, area: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    # Resolve so a regency-level area (multiple districts) searches across all
+    # its kecamatan instead of filtering to a non-existent kecamatan name.
+    geo = resolve_area(area)
+    districts = geo.get("districts", [])
+    if len(districts) > 1:
+        kec_filter: Optional[str] = None
+    elif len(districts) == 1:
+        kec_filter = districts[0].get("name", area)
+    else:
+        kec_filter = area
+
     proc = subprocess.run(
         [sys.executable, "-c",
          f"import json; "
          f"from src.search import search; from src.rank import rank; "
-         f"results = search({json.dumps(query)}, kecamatan={json.dumps(area)}, top_k={max(top_k * 3, 30)}); "
+         f"results = search({json.dumps(query)}, kecamatan={json.dumps(kec_filter)}, top_k={max(top_k * 3, 30)}); "
          f"ranked = rank(results); "
          f"output = [{{'metadata': r['metadata'], 'score': r.get('score', 0), 'text': r.get('text', '')[:200]}} for r in ranked[:{top_k}]]; "
          f"print(json.dumps(output))"],
@@ -150,6 +161,47 @@ def format_results(results: List[Dict[str, Any]], query: str) -> str:
         return _format_fallback(results, query)
 
     return proc.stdout.strip() or _format_fallback(results, query)
+
+
+def format_results_stream(results: List[Dict[str, Any]], query: str):
+    """Stream summary tokens via the RAG engine subprocess.
+
+    Yields token strings as they arrive. The subprocess prints each token as a
+    JSON-encoded line ({"t": "<token>"}) so we can stream across the process
+    boundary without buffering. Falls back to a single error token on failure.
+    """
+    input_data = json.dumps({"query": query, "results": results[:5]})
+    proc = subprocess.Popen(
+        [sys.executable, "-u", "-c",
+         "import json, sys; "
+         "from src.summarize import stream_to_stdout; "
+         "data = json.loads(sys.stdin.read()); "
+         "stream_to_stdout(data['query'], data['results'])"],
+        cwd=str(ROOT / "services" / "rag-engine"),
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    assert proc.stdin is not None and proc.stdout is not None
+    try:
+        proc.stdin.write(input_data)
+        proc.stdin.close()
+        for line in proc.stdout:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                yield json.loads(line).get("t", "")
+            except json.JSONDecodeError:
+                continue
+        proc.wait(timeout=30)
+    except Exception:
+        proc.kill()
+        yield _format_fallback(results, query)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
 
 
 def _format_fallback(results: List[Dict], query: str) -> str:
