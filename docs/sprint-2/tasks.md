@@ -1,6 +1,6 @@
 # Sprint 2 — UI Dashboard + Agentic Chat
 
-> Status: 🔵 Phase 4 Done | Created: 2026-06-19 | Updated: 2026-06-19
+> Status: 🔵 Phase 5 Done | Created: 2026-06-19 | Updated: 2026-06-19
 >
 > **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
 >
@@ -107,14 +107,24 @@
 
 ---
 
-## Phase 5 — Backend: Search History API
+## Phase 5 — Backend: Search History API ✅
+
+> 📄 Full report: [`reports/phase-5-report.md`](./reports/phase-5-report.md) — SQLite schema, endpoints, frontend wiring
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 5.1  | SQLite schema: `saved_searches` table                     | Easy       | —           | ⬜     |
-| 5.2  | FastAPI endpoints: `GET/POST/DELETE /searches`            | Medium     | 5.1         | ⬜     |
-| 5.3  | Save search on first query (area + query text)            | Easy       | 5.2         | ⬜     |
-| 5.4  | Re-run saved search (click → auto-fill chat)              | Medium     | 5.2, 3.3    | ⬜     |
+| 5.1  | SQLite schema: `saved_searches` table                     | Easy       | —           | ✅     |
+| 5.2  | FastAPI endpoints: `GET/POST/DELETE /searches`            | Medium     | 5.1         | ✅     |
+| 5.3  | Save search on first query (area + query text)            | Easy       | 5.2         | ✅     |
+| 5.4  | Re-run saved search (click → auto-fill chat)              | Medium     | 5.2, 3.3    | ✅     |
+
+### Search History Summary
+
+- **Backend:** `api/src/searches.py` — SQLite (`data/search_history.db`, gitignored) + `GET /searches` (newest first), `POST /searches` (INSERT OR REPLACE, generates id/created_at kalau kosong), `DELETE /searches/{id}`. Schema: `saved_searches(id, query_text, area, result_count, created_at, updated_at)`
+- **Frontend:** flip `SAVED_SEARCHES_API_ENABLED = true` di `lib/api.ts` → `listSavedSearches`/`saveSavedSearch`/`deleteSavedSearch` sekarang pakai backend (localStorage jadi fallback kalau API down)
+- **5.3 (save):** sudah di-wire sejak Rev-001 — `ChatInterface.queryDataset` simpan tiap query eksplisit (auto-recommendation switch tidak disimpan, via flag `saveSearch`)
+- **5.4 (re-run):** `SavedSearches.onSelect` → `loadDistrict(area, undefined, query_text)` → muat ulang district + RAG query
+- **Verification:** POST/GET/DELETE smoke test OK; `astro check` 0/0/0; build 3 pages
 
 ---
 
@@ -168,7 +178,7 @@ Phase 6 ────────────────────────
 | 2 — Landing Page         | 4     | 2h        | ✅     |
 | 3 — 3-Panel Dashboard    | 11       | 14h       | ✅     |
 | 4 — Settings Page        | 3     | 2h        | ✅     |
-| 5 — Search History API   | 4     | 3h        | ⬜     |
+| 5 — Search History API   | 4     | 3h        | ✅     |
 | 6 — Polish & Mobile      | 5     | 5h        | ⬜     |
 | **Total**                | **32** | **~29h**  |        |
 
