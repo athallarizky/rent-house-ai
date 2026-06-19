@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .search import router as search_router
 from .locations import router as locations_router
+from .settings import router as settings_router
 
 app = FastAPI(
     title="Kos Search API",
@@ -21,6 +22,7 @@ app.add_middleware(
 
 app.include_router(search_router)
 app.include_router(locations_router)
+app.include_router(settings_router)
 
 
 @app.get("/health")

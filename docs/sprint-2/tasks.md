@@ -1,6 +1,6 @@
 # Sprint 2 — UI Dashboard + Agentic Chat
 
-> Status: 🔵 Phase 3 Done | Created: 2026-06-19 | Updated: 2026-06-19
+> Status: 🔵 Phase 4 Done | Created: 2026-06-19 | Updated: 2026-06-19
 >
 > **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
 >
@@ -86,13 +86,24 @@
 
 ---
 
-## Phase 4 — Settings Page
+## Phase 4 — Settings Page ✅
+
+> 📄 Full report: [`reports/phase-4-report.md`](./reports/phase-4-report.md) — persistence design, model-name discovery, coding-plan endpoint
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 4.1  | LLM provider config (Z.AI key, model select)              | Easy       | 1.5         | ⬜     |
-| 4.2  | Save settings to server (SQLite/JSON)                     | Medium     | 4.1         | ⬜     |
-| 4.3  | Test LLM connection button                                | Easy       | 4.1, 1.5    | ⬜     |
+| 4.1  | LLM provider config (Z.AI key, model select)              | Easy       | 1.5         | ✅     |
+| 4.2  | Save settings to server (SQLite/JSON)                     | Medium     | 4.1         | ✅     |
+| 4.3  | Test LLM connection button                                | Easy       | 4.1, 1.5    | ✅     |
+
+### Settings Page Summary
+
+- **Backend:** `api/src/settings.py` — `GET /settings` (masked, no key leak), `PUT /settings` (→ `data/settings.json`), `POST /settings/test` (server-side proxy → avoids browser CORS), `POST /settings/models` (live Z.AI model list)
+- **Wiring:** `config.py` reads `api_key`/`model`/`base_url` from `data/settings.json` first → **key dari form benar-benar dipakai** RAG engine (fallback env)
+- **Frontend:** `ProviderSettings.tsx` (`client:load`) — provider readonly, model input + **datalist live-fetched**, API key (password + masked hint), editable base_url, Test Connection (✅/❌), Simpan (toast), Data paths section
+- **Security:** raw key **never echoed** to client on GET (only `api_key_set` + masked hint) — standard secrets pattern; field kosong saat reload by design
+- **Model discovery:** `glm-air` (sprint-1, salah) → `glm/glm-4.5-air` (400) → `glm-4.5-air` (via `/models`) → **coding-plan endpoint** `https://api.z.ai/api/coding/paas/v4/` (PAYG `/paas/v4/` → 429). Default base_url sekarang coding endpoint
+- **Verification:** `astro check` **0/0/0** · `POST /settings/test` coding endpoint → ✅ reply · `/search` summary pakai LLM asli
 
 ---
 
@@ -156,7 +167,7 @@ Phase 6 ────────────────────────
 | 1 — Project Scaffold     | 5     | 3h        | ✅     |
 | 2 — Landing Page         | 4     | 2h        | ✅     |
 | 3 — 3-Panel Dashboard    | 11       | 14h       | ✅     |
-| 4 — Settings Page        | 3     | 2h        | ⬜     |
+| 4 — Settings Page        | 3     | 2h        | ✅     |
 | 5 — Search History API   | 4     | 3h        | ⬜     |
 | 6 — Polish & Mobile      | 5     | 5h        | ⬜     |
 | **Total**                | **32** | **~29h**  |        |

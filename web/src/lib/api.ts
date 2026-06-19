@@ -229,10 +229,72 @@ export function persistSettings(settings: ProviderSettings): void {
 export function defaultSettings(): ProviderSettings {
   return {
     provider: "Z.AI",
-    model: "glm-air",
+    model: "glm-4.5-air",
     api_key: "",
-    base_url: "https://api.z.ai/api/paas/v4/",
+    base_url: "https://api.z.ai/api/coding/paas/v4/",
   };
+}
+
+// === Settings (backend-persisted, Phase 4) ===
+// Stored in data/settings.json server-side; the RAG engine reads the key/model
+// from there. GET returns a masked hint (never the raw key) so the form's
+// api_key field starts empty and the user re-types or leaves blank to keep.
+
+export interface BackendSettings {
+  provider: string;
+  model: string;
+  base_url: string;
+  api_key_set: boolean;
+  api_key_hint: string;
+}
+
+export async function getSettings(): Promise<BackendSettings> {
+  const resp = await fetch(`${API_URL}/settings`);
+  if (!resp.ok) throw new Error(`getSettings failed (${resp.status})`);
+  return resp.json();
+}
+
+export async function saveSettings(
+  s: ProviderSettings
+): Promise<{ ok: boolean }> {
+  const resp = await fetch(`${API_URL}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(s),
+  });
+  if (!resp.ok) throw new Error(`saveSettings failed (${resp.status})`);
+  return resp.json();
+}
+
+export interface ConnectionTestResult {
+  ok: boolean;
+  reply?: string;
+  error?: string;
+}
+
+export async function testConnection(req: {
+  api_key: string;
+  model: string;
+  base_url: string;
+}): Promise<ConnectionTestResult> {
+  const resp = await fetch(`${API_URL}/settings/test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!resp.ok) throw new Error(`testConnection failed (${resp.status})`);
+  return resp.json();
+}
+
+export async function listModels(apiKey: string, baseUrl?: string): Promise<string[]> {
+  const resp = await fetch(`${API_URL}/settings/models`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: apiKey, base_url: baseUrl }),
+  });
+  if (!resp.ok) return [];
+  const data = await resp.json();
+  return data.models || [];
 }
 
 export { API_URL };
