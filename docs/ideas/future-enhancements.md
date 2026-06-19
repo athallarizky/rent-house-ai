@@ -122,3 +122,63 @@ if cache_age > 30:  # days
 ```
 
 **Benefit:** Data stays fresh without manual `--force-scrape`.
+
+---
+
+## 7. Map View with Leaflet
+
+**Service:** Frontend (`web/src/components/`)
+
+**What:** Toggle right panel between list view and Leaflet map. Pins at kos coordinates, click to see detail.
+
+```
+[📋 List] [🗺️ Map]
+              │
+    ┌─────────▼──────────┐
+    │  Leaflet + OSM     │
+    │  📍A  📍B   📍C    │
+    │       📍D          │
+    └────────────────────┘
+```
+
+**Tech:** Leaflet.js + OpenStreetMap tiles. Free, no API key, works offline with cached tiles.
+
+**Benefit:** Spatial context for "dekat stasiun", "radius 2km" queries.
+
+---
+
+## 8. Price Range Extraction from Reviews
+
+**Service:** `services/data-processor/src/extract.py`
+
+**What:** Regex-detect price mentions in review text.
+
+```python
+PRICE_PATTERNS = [
+    r"(\d+[.,]?\d*)\s*(jt|juta|jt-an|jutaan)",
+    r"(\d+[.,]?\d*)\s*(rb|ribu|perak)",
+    r"rp[.,\s]*(\d+[.,]?\d*)",
+]
+```
+
+**Result:** `price_range: "1000000-1999999"` per kos. Enables "kos di bawah 2 juta" filter.
+
+**Status:** Backlog. Needs regex testing on real review data.
+
+---
+
+## 9. Authentication (Multi-User)
+
+**Service:** New `services/auth/` + `api/src/auth.py`
+
+**What:** Simple JWT-based auth for saving search history per user.
+
+- Register / login with email + password
+- JWT token in `Authorization` header
+- SQLite `users` table
+- Saved searches scoped to `user_id`
+
+**Tech:** FastAPI + `python-jose` + `passlib`. Can reuse slack-rag's provider pattern.
+
+**Status:** Backlog. Current MVP is single-user, local-only.
+
