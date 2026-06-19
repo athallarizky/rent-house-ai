@@ -108,20 +108,39 @@
 
 ---
 
-## Phase 3 — Data Processor (`services/data-processor/`)
+## Phase 3 — Data Processor (`services/data-processor/`) ✅
+
+> 📄 Full report: [`reports/phase-3-report.md`](./reports/phase-3-report.md) — pipeline stages, test results, RAG document format
 
 | ID   | Task                                                                                      | Difficulty | Dependencies     | Status |
 |------|-------------------------------------------------------------------------------------------|------------|------------------|--------|
-| 3.1  | Parse JSONL → Python dicts (handle `longtitude`/`longitude`, mixed PascalCase/snake_case) | Medium     | 0.5              | ⬜     |
-| 3.2  | Normalize (phone E.164, area de-anglicizing) — reuse kosan-jakbar patterns                 | Medium     | 3.1              | ⬜     |
-| 3.3  | Enrich with kodepos — resolve postal_code → kecamatan, kelurahan, province                 | Medium     | 3.1, 1.2         | ⬜     |
-| 3.4  | Dedup by `place_id` + coordinate proximity (<100m)                                        | Medium     | 3.1              | ⬜     |
-| 3.5  | Extract facilities from review text (wifi, AC, parkir, dll) — regex                       | Hard       | 3.1              | ⬜     |
-| 3.6  | Build RAG document text per kos (name + address + rating + top-20 reviews summary)         | Medium     | 3.2, 3.3, 3.5    | ⬜     |
-| 3.7  | Validate coordinates (bounds Indonesia) + output clean parquet + RAG docs JSON             | Easy       | 3.6              | ⬜     |
-| 3.8  | Write tests for all stages                                                                | Medium     | 3.7              | ⬜     |
+| 3.1  | Parse JSONL → Python dicts (handle `longtitude`/`longitude`, mixed PascalCase/snake_case) | Medium     | 0.5              | ✅     |
+| 3.2  | Normalize (phone E.164, area de-anglicizing) — reuse kosan-jakbar patterns                 | Medium     | 3.1              | ✅     |
+| 3.3  | Enrich with kodepos — resolve postal_code → kecamatan, kelurahan, province                 | Medium     | 3.1, 1.2         | ✅     |
+| 3.4  | Dedup by `place_id` + coordinate proximity (<50m)                                         | Medium     | 3.1              | ✅     |
+| 3.5  | Extract facilities from review text (wifi, AC, parkir, dll) — regex                       | Hard       | 3.1              | ✅     |
+| 3.6  | Build RAG document text per kos (name + address + rating + top-20 reviews)                 | Medium     | 3.2, 3.3, 3.5    | ✅     |
+| 3.7  | Validate coordinates (bounds Indonesia) + output clean JSON + RAG docs                     | Easy       | 3.6              | ✅     |
+| 3.8  | Test full pipeline with Cengkareng data                                                   | Medium     | 3.7              | ✅     |
 
-> **Ref:** `docs/sprint-1/data-design.md` — RAG Document Design section
+### Pipeline Results (Cengkareng)
+
+| Stage | Count |
+|-------|-------|
+| Raw | 208 |
+| After dedup | **152 kos** |
+| RAG docs | 152 |
+| Invalid | 0 |
+
+### Service Summary
+
+- **Runtime:** Python 3.9+
+- **Files:** 8 modules (pipeline, parse, normalize, enrich, extract, dedup, build_doc, validate)
+- **Pipeline:** Parse → Normalize → Enrich → Extract → Dedup → Build Docs → Validate
+- **Facilities detected:** wifi (21), ac (29), parkir (19), dapur (14), km_dalam (7), laundry (7), kasur (12), lemari (9), listrik (9), tv (5)
+- **Review noise filter:** ~40% reviews filtered (questions like "ada kamar kosong?")
+- **Dedup:** place_id (177 → 152) + 50m proximity
+- **Output:** `data/cleaned/cengkareng.json` (344 KB) + `cengkareng_docs.json` (186 KB)
 
 ---
 
