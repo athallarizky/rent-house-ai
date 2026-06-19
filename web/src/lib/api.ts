@@ -5,6 +5,7 @@ import type {
   ExpandLocationResponse,
   HealthResponse,
   SavedSearch,
+  AreaLoadResponse,
 } from "./types";
 
 const API_URL =
@@ -98,6 +99,27 @@ export async function expandLocation(q: string): Promise<ExpandLocationResponse>
 export async function getHealth(): Promise<HealthResponse> {
   const resp = await fetch(`${API_URL}/health`);
   if (!resp.ok) throw new Error(`getHealth failed (${resp.status})`);
+  return resp.json();
+}
+
+/**
+ * Load the full kos dataset for a district (the session browse set) + sibling
+ * districts for the switcher. Runs the pipeline (cached after first run).
+ * Rev-001: replaces the old per-message full search.
+ */
+export async function loadArea(
+  district: string,
+  regency?: string
+): Promise<AreaLoadResponse> {
+  const resp = await fetch(`${API_URL}/area/load`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ district, regency }),
+  });
+  if (!resp.ok) {
+    const detail = await resp.text();
+    throw new Error(`loadArea failed (${resp.status}): ${detail}`);
+  }
   return resp.json();
 }
 

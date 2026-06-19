@@ -46,7 +46,7 @@ def summarize(
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
             ],
-            max_tokens=800,
+            max_tokens=1200,
             temperature=0.3,
         )
         return response.choices[0].message.content or ""
@@ -83,7 +83,7 @@ def summarize_stream(
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
             ],
-            max_tokens=800,
+            max_tokens=1200,
             temperature=0.3,
             stream=True,
         )
@@ -101,7 +101,7 @@ def summarize_stream(
 
 def _build_user_message(query: str, results: List[Dict[str, Any]]) -> str:
     context_parts = []
-    for i, item in enumerate(results[:5], 1):
+    for i, item in enumerate(results[:10], 1):
         meta = item["metadata"]
         text = item.get("text", "")
         score = item.get("score", 0)
@@ -137,7 +137,7 @@ def _format_fallback(results: List[Dict], query: str, error: str = "") -> str:
     if error:
         lines.append(f"(LLM tidak tersedia: {error})")
     lines.append("")
-    for i, item in enumerate(results[:5], 1):
+    for i, item in enumerate(results[:10], 1):
         meta = item["metadata"]
         tags = meta.get("tags", "").replace("|", ", ")
         lines.append(

@@ -1,4 +1,6 @@
-"""POST /search — full kos search pipeline."""
+"""POST /search — RAG refinement over an already-loaded district.
+   POST /area/load — load the full kos dataset for a district (session browse set).
+"""
 
 import asyncio
 import json
@@ -18,6 +20,7 @@ from .orchestrator import (
     search_and_rank,
     format_results,
     format_results_stream,
+    load_area,
 )
 
 router = APIRouter()
@@ -28,9 +31,27 @@ class SearchRequest(BaseModel):
     area: Optional[str] = None
     min_rating: Optional[float] = None
     gender: Optional[str] = None
-    top_k: int = 5
+    top_k: int = 8
     force_scrape: bool = False
     stream: bool = False
+    # Rev-001: by default /search is a lightweight refine over an already-indexed
+    # district. Set ensure_pipeline=true to run scrape/process/index inline
+    # (backward-compat / fallback when /area/load hasn't been called).
+    ensure_pipeline: bool = False
+
+
+class AreaLoadRequest(BaseModel):
+    district: str
+    regency: Optional[str] = None
+
+
+@router.post("/area/load")
+async def area_load(req: AreaLoadRequest):
+    """Load the full kos dataset for a district + sibling districts (switcher)."""
+    result = load_area(req.district, req.regency)
+    if not result.get("success"):
+        raise HTTPException(400, result.get("error", "Failed to load area"))
+    return result
 
 
 @router.post("/search")
@@ -39,41 +60,44 @@ async def search(req: SearchRequest):
     if not area:
         raise HTTPException(400, "Could not determine area. Provide 'area' field.")
 
-    geo = resolve_area(area)
-    if geo.get("type") == "POI":
-        raise HTTPException(400, f"'{area}' is a Point of Interest, not an area.")
+    pipeline_status: Optional[dict] = None
 
-    districts = geo.get("districts", [])
-    if not districts and not req.area:
-        raise HTTPException(400, f"Area '{area}' not found.")
+    if req.ensure_pipeline:
+        # Full pipeline (cached after first run). Used as fallback / first load.
+        geo = resolve_area(area)
+        if geo.get("type") == "POI":
+            raise HTTPException(400, f"'{area}' is a Point of Interest, not an area.")
 
-    postal_codes: list = []
-    for d in districts:
-        postal_codes.extend(d.get("postalCodes", []))
+        districts = geo.get("districts", [])
+        if not districts and not req.area:
+            raise HTTPException(400, f"Area '{area}' not found.")
 
-    if not postal_codes:
-        raise HTTPException(400, f"No postal codes found for '{area}'")
+        postal_codes: list = []
+        for d in districts:
+            postal_codes.extend(d.get("postalCodes", []))
+        if not postal_codes:
+            raise HTTPException(400, f"No postal codes found for '{area}'")
 
-    pipeline_status = {
-        "area": area,
-        "regency": geo.get("regency", ""),
-        "province": geo.get("province", ""),
-    }
+        pipeline_status = {
+            "area": area,
+            "regency": geo.get("regency", ""),
+            "province": geo.get("province", ""),
+        }
 
-    scrape_result = ensure_scraped(area, postal_codes, req.force_scrape)
-    if scrape_result["status"] == "error":
-        raise HTTPException(500, f"Scrape failed: {scrape_result.get('message')}")
-    pipeline_status["scrape"] = scrape_result["status"]
+        scrape_result = ensure_scraped(area, postal_codes, req.force_scrape)
+        if scrape_result["status"] == "error":
+            raise HTTPException(500, f"Scrape failed: {scrape_result.get('message')}")
+        pipeline_status["scrape"] = scrape_result["status"]
 
-    proc_result = ensure_processed(area)
-    if proc_result["status"] == "error":
-        raise HTTPException(500, f"Processing failed: {proc_result.get('message')}")
-    pipeline_status["process"] = proc_result["status"]
+        proc_result = ensure_processed(area)
+        if proc_result["status"] == "error":
+            raise HTTPException(500, f"Processing failed: {proc_result.get('message')}")
+        pipeline_status["process"] = proc_result["status"]
 
-    idx_result = ensure_indexed(area)
-    if idx_result["status"] == "error":
-        raise HTTPException(500, f"Indexing failed: {idx_result.get('message')}")
-    pipeline_status["index"] = f"{idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
+        idx_result = ensure_indexed(area)
+        if idx_result["status"] == "error":
+            raise HTTPException(500, f"Indexing failed: {idx_result.get('message')}")
+        pipeline_status["index"] = f"{idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
 
     results = search_and_rank(req.query, area, req.top_k)
 
@@ -124,7 +148,8 @@ async def _stream_response(query: str, area: str, pipeline: dict, items: List[di
     arrive instead of being buffered.
     """
     yield _sse({"type": "progress", "stage": "search", "message": f"Mencari kos di {area}…"})
-    yield _sse({"type": "pipeline", "pipeline": pipeline})
+    if pipeline:
+        yield _sse({"type": "pipeline", "pipeline": pipeline})
     yield _sse({"type": "results", "results": items, "query": query})
 
     loop = asyncio.get_event_loop()

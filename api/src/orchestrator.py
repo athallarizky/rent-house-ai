@@ -12,6 +12,28 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 GEO_ROUTER_URL = "http://localhost:3001"
 
 
+def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Shape raw {metadata, text} from the RAG engine into the API KosResult item."""
+    items = []
+    for r in results:
+        meta = r.get("metadata", r)
+        items.append({
+            "name": meta.get("name", ""),
+            "place_id": meta.get("place_id", ""),
+            "rating": meta.get("rating", 0),
+            "review_count": meta.get("review_count", 0),
+            "tags": meta.get("tags", "").split("|") if meta.get("tags") else [],
+            "gender": meta.get("gender", ""),
+            "phone": meta.get("phone", ""),
+            "lat": meta.get("lat", 0),
+            "lon": meta.get("lon", 0),
+            "kecamatan": meta.get("kecamatan", ""),
+            "score": r.get("score", 0),
+            "text": r.get("text", ""),
+        })
+    return items
+
+
 def resolve_area(query: str) -> Dict[str, Any]:
     try:
         url = f"{GEO_ROUTER_URL}/resolve?q={urllib.parse.quote(query)}"
@@ -143,7 +165,7 @@ def format_results(results: List[Dict[str, Any]], query: str) -> str:
     if not results:
         return f"No results for: {query}"
 
-    input_data = json.dumps({"query": query, "results": results[:5]})
+    input_data = json.dumps({"query": query, "results": results[:10]})
     proc = subprocess.run(
         [sys.executable, "-c",
          f"import json, sys; "
@@ -170,7 +192,7 @@ def format_results_stream(results: List[Dict[str, Any]], query: str):
     JSON-encoded line ({"t": "<token>"}) so we can stream across the process
     boundary without buffering. Falls back to a single error token on failure.
     """
-    input_data = json.dumps({"query": query, "results": results[:5]})
+    input_data = json.dumps({"query": query, "results": results[:10]})
     proc = subprocess.Popen(
         [sys.executable, "-u", "-c",
          "import json, sys; "
@@ -206,7 +228,126 @@ def format_results_stream(results: List[Dict[str, Any]], query: str):
 
 def _format_fallback(results: List[Dict], query: str) -> str:
     lines = [f"Pencarian: {query}", ""]
-    for i, r in enumerate(results[:5], 1):
+    for i, r in enumerate(results[:10], 1):
         m = r.get("metadata", r)
         lines.append(f"{i}. {m.get('name', '')} — {m.get('rating', 0)}★ ({m.get('review_count', 0)} reviews)")
     return "\n".join(lines)
+
+
+def load_area(district: str, regency: Optional[str] = None) -> Dict[str, Any]:
+    """Load the full kos dataset for a district (session browse set).
+
+    Runs the pipeline (cached after first run), then returns ALL kos for the
+    district plus the sibling districts in the same regency (for the UI switcher).
+
+    When a regency is supplied (the switcher flow), the district is looked up
+    inside that regency rather than resolved directly. This sidesteps the
+    geo-router POI classifier, which mislabels real kecamatan like "Taman Sari"
+    (contains the POI word "taman") as Points of Interest.
+    """
+    resolved_regency = ""
+    province = ""
+    regency_districts: List[Dict[str, Any]] = []
+    matched_district: Optional[Dict[str, Any]] = None
+
+    if regency:
+        regency_geo = resolve_area(regency)
+        resolved_regency = regency_geo.get("regency", regency)
+        province = regency_geo.get("province", "")
+        regency_districts = regency_geo.get("districts", [])
+        for d in regency_districts:
+            if d.get("name", "").lower() == district.lower():
+                matched_district = d
+                break
+
+    if matched_district is None:
+        # Direct resolve (no regency, or name not found in regency).
+        geo = resolve_area(district)
+        if geo.get("type") == "POI":
+            return {
+                "success": False,
+                "error": f"'{district}' is a Point of Interest, not an area.",
+            }
+        if not resolved_regency:
+            resolved_regency = geo.get("regency", "") or regency or ""
+        if not province:
+            province = geo.get("province", "")
+        ds = geo.get("districts", [])
+        matched_district = ds[0] if ds else None
+        # If we didn't already have siblings from a regency resolve, try once now.
+        if not regency_districts and resolved_regency:
+            rg = resolve_area(resolved_regency)
+            regency_districts = rg.get("districts", [])
+            if not province:
+                province = rg.get("province", province)
+
+    if not matched_district:
+        return {"success": False, "error": f"District '{district}' not found."}
+
+    postal_codes: list = list(matched_district.get("postalCodes", []))
+    if not postal_codes:
+        return {"success": False, "error": f"No postal codes found for '{district}'"}
+
+    resolved_district = matched_district.get("name", district)
+
+    pipeline: Dict[str, Any] = {
+        "area": resolved_district,
+        "regency": resolved_regency,
+        "province": province,
+    }
+
+    scrape_result = ensure_scraped(resolved_district, postal_codes)
+    if scrape_result["status"] == "error":
+        return {"success": False, "error": f"Scrape failed: {scrape_result.get('message')}"}
+    pipeline["scrape"] = scrape_result["status"]
+
+    proc_result = ensure_processed(resolved_district)
+    if proc_result["status"] == "error":
+        return {"success": False, "error": f"Processing failed: {proc_result.get('message')}"}
+    pipeline["process"] = proc_result["status"]
+
+    idx_result = ensure_indexed(resolved_district)
+    if idx_result["status"] == "error":
+        return {"success": False, "error": f"Indexing failed: {idx_result.get('message')}"}
+    pipeline["index"] = f"{idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
+
+    # Sibling districts in the same regency (for the UI switcher)
+    siblings: List[Dict[str, Any]] = []
+    if len(regency_districts) > 1:
+        siblings = [
+            {"name": d.get("name", ""), "postalCodes": d.get("postalCodes", [])}
+            for d in regency_districts
+        ]
+
+    raw_items = _list_kos_subprocess(resolved_district)
+    dataset = _format_kos_items(raw_items)
+
+    return {
+        "success": True,
+        "district": resolved_district,
+        "regency": resolved_regency,
+        "province": province,
+        "siblings": siblings,
+        "dataset": dataset,
+        "pipeline": pipeline,
+    }
+
+
+def _list_kos_subprocess(kecamatan: str) -> List[Dict[str, Any]]:
+    """Call rag-engine list_kos(kecamatan) via subprocess (no semantic search)."""
+    proc = subprocess.run(
+        [sys.executable, "-c",
+         f"import json; from src.search import list_kos; "
+         f"items = list_kos(kecamatan={json.dumps(kecamatan)}, limit=500); "
+         f"print(json.dumps(items))"],
+        cwd=str(ROOT / "services" / "rag-engine"),
+        timeout=60,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        return []
+    try:
+        return json.loads(proc.stdout.strip())
+    except json.JSONDecodeError:
+        return []

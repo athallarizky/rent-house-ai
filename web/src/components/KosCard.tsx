@@ -1,4 +1,4 @@
-import { Star, MapPin, MessageSquare } from "lucide-react";
+import { Star, MapPin, MessageSquare, Sparkles } from "lucide-react";
 import type { KosResult } from "../lib/types";
 import { tagChipClass, tagLabel } from "../lib/types";
 import { cn } from "../lib/utils";
@@ -6,17 +6,22 @@ import { cn } from "../lib/utils";
 interface KosCardProps {
   kos: KosResult;
   selected?: boolean;
+  relevant?: boolean;
   onClick?: () => void;
 }
 
-export default function KosCard({ kos, selected = false, onClick }: KosCardProps) {
+export default function KosCard({ kos, selected = false, relevant = false, onClick }: KosCardProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full text-left rounded-xl border bg-card p-3 transition-all hover:border-primary/60 hover:shadow-sm",
-        selected ? "border-primary ring-2 ring-primary/15" : "border-border"
+        "w-full text-left rounded-xl border bg-card p-3 transition-all hover:shadow-sm",
+        selected
+          ? "border-primary ring-2 ring-primary/15"
+          : relevant
+            ? "border-2 border-primary bg-primary/5 shadow-sm"
+            : "border-border opacity-85 hover:opacity-100"
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -52,14 +57,15 @@ export default function KosCard({ kos, selected = false, onClick }: KosCardProps
         </div>
       )}
 
-      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-        <MessageSquare className="w-3 h-3" />
-        <span>{kos.review_count} review</span>
-        {typeof kos.score === "number" && kos.score > 0 && (
+      <div className="flex items-center gap-1 text-xs mt-2">
+        <MessageSquare className="w-3 h-3 text-muted-foreground" />
+        <span className="text-muted-foreground">{kos.review_count} review</span>
+        {relevant && typeof kos.score === "number" && kos.score > 0 && (
           <>
-            <span className="mx-1">·</span>
-            <span className="text-primary font-medium">
-              {Math.round(kos.score * 100)}% cocok
+            <span className="mx-1 text-muted-foreground">·</span>
+            <span className="inline-flex items-center gap-0.5 font-semibold text-primary">
+              <Sparkles className="w-3 h-3" />
+              Cocok {Math.round(kos.score * 100)}%
             </span>
           </>
         )}

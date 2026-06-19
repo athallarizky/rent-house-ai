@@ -85,6 +85,17 @@ export interface ExpandLocationResponse {
   error?: string;
 }
 
+export interface AreaLoadResponse {
+  success: boolean;
+  district: string;
+  regency: string;
+  province: string;
+  siblings: District[];
+  dataset: KosResult[];
+  pipeline?: SearchPipeline;
+  error?: string;
+}
+
 export interface HealthResponse {
   status: string;
   version?: string;

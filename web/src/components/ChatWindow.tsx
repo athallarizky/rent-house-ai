@@ -11,7 +11,7 @@ interface ChatWindowProps {
   isLoading: boolean;
   streamingContent: string;
   onPickKecamatan: (name: string) => void;
-  onPickAllKecamatan: () => void;
+  onPickAllKecamatan?: () => void;
 }
 
 const markdownClass =

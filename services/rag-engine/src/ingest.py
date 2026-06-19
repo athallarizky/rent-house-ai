@@ -84,8 +84,15 @@ def ingest(docs_path: Path, force: bool = False) -> Dict[str, Any]:
     texts = [d["text"] for d in new_docs]
     metadatas = [_sanitize_metadata(d["metadata"]) for d in new_docs]
 
+    # bge-m3 supports an 8192-token context, so a batch of long docs produces a
+    # huge attention buffer ([B,H,S,S]) and crashes with "Invalid buffer size".
+    # Cap each doc to a safe char budget and encode in small batches.
+    MAX_DOC_CHARS = 1500
+    safe_texts = [t[:MAX_DOC_CHARS] for t in texts]
     print(f"Embedding {len(new_docs)} documents...")
-    embeddings = model.encode(texts, show_progress_bar=True).tolist()
+    embeddings = model.encode(
+        safe_texts, batch_size=8, show_progress_bar=True
+    ).tolist()
 
     print(f"Inserting into ChromaDB ({COLLECTION_NAME})...")
     collection.add(ids=ids, embeddings=embeddings, documents=texts, metadatas=metadatas)

@@ -6,10 +6,12 @@ import type {
   Message,
   RightPanelMode,
   SavedSearch,
+  District,
 } from "../lib/types";
 import {
   resolveLocation,
   streamSearch,
+  loadArea,
   listSavedSearches,
   saveSavedSearch,
   deleteSavedSearch,
@@ -20,6 +22,7 @@ import MessageInput from "./MessageInput";
 import FilterChips from "./FilterChips";
 import KosCardList from "./KosCardList";
 import SavedSearches from "./SavedSearches";
+import DistrictSwitcher from "./DistrictSwitcher";
 
 const GENDER_KEYS = ["putra", "putri", "campur"];
 const DEFAULT_AREA = "Cengkareng";
@@ -43,10 +46,24 @@ function activeFilterCount(filters: Filters): number {
 }
 
 export default function ChatInterface() {
+  // Session state (Rev-001)
+  const [dataset, setDataset] = useState<KosResult[]>([]);
+  const [relevantIds, setRelevantIds] = useState<Set<string>>(new Set());
+  const [currentDistrict, setCurrentDistrict] = useState<string | null>(null);
+  const [currentRegency, setCurrentRegency] = useState<string | null>(null);
+  const [siblingDistricts, setSiblingDistricts] = useState<District[]>([]);
+  const [datasetLoading, setDatasetLoading] = useState(false);
+  const [relevantOnly, setRelevantOnly] = useState(false);
+
+  // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
-  const [results, setResults] = useState<KosResult[]>([]);
+  const [pendingArea, setPendingArea] =
+    useState<{ query: string; regency: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // UI state
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
   const [rightPanelMode, setRightPanelMode] = useState<RightPanelMode>("list");
@@ -54,36 +71,30 @@ export default function ChatInterface() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [showLeft, setShowLeft] = useState(true);
   const [showRight, setShowRight] = useState(true);
-  const [pendingArea, setPendingArea] =
-    useState<{ query: string; regency: string } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [currentArea, setCurrentArea] = useState<string>(DEFAULT_AREA);
 
   const bootstrapped = useRef(false);
 
-  // Load saved searches on mount
   useEffect(() => {
     listSavedSearches().then(setSavedSearches).catch(() => {});
   }, []);
 
-  // Bootstrap from URL ?q= / ?area= once
   useEffect(() => {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const area = params.get("area");
-    if (area) setCurrentArea(area);
     if (q) {
-      handleSendMessage(q, area || extractArea(q) || DEFAULT_AREA);
+      void handleSendMessage(q, area || extractArea(q) || undefined);
     } else if (area) {
-      handleSendMessage(`kos di ${area}`, area);
+      void loadDistrict(area, undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filteredResults = useMemo(() => {
-    return results.filter((r) => {
+  // Panel content = dataset filtered by chips in-memory
+  const filteredDataset = useMemo(() => {
+    return dataset.filter((r) => {
       const tags = r.tags || [];
       if (filters.wifi && !tags.includes("wifi")) return false;
       if (filters.ac && !tags.includes("ac")) return false;
@@ -95,7 +106,7 @@ export default function ChatInterface() {
         return false;
       return true;
     });
-  }, [results, filters]);
+  }, [dataset, filters]);
 
   const handleToggleFilter = (key: string) => {
     setFilters((prev) => {
@@ -111,11 +122,9 @@ export default function ChatInterface() {
 
   const resetFilters = () => setFilters(EMPTY_FILTERS);
 
-  // Resolve area; if regency (multi-district), show picker instead of searching
+  // --- Flow: handle a chat message (detect load vs refine vs picker) ---
   async function handleSendMessage(text: string, areaHint?: string) {
-    const area = areaHint || extractArea(text) || currentArea || DEFAULT_AREA;
     setError(null);
-
     const userMsg: Message = {
       id: uuid(),
       role: "user",
@@ -123,12 +132,14 @@ export default function ChatInterface() {
       timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMsg]);
-    setCurrentArea(area);
+
+    const area = areaHint || extractArea(text) || currentDistrict || DEFAULT_AREA;
 
     try {
       const resolved = await resolveLocation(area);
       const districts = resolved?.data?.districts || [];
 
+      // Regency → kecamatan picker
       if (resolved?.success && districts.length > 1) {
         const regency = resolved.data.regency || area;
         setMessages((prev) => [
@@ -136,7 +147,7 @@ export default function ChatInterface() {
           {
             id: uuid(),
             role: "assistant",
-            content: `${regency} memiliki ${districts.length} kecamatan. Pilih salah satu untuk mencari:`,
+            content: `${regency} memiliki ${districts.length} kecamatan. Pilih salah satu untuk memuat data:`,
             timestamp: new Date().toISOString(),
             isPicker: true,
             districts,
@@ -146,54 +157,124 @@ export default function ChatInterface() {
         return;
       }
 
-      const searchArea =
+      const districtName =
         resolved?.success && districts.length === 1
           ? districts[0].name
           : area;
-      await doSearch(text, searchArea);
+      const regency = resolved?.success ? resolved.data.regency || "" : "";
+
+      // Same district as current session → refine
+      if (
+        currentDistrict &&
+        districtName.toLowerCase() === currentDistrict.toLowerCase()
+      ) {
+        await queryDataset(text, currentDistrict);
+        return;
+      }
+
+      // New district → load dataset (+ run the query as initial refinement)
+      await loadDistrict(districtName, regency || undefined, text);
     } catch (e) {
-      console.error("resolveLocation failed", e);
-      // Fall back to searching with the raw area
-      await doSearch(text, area);
+      console.error("handleSendMessage failed", e);
+      if (currentDistrict) await queryDataset(text, currentDistrict);
+      else await loadDistrict(area, undefined, text);
     }
   }
 
-  async function doSearch(query: string, area: string) {
+  // --- Load the full dataset for a district (session browse set) ---
+  async function loadDistrict(
+    district: string,
+    regency?: string,
+    initialQuery?: string
+  ) {
+    setDatasetLoading(true);
+    setError(null);
+    setRelevantIds(new Set());
+    setSelectedKos(null);
+    setFilters(EMPTY_FILTERS);
+    setRelevantOnly(false);
+
+    try {
+      const res = await loadArea(district, regency);
+      setDataset(res.dataset || []);
+      setCurrentDistrict(res.district);
+      setCurrentRegency(res.regency || null);
+      setSiblingDistricts(res.siblings || []);
+
+      const params = new URLSearchParams(window.location.search);
+      params.set("area", res.district);
+      params.delete("q");
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`
+      );
+      setDatasetLoading(false);
+
+      // Always produce an initial recommendation for the loaded district.
+      // If the caller supplied an explicit query (picker pick / direct search /
+      // ?q= bootstrap), use it AND persist it to history. Otherwise fall back to
+      // a browse query ("kos di <district>") which is auto-generated → not saved
+      // (avoids spamming history with "kos di X" on every switch).
+      const explicit = initialQuery && initialQuery.trim();
+      const initialQ = explicit ? initialQuery!.trim() : `kos di ${res.district}`;
+      await queryDataset(initialQ, res.district, { saveSearch: !!explicit });
+    } catch (e) {
+      console.error("loadDistrict failed", e);
+      const msg = e instanceof Error ? e.message : "Gagal memuat district";
+      setError(msg);
+      setDatasetLoading(false);
+    }
+  }
+
+  // --- Refine: RAG query over the current district (no dataset reload) ---
+  async function queryDataset(
+    query: string,
+    district: string,
+    opts: { saveSearch?: boolean } = {}
+  ) {
+    const saveSearch = opts.saveSearch !== false;
     setIsLoading(true);
     setStreamingContent("");
-    setResults([]);
-    setSelectedKos(null);
-    setRightPanelMode("list");
-    setFilters(EMPTY_FILTERS);
-    setCurrentArea(area);
+    setRelevantIds(new Set());
+    setRelevantOnly(false);
     setError(null);
 
     let collected = "";
-    let resultCount = 0;
+    let relItems: KosResult[] = [];
 
     try {
-      for await (const event of streamSearch({ query, area, top_k: 5 })) {
+      for await (const event of streamSearch({ query, area: district, top_k: 10 })) {
         const t = event.type as string;
         if (t === "results") {
-          const items = (event.results as KosResult[]) || [];
-          resultCount = items.length;
-          setResults(items);
+          relItems = (event.results as KosResult[]) || [];
+          setRelevantIds(new Set(relItems.map((r) => r.place_id)));
+          // Merge relevance scores into the dataset so cards can show match %
+          if (relItems.length) {
+            const scoreMap = new Map(
+              relItems.map((r) => [r.place_id, r.score || 0])
+            );
+            setDataset((prev) =>
+              prev.map((k) =>
+                scoreMap.has(k.place_id)
+                  ? { ...k, score: scoreMap.get(k.place_id) || 0 }
+                  : { ...k, score: 0 }
+              )
+            );
+          }
         } else if (t === "token") {
           collected += event.token as string;
           setStreamingContent(collected);
-        } else if (t === "done") {
-          // finalize below
         }
       }
 
-      const summary = collected.trim();
-      if (summary) {
+      if (collected.trim()) {
         setMessages((prev) => [
           ...prev,
           {
             id: uuid(),
             role: "assistant",
-            content: summary,
+            content: collected.trim(),
             timestamp: new Date().toISOString(),
           },
         ]);
@@ -201,21 +282,22 @@ export default function ChatInterface() {
       setStreamingContent("");
       setIsLoading(false);
 
-      // persist saved search
       const saved: SavedSearch = {
         id: uuid(),
         query_text: query,
-        area,
-        result_count: resultCount,
+        area: district,
+        result_count: relItems.length,
         created_at: new Date().toISOString(),
       };
-      saveSavedSearch(saved)
-        .then(() => listSavedSearches().then(setSavedSearches))
-        .catch(() => {});
+      if (saveSearch) {
+        saveSavedSearch(saved)
+          .then(() => listSavedSearches().then(setSavedSearches))
+          .catch(() => {});
+      }
       setActiveSearchId(null);
-    } catch (e: unknown) {
-      console.error("search failed", e);
-      const msg = e instanceof Error ? e.message : "Search gagal";
+    } catch (e) {
+      console.error("queryDataset failed", e);
+      const msg = e instanceof Error ? e.message : "Pencarian gagal";
       setError(msg);
       setMessages((prev) => [
         ...prev,
@@ -242,46 +324,59 @@ export default function ChatInterface() {
         timestamp: new Date().toISOString(),
       },
     ]);
-    const query = pendingArea.query;
+    const { query, regency } = pendingArea;
     setPendingArea(null);
-    void doSearch(query, name);
+    void loadDistrict(name, regency, query);
   };
 
-  const onPickAllKecamatan = () => {
-    if (!pendingArea) return;
+  // Rev-001: session is per-district, so "Cari di SEMUA" (cross-district) is
+  // deferred — see revisions/rev-001 §11. Picker's all-option is not wired.
+
+  const onSwitchDistrict = (name: string) => {
+    if (
+      currentDistrict &&
+      name.toLowerCase() === currentDistrict.toLowerCase()
+    )
+      return;
+    if (
+      dataset.length > 0 &&
+      !confirm(`Pindah ke ${name}? Relevansi chat akan direset.`)
+    )
+      return;
+    // loadDistrict always runs an initial recommendation ("kos di <name>")
+    // which names the district — no separate "Beralih" note needed.
+    void loadDistrict(name, currentRegency || undefined);
+  };
+
+  const handleNewSearch = () => {
+    setMessages([]);
+    setDataset([]);
+    setRelevantIds(new Set());
+    setSelectedKos(null);
+    setStreamingContent("");
+    setFilters(EMPTY_FILTERS);
+    setRelevantOnly(false);
+    setActiveSearchId(null);
+    setError(null);
+    setPendingArea(null);
+    setCurrentDistrict(null);
+    setCurrentRegency(null);
+    setSiblingDistricts([]);
+    window.history.replaceState({}, "", window.location.pathname);
+  };
+
+  const handleSelectSaved = (s: SavedSearch) => {
+    setActiveSearchId(s.id);
     setMessages((prev) => [
       ...prev,
       {
         id: uuid(),
         role: "user",
-        content: `[Cari di semua kecamatan ${pendingArea.regency}]`,
+        content: s.query_text,
         timestamp: new Date().toISOString(),
       },
     ]);
-    const query = pendingArea.query;
-    const regency = pendingArea.regency;
-    setPendingArea(null);
-    void doSearch(query, regency);
-  };
-
-  const handleNewSearch = () => {
-    setMessages([]);
-    setResults([]);
-    setSelectedKos(null);
-    setStreamingContent("");
-    setFilters(EMPTY_FILTERS);
-    setActiveSearchId(null);
-    setError(null);
-    setPendingArea(null);
-    const params = new URLSearchParams(window.location.search);
-    params.delete("q");
-    params.delete("area");
-    window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
-  };
-
-  const handleSelectSaved = (s: SavedSearch) => {
-    setActiveSearchId(s.id);
-    handleSendMessage(s.query_text, s.area);
+    void loadDistrict(s.area, undefined, s.query_text);
   };
 
   const handleDeleteSaved = (id: string) => {
@@ -307,12 +402,8 @@ export default function ChatInterface() {
               onDelete={handleDeleteSaved}
             />
           </div>
-          {/* Mobile drawer */}
           <div className="md:hidden fixed inset-0 z-40 flex">
-            <div
-              className="w-64 h-full bg-card border-r border-border shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="w-64 h-full bg-card border-r border-border shadow-xl">
               <SavedSearches
                 searches={savedSearches}
                 activeSearchId={activeSearchId}
@@ -352,9 +443,13 @@ export default function ChatInterface() {
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold leading-tight truncate">Kos AI</h2>
-              <p className="text-[11px] text-muted-foreground truncate">
-                Area: {currentArea}
-              </p>
+              <DistrictSwitcher
+                regency={currentRegency}
+                currentDistrict={currentDistrict}
+                siblings={siblingDistricts}
+                onSwitch={onSwitchDistrict}
+                disabled={datasetLoading || isLoading}
+              />
             </div>
           </div>
           <button
@@ -379,33 +474,38 @@ export default function ChatInterface() {
 
         <ChatWindow
           messages={messages}
-          isLoading={isLoading}
+          isLoading={isLoading || datasetLoading}
           streamingContent={streamingContent}
           onPickKecamatan={onPickKecamatan}
-          onPickAllKecamatan={onPickAllKecamatan}
         />
 
         <FilterChips
-          results={results}
+          results={dataset}
           filters={filters}
           onToggle={handleToggleFilter}
           onReset={resetFilters}
           activeCount={activeFilterCount(filters)}
         />
 
-        <MessageInput onSend={(t) => handleSendMessage(t)} disabled={isLoading} />
+        <MessageInput
+          onSend={(t) => handleSendMessage(t)}
+          disabled={isLoading || datasetLoading}
+        />
       </div>
 
-      {/* Right panel — results */}
+      {/* Right panel — dataset + relevance */}
       {showRight && (
         <div className="w-80 shrink-0 h-full border-l border-border bg-card hidden md:block overflow-hidden">
           <KosCardList
-            results={filteredResults}
+            results={filteredDataset}
             selectedKos={selectedKos}
             mode={rightPanelMode}
             onModeChange={setRightPanelMode}
             onSelectKos={setSelectedKos}
-            isLoading={isLoading}
+            isLoading={datasetLoading}
+            relevantIds={relevantIds}
+            relevantOnly={relevantOnly}
+            onToggleRelevantOnly={() => setRelevantOnly((v) => !v)}
           />
         </div>
       )}
