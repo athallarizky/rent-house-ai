@@ -101,7 +101,12 @@ export async function getHealth(): Promise<HealthResponse> {
   return resp.json();
 }
 
-// === Saved Searches (Phase 5: SQLite backend; falls back to localStorage) ===
+// === Saved Searches ===
+// Phase 5 will add a SQLite-backed `/searches` endpoint. Until then we use
+// localStorage exclusively — the HTTP path is gated behind this flag so we
+// don't spam 404s against a route that doesn't exist yet. Flip to true once
+// the Phase 5 backend ships; the full HTTP code path is already in place.
+const SAVED_SEARCHES_API_ENABLED = false;
 
 const SAVED_SEARCHES_KEY = "kos-ai.saved-searches";
 
@@ -120,14 +125,16 @@ function writeLocal(items: SavedSearch[]): void {
 }
 
 export async function listSavedSearches(): Promise<SavedSearch[]> {
-  try {
-    const resp = await fetch(`${API_URL}/searches`);
-    if (resp.ok) {
-      const data = await resp.json();
-      return data.searches || [];
+  if (SAVED_SEARCHES_API_ENABLED) {
+    try {
+      const resp = await fetch(`${API_URL}/searches`);
+      if (resp.ok) {
+        const data = await resp.json();
+        return data.searches || [];
+      }
+    } catch {
+      // fall through to localStorage
     }
-  } catch {
-    // fall through to localStorage
   }
   return readLocal();
 }
@@ -135,15 +142,17 @@ export async function listSavedSearches(): Promise<SavedSearch[]> {
 export async function saveSavedSearch(
   search: SavedSearch
 ): Promise<SavedSearch> {
-  try {
-    const resp = await fetch(`${API_URL}/searches`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(search),
-    });
-    if (resp.ok) return resp.json();
-  } catch {
-    // fall through
+  if (SAVED_SEARCHES_API_ENABLED) {
+    try {
+      const resp = await fetch(`${API_URL}/searches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(search),
+      });
+      if (resp.ok) return resp.json();
+    } catch {
+      // fall through
+    }
   }
 
   const items = readLocal();
@@ -153,11 +162,15 @@ export async function saveSavedSearch(
 }
 
 export async function deleteSavedSearch(id: string): Promise<void> {
-  try {
-    const resp = await fetch(`${API_URL}/searches/${id}`, { method: "DELETE" });
-    if (resp.ok) return;
-  } catch {
-    // fall through
+  if (SAVED_SEARCHES_API_ENABLED) {
+    try {
+      const resp = await fetch(`${API_URL}/searches/${id}`, {
+        method: "DELETE",
+      });
+      if (resp.ok) return;
+    } catch {
+      // fall through
+    }
   }
 
   const items = readLocal().filter((s) => s.id !== id);
