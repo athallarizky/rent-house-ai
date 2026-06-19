@@ -2,6 +2,8 @@
 
 > Status: 🟡 Planning | Created: 2026-06-19
 >
+> **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
+>
 > Status legend: ⬜ pending | 🔵 in_progress | ✅ completed | ❌ blocked
 
 ---
