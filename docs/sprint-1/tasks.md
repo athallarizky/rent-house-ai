@@ -198,12 +198,23 @@
 
 ---
 
-## Phase 6 — API Layer (Future)
+## Phase 6 — API Layer ✅
+
+> 📄 Full report: [`reports/phase-6-report.md`](./reports/phase-6-report.md) — API reference, endpoints, architecture
 
 | ID   | Task                                                    | Difficulty | Dependencies | Status |
 |------|---------------------------------------------------------|------------|-------------|--------|
-| 6.1  | FastAPI app + `/search` endpoint wrapping orchestration | Medium     | 5.3         | ⬜     |
-| 6.2  | Streaming LLM response (SSE)                            | Medium     | 6.1         | ⬜     |
+| 6.1  | FastAPI app + `/search` endpoint wrapping orchestration | Medium     | 5.3         | ✅     |
+| 6.2  | Streaming LLM response (SSE)                            | Medium     | 6.1         | ✅     |
+
+### Service Summary
+
+- **Runtime:** FastAPI + uvicorn (port 8080)
+- **Files:** `main.py`, `search.py`, `locations.py`, `orchestrator.py`
+- **Endpoints:** `POST /search`, `GET /locations/resolve`, `GET /locations/expand`, `GET /health`
+- **Pipeline:** All stages via subprocess (scraper, processor, ingest, search, rank, summarize)
+- **SSE streaming:** Supported via `stream: true` in request body
+- **Locations proxy:** Pass-through to geo-router (port 3001)
 
 ---
 
