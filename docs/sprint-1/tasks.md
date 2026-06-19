@@ -8,7 +8,7 @@
 
 ## Phase 0 — Repo Setup & Exploration ✅
 
-> 📄 Full report: [`phase-0-report.md`](./phase-0-report.md) — manual run instructions, scrape results, review quality analysis
+> 📄 Full report: [`reports/phase-0-report.md`](./reports/phase-0-report.md) — manual run instructions, scrape results, review quality analysis
 
 | ID   | Task                                                                         | Difficulty | Dependencies | Status |
 |------|------------------------------------------------------------------------------|------------|-------------|--------|
@@ -40,18 +40,35 @@
 
 ---
 
-## Phase 1 — Geo-Router (`services/geo-router/`)
+## Phase 1 — Geo-Router (`services/geo-router/`) ✅
 
 | ID   | Task                                                   | Difficulty | Dependencies | Status |
 |------|--------------------------------------------------------|------------|-------------|--------|
-| 1.1  | Build alias table (colloquial → administrative names)  | Easy       | 0.2         | ⬜     |
-| 1.2  | Build `resolve()` — area name → kecamatan + postal codes | Easy       | 0.2, 1.1   | ⬜     |
-| 1.3  | Build `expand()` — regency → all kecamatan (grid-expand) | Easy       | 0.2         | ⬜     |
-| 1.4  | Build AREA vs POI classifier                           | Medium     | 1.2         | ⬜     |
-| 1.5  | Fastify HTTP endpoint (`GET /resolve`, `GET /expand`)   | Easy       | 1.2, 1.3, 1.4 | ⬜  |
-| 1.6  | Write tests for all endpoints                          | Easy       | 1.5         | ⬜     |
+| 1.1  | Build alias table (colloquial → administrative names)  | Easy       | 0.2         | ✅     |
+| 1.2  | Build `resolve()` — area name → kecamatan + postal codes | Easy       | 0.2, 1.1   | ✅     |
+| 1.3  | Build `expand()` — regency → all kecamatan (grid-expand) | Easy       | 0.2         | ✅     |
+| 1.4  | Build AREA vs POI classifier                           | Medium     | 1.2         | ✅     |
+| 1.5  | Fastify HTTP endpoint (`GET /resolve`, `GET /expand`)   | Easy       | 1.2, 1.3, 1.4 | ✅  |
+| 1.6  | Write tests for all endpoints                          | Easy       | 1.5         | ✅     |
 
-> **Ref:** `docs/sprint-1/architecture.md` — Geo-Router section
+### Service Summary
+
+> 📄 Full report: [`reports/phase-1-report.md`](./reports/phase-1-report.md) — API reference, architecture, test coverage
+
+- **Runtime:** Node.js + Fastify on port 3001
+- **Files:** `src/server.ts`, `src/resolve.ts`, `src/expand.ts`, `src/alias.ts`, `src/classify.ts`, `src/types.ts`
+- **Tests:** 14/14 passing (alias, classify, expand)
+- **Endpoints:**
+  - `GET /resolve?q=Jakarta+Barat` → 8 kecamatan with postal codes
+  - `GET /resolve?q=Cengkareng` → single kecamatan, 5 postal codes, 6 villages
+  - `GET /resolve?q=Bandung` → 61 kecamatan (auto-detects regency vs district level)
+  - `GET /resolve?q=jakbar` → alias resolution to Administrasi Jakarta Barat
+  - `GET /resolve?q=Stasiun+Duri` → POI detection
+  - `GET /expand?q=Jakarta+Barat` → list of all kecamatan names
+  - `GET /health` → status + entry count
+- **Aliases:** jakbar, jaksel, jaktim, jakpus, jakut, kepulauan seribu
+- **Data:** Loads 83,761 entries from vendored kodepos JSON at startup (~1s)
+- **Fuse.js:** Fuzzy search with threshold 0.3, dual-key indexing (searchText + fulltext)
 
 ---
 
