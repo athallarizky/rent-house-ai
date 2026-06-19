@@ -1,9 +1,90 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import SearchBar from '../components/SearchBar';
+import AreaChips from '../components/AreaChips';
+import StatsCards from '../components/StatsCards';
+
+const url = new URL(Astro.request.url);
+const initialQuery = url.searchParams.get('q') || '';
 ---
 
-<DashboardLayout title="Beranda - Kos AI" active="home">
-  <div class="p-8">
-    <p class="text-muted-foreground">Landing page — dibangun di Phase 2.</p>
+<DashboardLayout title="Kos AI — Cari kos dengan bahasa sehari-hari" active="home">
+  <div class="overflow-y-auto thin-scroll">
+    <div class="max-w-5xl mx-auto px-6 py-10 md:py-16">
+
+      <!-- Hero -->
+      <section class="flex flex-col items-center text-center gap-8">
+        <div class="space-y-4">
+          <div class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+            Didukung AI · 152 kos siap dicari
+          </div>
+          <h1 class="text-3xl md:text-5xl font-bold tracking-tight">
+            Cari kos impianmu dengan
+            <span class="text-primary"> bahasa sehari-hari</span>
+          </h1>
+          <p class="text-muted-foreground text-base md:text-lg max-w-xl mx-auto">
+            Ketik "kos di Cengkareng wifi kenceng parkir luas" — kami carikan yang paling pas lewat reviews asli dari tamu.
+          </p>
+        </div>
+
+        <SearchBar client:load initialValue={initialQuery} />
+
+        <AreaChips client:visible />
+
+        <StatsCards client:visible />
+      </section>
+
+      <!-- How it works -->
+      <section class="mt-16 md:mt-24">
+        <h2 class="text-xl font-semibold text-center mb-8">Cara kerjanya</h2>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="rounded-xl border border-border bg-card p-5">
+            <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold mb-3">1</div>
+            <h3 class="font-semibold mb-1">Tulis natural</h3>
+            <p class="text-sm text-muted-foreground">
+              Bebas bahasa sehari-hari: "yang deket stasiun", "wifi kenceng", "kos putri murah".
+            </p>
+          </div>
+          <div class="rounded-xl border border-border bg-card p-5">
+            <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold mb-3">2</div>
+            <h3 class="font-semibold mb-1">AI baca reviews</h3>
+            <p class="text-sm text-muted-foreground">
+              Ribuan review asli dipindai dengan semantic search untuk nemu kos yang benar-benar cocok.
+            </p>
+          </div>
+          <div class="rounded-xl border border-border bg-card p-5">
+            <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold mb-3">3</div>
+            <h3 class="font-semibold mb-1">Bandingkan & pilih</h3>
+            <p class="text-sm text-muted-foreground">
+              Lihat hasil di panel kanan, filter fasilitas, cek di peta, dan hubungi langsung.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Example prompts -->
+      <section class="mt-12 md:mt-16 mb-8">
+        <h2 class="text-xl font-semibold text-center mb-6">Coba prompt ini</h2>
+        <div class="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
+          {
+            [
+              'kos di Cengkareng wifi kenceng',
+              'kos putri dekat stasiun',
+              'kos ac dingin parkir luas',
+              'yang di bawah 2 juta',
+            ].map((prompt) => (
+              <a
+                href={`/search?q=${encodeURIComponent(prompt)}`}
+                class="rounded-full border border-dashed border-border bg-background px-4 py-1.5 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+              >
+                “{prompt}”
+              </a>
+            ))
+          }
+        </div>
+      </section>
+
+    </div>
   </div>
 </DashboardLayout>

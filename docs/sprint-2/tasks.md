@@ -1,6 +1,6 @@
 # Sprint 2 — UI Dashboard + Agentic Chat
 
-> Status: 🔵 Phase 1 Done | Created: 2026-06-19 | Updated: 2026-06-19
+> Status: 🔵 Phase 2 Done | Created: 2026-06-19 | Updated: 2026-06-19
 >
 > **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
 >
@@ -31,14 +31,26 @@
 
 ---
 
-## Phase 2 — Landing Page
+## Phase 2 — Landing Page ✅
+
+> 📄 Full report: [`reports/phase-2-report.md`](./reports/phase-2-report.md) — component breakdown, navigation flow, verification
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 2.1  | Hero section with search bar + CTA                        | Easy       | 1.4         | ⬜     |
-| 2.2  | Popular areas chips (Cengkareng, Jakarta Barat, Bandung)  | Easy       | 1.5         | ⬜     |
-| 2.3  | Stats display (X areas scraped, Y kos indexed)            | Medium     | 1.5         | ⬜     |
-| 2.4  | Search → redirect to `/search?q=...`                      | Easy       | 2.1         | ⬜     |
+| 2.1  | Hero section with search bar + CTA                        | Easy       | 1.4         | ✅     |
+| 2.2  | Popular areas chips (Cengkareng, Jakarta Barat, Bandung)  | Easy       | 1.5         | ✅     |
+| 2.3  | Stats display (X areas scraped, Y kos indexed)            | Medium     | 1.5         | ✅     |
+| 2.4  | Search → redirect to `/search?q=...`                      | Easy       | 2.1         | ✅     |
+
+### Landing Page Summary
+
+- **Components:** `SearchBar.tsx` (`client:load`), `AreaChips.tsx` (`client:visible`), `StatsCards.tsx` (`client:visible`)
+- **Hero:** headline + tagline + pill badge ("152 kos siap dicari") + search bar (auto-focus, Enter to submit)
+- **Area chips:** 6 areas (Cengkareng, Jakarta Barat, Bandung, Surabaya, Yogyakarta, Tangerang) → `/search?area=...`
+- **Stats cards:** 3-card grid (Kos terindeks / Reviews terindex / Area aktif); live `GET /health` with hardcoded fallback (152 kos), online/offline status dot
+- **Extras:** "Cara kerjanya" 3-step explainer + example-prompt quick links
+- **Navigation:** search submit → `/search?q=...`; area chip → `/search?area=...`; `?q=` round-trips back into the search bar
+- **Verification:** `astro check` → **0/0/0** · `npm run build` → 3 pages · all area/prompt links present in rendered HTML
 
 ---
 
@@ -128,7 +140,7 @@ Phase 6 ────────────────────────
 | Phase                    | Tasks | Est. Hours | Status |
 |--------------------------|-------|-----------|--------|
 | 1 — Project Scaffold     | 5     | 3h        | ✅     |
-| 2 — Landing Page         | 4     | 2h        | ⬜     |
+| 2 — Landing Page         | 4     | 2h        | ✅     |
 | 3 — 3-Panel Dashboard    | 11       | 14h       | ⬜     |
 | 4 — Settings Page        | 3     | 2h        | ⬜     |
 | 5 — Search History API   | 4     | 3h        | ⬜     |
