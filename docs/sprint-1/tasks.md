@@ -72,15 +72,36 @@
 
 ---
 
-## Phase 2 — Scraper (`services/scraper/`)
+## Phase 2 — Scraper (`services/scraper/`) ✅
+
+> 📄 Full report: [`reports/phase-2-report.md`](./reports/phase-2-report.md) — run instructions, test results, cache strategy
 
 | ID   | Task                                                                              | Difficulty | Dependencies  | Status |
 |------|-----------------------------------------------------------------------------------|------------|---------------|--------|
-| 2.1  | Query generator — postal codes → search variants ("kos di 11730", etc.)            | Easy       | 1.2           | ⬜     |
-| 2.2  | Go binary wrapper (`subprocess.run`, parallel per kecamatan, collect JSONL)        | Medium     | 0.3, 2.1      | ⬜     |
-| 2.3  | Cache layer — save JSONL to `data/raw/<area>/`, skip scrape if cache exists        | Easy       | 2.2           | ⬜     |
-| 2.4  | Deep scrape config (`-depth 5 -extra-reviews`) for production quality              | Medium     | 0.6, 2.2      | ⬜     |
-| 2.5  | Test: scrape all Cengkareng kecamatan (5 areas) → `data/raw/cengkareng/`           | Medium     | 2.3           | ⬜     |
+| 2.1  | Query generator — postal codes → search variants ("kos di 11730", etc.)            | Easy       | 1.2           | ✅     |
+| 2.2  | Go binary wrapper (`subprocess.run`, parallel per kecamatan, collect JSONL)        | Medium     | 0.3, 2.1      | ✅     |
+| 2.3  | Cache layer — save JSONL to `data/raw/<area>/`, skip scrape if cache exists        | Easy       | 2.2           | ✅     |
+| 2.4  | Deep scrape (`-extra-reviews`) — **SKIPPED**                                       | Medium     | 0.6, 2.2      | ❌     |
+| 2.5  | Test: scrape all Cengkareng (5 postal codes × 3 variants) → `data/raw/cengkareng/` | Medium     | 2.3           | ✅     |
+
+### Scrape Results (Cengkareng)
+
+| Postal Code | Kos Found |
+|-------------|-----------|
+| 11710 | 44 |
+| 11720 | 42 |
+| 11730 | 36 |
+| 11740 | 42 |
+| 11750 | 44 |
+| **Total** | **208** (177 unique by place_id) |
+
+### Service Summary
+
+- **Runtime:** Python 3.9+
+- **Files:** `src/generate.py`, `src/run.py`, `src/cache.py`
+- **Flow:** Postal codes → generate 3 query variants → run Go binary via subprocess → collect JSONL
+- **Cache:** Saves to `data/raw/<area>/<code>.jsonl`, skips re-scrape if exists
+- **2.4 Skipped:** Phase 0 proved `-extra-reviews` useless for Indonesian listings (RPC API empty, DOM fallback only 3 reviews at 30x time cost)
 
 > **Ref:** `docs/sprint-1/data-design.md` — Scraper Output Format section
 > **Ref:** `docs/sprint-1/architecture.md` — Caching Strategy section
