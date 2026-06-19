@@ -185,6 +185,86 @@ Compact (list view):              Expanded (click):
 
 ---
 
+## 2a. Regency → Kecamatan Picker (In-Chat)
+
+When user queries a regency-level area (Jakarta Barat, Bandung, Surabaya) instead of a specific kecamatan, the AI responds with a picker instead of search results.
+
+### User Queries Regency
+
+```
+╔══════════╦══════════════════════════════════╦═══════════════════╗
+║          ║  💬 Chat                         ║                     ║
+║          ║                                  ║                     ║
+║          ║ ┌────────────────────────────┐   ║                     ║
+║          ║ │ 👤 kos di Jakarta Barat    │   ║                     ║
+║          ║ │    wifi kenceng            │   ║                     ║
+║          ║ └────────────────────────────┘   ║                     ║
+║          ║                                  ║                     ║
+║          ║ ┌────────────────────────────┐   ║      Pilih dulu    ║
+║          ║ │                            │   ║      kecamatan     ║
+║          ║ │ 🤖 Jakarta Barat memiliki  │   ║      di Jakarta    ║
+║          ║ │ 8 kecamatan. Pilih salah   │   ║      Barat dulu    ║
+║          ║ │ satu:                      │   ║                     ║
+║          ║ │                            │   ║                     ║
+║          ║ │ ┌──────────────────────┐   │   ║                     ║
+║          ║ │ │ 🏙️ Cengkareng        │   │   ║                     ║
+║          ║ │ │    5 kode pos        │   │   ║                     ║
+║          ║ │ └──────────────────────┘   │   ║                     ║
+║          ║ │ ┌──────────────────────┐   │   ║                     ║
+║          ║ │ │ 🏙️ Grogol Petamburan │   │   ║                     ║
+║          ║ │ │    4 kode pos        │   │   ║                     ║
+║          ║ │ └──────────────────────┘   │   ║                     ║
+║          ║ │ ┌──────────────────────┐   │   ║                     ║
+║          ║ │ │ 🏙️ Kalideres         │   │   ║                     ║
+║          ║ │ │    5 kode pos        │   │   ║                     ║
+║          ║ │ └──────────────────────┘   │   ║                     ║
+║          ║ │ ... (scroll)               │   ║                     ║
+║          ║ │                            │   ║                     ║
+║          ║ │ Atau: [🔍 Cari di SEMUA]   │   ║                     ║
+║          ║ └────────────────────────────┘   ║                     ║
+║          ║                                  ║                     ║
+║          ║ ┌────────────────────────────┐   ║                     ║
+║          ║ │ "atau ketik nama kecamatan"│   ║                     ║
+║          ║ └────────────────────────────┘   ║                     ║
+╚══════════╩══════════════════════════════════╩═══════════════════╝
+```
+
+### User Clicks Kecamatan → Search Proceeds
+
+```
+╔══════════╦══════════════════════════════════╦═══════════════════╗
+║          ║  💬 Chat                         ║ [📋 List]         ║
+║          ║                                  ╠═══════════════════╣
+║          ║ ┌────────────────────────────┐   ║ ┌───────────────┐ ║
+║          ║ │ 👤 kos di Jakarta Barat    │   ║ │ Kost A  4.5★  │ ║
+║          ║ │    wifi kenceng            │   ║ │ wifi ac parkir │ ║
+║          ║ └────────────────────────────┘   ║ └───────────────┘ ║
+║          ║ ┌────────────────────────────┐   ║ ┌───────────────┐ ║
+║          ║ │ 👤 [Cengkareng]             │   ║ │ Kost B  4.2★  │ ║
+║          ║ │   (user clicked chip)      │   ║ │ wifi dapur     │ ║
+║          ║ └────────────────────────────┘   ║ └───────────────┘ ║
+║          ║ ┌────────────────────────────┐   ║ ┌───────────────┐ ║
+║          ║ │ 🤖 Mencari kos di          │   ║ │ Kost C  3.9★  │ ║
+║          ║ │ Cengkareng dengan wifi     │   ║ │ wifi ac        │ ║
+║          ║ │ kenceng...                 │   ║ └───────────────┘ ║
+║          ║ │                            │   ║                     ║
+║          ║ │ 1. Kost A (4.5★) — wifi    │   ║                     ║
+║          ║ │    lancar, parkir luas...  │   ║                     ║
+║          ║ │ ...                        │   ║                     ║
+║          ║ └────────────────────────────┘   ║                     ║
+╚══════════╩══════════════════════════════════╩═══════════════════╝
+```
+
+**Behavior:**
+- AI message shows regency + kecamatan list fetched from `GET /locations/expand?q=...`
+- Each kecamatan chip: name + postal code count
+- Click chip → inserts as user message, re-runs search with area=selected kecamatan
+- "Cari di SEMUA" option: auto-grid-expand, scrape all kecamatan (power user, slower)
+- User can also free-type in MessageInput: "Cengkareng" → triggers same flow
+- Picker message is NOT saved to history — only the final search is saved
+
+---
+
 ## 4. Screen 3 — Settings (`/settings`)
 
 ```

@@ -140,7 +140,8 @@ web/
 │       ├── SearchBar.tsx            # Landing search
 │       ├── AreaChips.tsx            # Popular area quick-select
 │       ├── StatsCards.tsx           # Landing page stats
-│       └── ProviderSettings.tsx     # Settings page
+│       ├── ProviderSettings.tsx     # Settings page
+│       └── KecamatanPicker.tsx      # Regency → kecamatan chip selector
 └── public/favicon.svg
 ```
 
@@ -216,6 +217,57 @@ const [selectedKos, setSelectedKos] = useState<KosResult | null>(null);
 const [filters, setFilters] = useState<Filters>({ wifi: false, ac: false, parkir: false, dapur: false, km_dalam: false, gender: null });
 const [showLeft, setShowLeft] = useState(true);
 const [showRight, setShowRight] = useState(true);
+const [pendingArea, setPendingArea] = useState<{ query: string; districts: District[] } | null>(null);
+```
+
+### Regency → Kecamatan Flow (CRITICAL)
+
+When a user types "Jakarta Barat" (a regency), the API returns multiple districts. The UI must prompt the user to pick one BEFORE searching.
+
+**Detection:** After `resolveLocation(area)`, check if `districts.length > 1`:
+
+```typescript
+async function handleSendMessage(text: string) {
+  const params = new URLSearchParams(window.location.search);
+  let area = params.get("area") || extractArea(text) || "Cengkareng";
+  const query = text;
+
+  // STEP 1: Resolve area
+  const resolved = await resolveLocation(area);
+  
+  // STEP 2: If regency with multiple districts → show picker
+  if (resolved.success && resolved.data.districts?.length > 1) {
+    const userMsg = { role: "user", content: text };
+    setMessages(prev => [...prev, userMsg]);
+    
+    // Show kecamatan picker as AI message
+    setMessages(prev => [...prev, {
+      role: "assistant",
+      content: `${resolved.data.regency} memiliki ${resolved.data.districts.length} kecamatan. Pilih salah satu:`,
+      isPicker: true,
+      districts: resolved.data.districts,
+    }]);
+    
+    setPendingArea({ query, districts: resolved.data.districts });
+    setIsLoading(false);
+    return;  // STOP — don't search yet
+  }
+
+  // STEP 3: Single district → search immediately
+  const actualArea = resolved.data?.districts?.[0]?.name || area;
+  await doSearch(query, actualArea);
+}
+
+// When user clicks a kecamatan chip:
+async function onPickKecamatan(districtName: string) {
+  if (!pendingArea) return;
+  
+  const pickMsg = { role: "user", content: `[${districtName}]` };
+  setMessages(prev => [...prev, pickMsg]);
+  setPendingArea(null);
+  
+  await doSearch(pendingArea.query, districtName);
+}
 ```
 
 **`handleSendMessage`:**
@@ -269,6 +321,77 @@ Copy from slack-rag's ChatWindow. Key adaptations:
 
 **`MessageInput.tsx`:**
 Copy from slack-rag's MessageInput. Textarea, auto-resize, Enter=send, Shift+Enter=newline. Disabled when isLoading.
+
+### Kecamatan Picker — `KecamatanPicker.tsx`
+
+This component handles the regency→kecamatan flow. When the backend detects a regency-level query (districts > 1), the chat shows clickable kecamatan chips instead of search results.
+
+**Message type extension:**
+```typescript
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  isPicker?: boolean;           // true = render KecamatanPicker instead of markdown
+  districts?: District[];        // from resolveLocation API
+}
+```
+
+**Component:**
+```tsx
+function KecamatanPicker({ districts, onPick, onPickAll }: {
+  districts: District[];
+  onPick: (name: string) => void;
+  onPickAll: () => void;
+}) {
+  return (
+    <div className="my-3">
+      <p className="text-sm text-slate-600 mb-3">
+        Pilih kecamatan:
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        {districts.map(d => (
+          <button key={d.name} onClick={() => onPick(d.name)}
+            className="text-left border rounded-lg p-3 hover:border-blue-400 
+                       hover:bg-blue-50 transition-colors cursor-pointer">
+            <div className="font-medium text-sm">{d.name}</div>
+            <div className="text-xs text-slate-400 mt-0.5">
+              {d.postalCodes?.length || 0} kode pos
+            </div>
+          </button>
+        ))}
+      </div>
+      <button onClick={onPickAll}
+        className="w-full mt-2 border-2 border-dashed border-slate-300 
+                   rounded-lg p-2 text-sm text-slate-500 hover:border-blue-400 
+                   hover:text-blue-600 transition-colors">
+        🔍 Cari di SEMUA kecamatan (lebih lambat)
+      </button>
+    </div>
+  );
+}
+```
+
+**In ChatWindow — render picker messages:**
+```tsx
+{msg.isPicker ? (
+  <div className="bg-slate-100 rounded-lg px-4 py-3 max-w-[90%]">
+    <p className="text-sm">{msg.content}</p>
+    <KecamatanPicker
+      districts={msg.districts || []}
+      onPick={(name) => onPickKecamatan(name)}
+      onPickAll={() => onPickAllKecamatan()}
+    />
+  </div>
+) : (
+  <ReactMarkdown>{msg.content}</ReactMarkdown>
+)}
+```
+
+**"Cari di SEMUA" behavior (onPickAll):**
+- Iterates all districts, scrapes each (if not cached)
+- Merges results from all districts
+- Shows kecamatan as filter chip in results
+- Slower but covers the entire regency
 
 ### Left Panel — `SavedSearches.tsx`
 
@@ -608,18 +731,21 @@ export const TAG_LABELS: Record<string, string> = {
 8. [ ] Build `search.astro` + `ChatInterface.tsx` — skeleton 3-panel
 9. [ ] Build `ChatWindow.tsx` — user/assistant message bubbles + markdown
 10. [ ] Build `MessageInput.tsx` — auto-resize textarea
-11. [ ] Wire `handleSendMessage` → non-streaming API call
-12. [ ] Build `KosCardList.tsx` + `KosCard.tsx` — right panel list
-13. [ ] Build `KosDetail.tsx` — expanded card on click
-14. [ ] Build `FilterChips.tsx` — in-memory filtering
-15. [ ] Build `SavedSearches.tsx` — left panel with localStorage
-16. [ ] Build `MapView.tsx` — Leaflet with markers + popups
-17. [ ] Add SSE streaming to FastAPI backend (`api/src/search.py`)
-18. [ ] Wire SSE streaming in ChatInterface
-19. [ ] Build `settings.astro` + `ProviderSettings.tsx`
-20. [ ] Mobile responsive polish (all panels)
-21. [ ] Loading skeletons + empty states + error states
-22. [ ] Dark mode (if time)
+11. [ ] Add `resolveLocation()` call in `handleSendMessage` → detect regency vs district
+12. [ ] Build `KecamatanPicker.tsx` — in-chat chip selector for regency queries
+13. [ ] Wire `onPickKecamatan` / `onPickAllKecamatan` in ChatInterface
+14. [ ] Wire `handleSendMessage` → non-streaming API call (single district case)
+15. [ ] Build `KosCardList.tsx` + `KosCard.tsx` — right panel list
+16. [ ] Build `KosDetail.tsx` — expanded card on click
+17. [ ] Build `FilterChips.tsx` — in-memory filtering
+18. [ ] Build `SavedSearches.tsx` — left panel with localStorage
+19. [ ] Build `MapView.tsx` — Leaflet with markers + popups
+20. [ ] Add SSE streaming to FastAPI backend (`api/src/search.py`)
+21. [ ] Wire SSE streaming in ChatInterface
+22. [ ] Build `settings.astro` + `ProviderSettings.tsx`
+23. [ ] Mobile responsive polish (all panels)
+24. [ ] Loading skeletons + empty states + error states
+25. [ ] Dark mode (if time)
 
 ---
 
@@ -683,6 +809,9 @@ cd web && npm run dev
 ## 15. Done Criteria
 
 - [ ] Landing page renders at `/` with search bar + area chips
+- [ ] Regency query (Jakarta Barat) → shows kecamatan picker in chat, NOT search results
+- [ ] Click kecamatan chip → inserts as user message, triggers search for that area
+- [ ] "Cari di SEMUA" button triggers grid-expand search (all kecamatan)
 - [ ] Search → `/search?q=...` triggers API call, shows results in right panel
 - [ ] Chat shows user + assistant messages with markdown rendering
 - [ ] Right panel shows KosCard list, click expands detail

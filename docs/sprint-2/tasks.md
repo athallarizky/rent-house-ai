@@ -38,6 +38,8 @@
 | 3.1  | Left panel: SavedSearches sidebar (load from SQLite API)  | Medium     | 1.5, 2.4    | ⬜     |
 | 3.2  | Left panel: New search, delete saved search               | Easy       | 3.1         | ⬜     |
 | 3.3  | Center panel: ChatWindow (messages, streaming)            | Hard       | 1.5         | ⬜     |
+| 3.3a | Regency detection → kecamatan picker (resolveLocation)     | Medium     | 1.5, 3.3    | ⬜     |
+| 3.3b | KecamatanPicker component (in-chat chip grid)              | Medium     | 3.3a        | ⬜     |
 | 3.4  | Center panel: MessageInput (send query)                   | Medium     | 3.3         | ⬜     |
 | 3.5  | Center panel: SSE streaming (token-by-token render)       | Hard       | 3.3, 1.5    | ⬜     |
 | 3.6  | Right panel: KosCardList (vertical scroll)                | Medium     | 1.5         | ⬜     |
@@ -116,11 +118,11 @@ Phase 6 ────────────────────────
 |--------------------------|-------|-----------|--------|
 | 1 — Project Scaffold     | 5     | 3h        | ⬜     |
 | 2 — Landing Page         | 4     | 2h        | ⬜     |
-| 3 — 3-Panel Dashboard    | 9     | 12h       | ⬜     |
+| 3 — 3-Panel Dashboard    | 11       | 14h       | ⬜     |
 | 4 — Settings Page        | 3     | 2h        | ⬜     |
 | 5 — Search History API   | 4     | 3h        | ⬜     |
 | 6 — Polish & Mobile      | 5     | 5h        | ⬜     |
-| **Total**                | **30** | **~27h**  |        |
+| **Total**                | **32** | **~29h**  |        |
 
 > **Ref:** `docs/sprint-2/architecture.md` — tech stack, component tree
 > **Ref:** `docs/sprint-2/ux-flow.md` — screen designs, user flow
