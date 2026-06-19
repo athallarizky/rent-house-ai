@@ -1,5 +1,6 @@
 ---
 import '../styles/globals.css';
+import { noFlashScript } from '../lib/theme';
 import ChatInterface from '../components/ChatInterface';
 ---
 
@@ -10,6 +11,7 @@ import ChatInterface from '../components/ChatInterface';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Pencarian — Kos AI</title>
+    <script is:inline set:html={noFlashScript} />
   </head>
   <body>
     <ChatInterface client:only="react" />

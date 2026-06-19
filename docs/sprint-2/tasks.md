@@ -1,6 +1,6 @@
 # Sprint 2 — UI Dashboard + Agentic Chat
 
-> Status: 🔵 Phase 5 Done | Created: 2026-06-19 | Updated: 2026-06-19
+> Status: ✅ Sprint 2 Complete (Phase 6 Done) | Created: 2026-06-19 | Updated: 2026-06-19
 >
 > **🤖 Agent Instruction:** Give another LLM [`AGENTS.md`](./AGENTS.md) — self-contained implementation guide with code snippets, file structure, and a 22-step checklist.
 >
@@ -128,15 +128,37 @@
 
 ---
 
-## Phase 6 — Polish & Mobile
+## Phase 6 — Polish & Mobile ✅
+
+> 📄 Full report: [`reports/phase-6-report.md`](./reports/phase-6-report.md) — dark mode, mobile drawers, error UX
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 6.1  | Responsive: mobile collapses panels, swipe navigation     | Hard       | 3.x         | ⬜     |
-| 6.2  | Loading skeletons (shimmer for cards, dots for chat)      | Easy       | 3.x         | ⬜     |
-| 6.3  | Empty states ("No results", "Start a search")             | Easy       | 3.x         | ⬜     |
-| 6.4  | Error states (API down, geo-router offline)               | Medium     | 3.x         | ⬜     |
-| 6.5  | Dark mode toggle                                         | Medium     | 1.3         | ⬜     |
+| 6.1  | Responsive: mobile collapses panels, swipe navigation     | Hard       | 3.x         | ✅     |
+| 6.2  | Loading skeletons (shimmer for cards, dots for chat)      | Easy       | 3.x         | ✅     |
+| 6.3  | Empty states ("No results", "Start a search")             | Easy       | 3.x         | ✅     |
+| 6.4  | Error states (API down, geo-router offline)               | Medium     | 3.x         | ✅     |
+| 6.5  | Dark mode toggle                                         | Medium     | 1.3         | ✅     |
+
+### Polish & Mobile Summary
+
+- **6.5 Dark mode:** `lib/theme.ts` (light/dark/system + no-flash inline script), `ThemeToggle.tsx`
+  (3-way segmented, persists to `localStorage`, reacts to OS changes in system mode). No-flash
+  `<script is:inline>` in DashboardLayout + search.astro heads (no FOUC). Toggle in sidebar
+  footer (DashboardLayout) + dashboard header (search.astro). `.dark` tokens already in globals.css.
+- **6.1 Mobile:** left & right panels render as **overlay drawers with backdrop** on mobile
+  (`fixed inset-0 z-40`), desktop columns unchanged. Panel state now **initializes from viewport
+  width** (closed on mobile, open on desktop) so drawers don't auto-open on load. Selecting a kos
+  in the mobile right drawer closes it.
+- **6.2 Skeletons:** chat bouncing-dots loader, card shimmer (`animate-pulse`), stats spinner —
+  all in place from Phases 2–5.
+- **6.3 Empty states:** chat "Mulai pencarian", results "Belum ada kos", history "Belum ada
+  riwayat", saved-searches empty.
+- **6.4 Errors:** `friendlyError()` maps `Failed to fetch` / 502 / geo-router-unavailable to
+  Indonesian guidance ("Pastikan FastAPI (:8080) & geo-router (:3001) berjalan"). Error banner in
+  dashboard header; StatsCards offline badge on landing.
+- **Verification:** `astro check` 0/0/0 (26 files) · build 3 pages · no-flash script + ThemeToggle
+  island confirmed in rendered HTML across `/`, `/settings`, `/search`
 
 ---
 
@@ -179,8 +201,8 @@ Phase 6 ────────────────────────
 | 3 — 3-Panel Dashboard    | 11       | 14h       | ✅     |
 | 4 — Settings Page        | 3     | 2h        | ✅     |
 | 5 — Search History API   | 4     | 3h        | ✅     |
-| 6 — Polish & Mobile      | 5     | 5h        | ⬜     |
-| **Total**                | **32** | **~29h**  |        |
+| 6 — Polish & Mobile      | 5     | 5h        | ✅     |
+| **Total**                | **32** | **~29h**  | **✅** |
 
 > **Ref:** `docs/sprint-2/architecture.md` — tech stack, component tree
 > **Ref:** `docs/sprint-2/ux-flow.md` — screen designs, user flow

@@ -16,13 +16,15 @@ import {
   saveSavedSearch,
   deleteSavedSearch,
 } from "../lib/api";
-import { extractArea, uuid, cn } from "../lib/utils";
+import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
 import ChatWindow from "./ChatWindow";
 import MessageInput from "./MessageInput";
 import FilterChips from "./FilterChips";
 import KosCardList from "./KosCardList";
 import SavedSearches from "./SavedSearches";
 import DistrictSwitcher from "./DistrictSwitcher";
+import ThemeToggle from "./ThemeToggle";
+import MobileNav from "./MobileNav";
 
 const GENDER_KEYS = ["putra", "putri", "campur"];
 const DEFAULT_AREA = "Cengkareng";
@@ -69,8 +71,12 @@ export default function ChatInterface() {
   const [rightPanelMode, setRightPanelMode] = useState<RightPanelMode>("list");
   const [selectedKos, setSelectedKos] = useState<KosResult | null>(null);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [showLeft, setShowLeft] = useState(true);
-  const [showRight, setShowRight] = useState(true);
+  const [showLeft, setShowLeft] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 768
+  );
+  const [showRight, setShowRight] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 768
+  );
 
   const bootstrapped = useRef(false);
 
@@ -180,6 +186,17 @@ export default function ChatInterface() {
       await loadDistrict(districtName, regency || undefined, text);
     } catch (e) {
       console.error("handleSendMessage failed", e);
+      const msg = friendlyError(e, "Gagal memproses pencarian.");
+      setError(msg);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuid(),
+          role: "assistant",
+          content: `Maaf, terjadi kesalahan: ${msg}`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
       if (currentDistrict) await queryDataset(text, currentDistrict);
       else await loadDistrict(area, undefined, text);
     }
@@ -228,7 +245,7 @@ export default function ChatInterface() {
       });
     } catch (e) {
       console.error("loadDistrict failed", e);
-      const msg = e instanceof Error ? e.message : "Gagal memuat district";
+      const msg = friendlyError(e, "Gagal memuat district.");
       setError(msg);
       setDatasetLoading(false);
     }
@@ -309,7 +326,7 @@ export default function ChatInterface() {
       setActiveSearchId(null);
     } catch (e) {
       console.error("queryDataset failed", e);
-      const msg = e instanceof Error ? e.message : "Pencarian gagal";
+      const msg = friendlyError(e, "Pencarian gagal.");
       setError(msg);
       setMessages((prev) => [
         ...prev,
@@ -433,6 +450,7 @@ export default function ChatInterface() {
       {/* Center panel — chat */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2.5">
+          <MobileNav currentPath="/search" />
           <button
             type="button"
             onClick={() => setShowLeft((v) => !v)}
@@ -459,17 +477,20 @@ export default function ChatInterface() {
               />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowRight((v) => !v)}
-            className={cn(
-              "ml-auto p-1.5 rounded-md hover:bg-accent transition-colors",
-              !showRight && "text-muted-foreground"
-            )}
-            aria-label="Toggle panel kanan"
-          >
-            <PanelRight className="w-4 h-4" />
-          </button>
+          <div className="ml-auto flex items-center gap-1.5">
+            <ThemeToggle compact />
+            <button
+              type="button"
+              onClick={() => setShowRight((v) => !v)}
+              className={cn(
+                "p-1.5 rounded-md hover:bg-accent transition-colors",
+                !showRight && "text-muted-foreground"
+              )}
+              aria-label="Toggle panel kanan"
+            >
+              <PanelRight className="w-4 h-4" />
+            </button>
+          </div>
         </header>
 
         {error && (
@@ -502,19 +523,45 @@ export default function ChatInterface() {
 
       {/* Right panel — dataset + relevance */}
       {showRight && (
-        <div className="w-80 shrink-0 h-full border-l border-border bg-card hidden md:block overflow-hidden">
-          <KosCardList
-            results={filteredDataset}
-            selectedKos={selectedKos}
-            mode={rightPanelMode}
-            onModeChange={setRightPanelMode}
-            onSelectKos={setSelectedKos}
-            isLoading={datasetLoading}
-            relevantIds={relevantIds}
-            relevantOnly={relevantOnly}
-            onToggleRelevantOnly={() => setRelevantOnly((v) => !v)}
-          />
-        </div>
+        <>
+          {/* Desktop column */}
+          <div className="w-80 shrink-0 h-full border-l border-border bg-card hidden md:block overflow-hidden">
+            <KosCardList
+              results={filteredDataset}
+              selectedKos={selectedKos}
+              mode={rightPanelMode}
+              onModeChange={setRightPanelMode}
+              onSelectKos={setSelectedKos}
+              isLoading={datasetLoading}
+              relevantIds={relevantIds}
+              relevantOnly={relevantOnly}
+              onToggleRelevantOnly={() => setRelevantOnly((v) => !v)}
+            />
+          </div>
+          {/* Mobile drawer */}
+          <div className="md:hidden fixed inset-0 z-40 flex">
+            <div
+              className="w-80 h-full bg-card border-l border-border shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <KosCardList
+                results={filteredDataset}
+                selectedKos={selectedKos}
+                mode={rightPanelMode}
+                onModeChange={setRightPanelMode}
+                onSelectKos={(k) => {
+                  setSelectedKos(k);
+                  setShowRight(false);
+                }}
+                isLoading={datasetLoading}
+                relevantIds={relevantIds}
+                relevantOnly={relevantOnly}
+                onToggleRelevantOnly={() => setRelevantOnly((v) => !v)}
+              />
+            </div>
+            <div className="flex-1 bg-black/30" onClick={() => setShowRight(false)} />
+          </div>
+        </>
       )}
     </div>
   );
