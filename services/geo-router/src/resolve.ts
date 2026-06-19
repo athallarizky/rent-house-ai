@@ -11,14 +11,34 @@ export function resolve(
 ): ResolveResult | null {
   const aliased = resolveAlias(query);
 
-  if (isPoi(aliased)) return null;
-
+  // Known regency wins first — a regency-level query like "Bandung" must yield
+  // the multi-district picker, not some unrelated district that happens to share
+  // the name (there IS a district "Bandung" in Tulungagung).
   if (regencyNames?.has(aliased.toLowerCase())) {
     const regencyEntries = data.filter((e) => e.regency.toLowerCase() === aliased.toLowerCase());
     if (regencyEntries.length > 0) {
       return buildRegencyResult(data, query, regencyEntries[0].regency, regencyEntries[0].province);
     }
   }
+
+  // Exact district-name match next. Avoids two classes of geo-router bugs:
+  //  - fuzzy mis-resolve across provinces: "Buahbatu" (Bandung) -> "Blahbatuh" (Gianyar)
+  //  - real district names containing POI words: "Kebon Jeruk"
+  // (Runs after the regency check so regencies aren't shadowed by same-named districts.)
+  const exactDistrict = data.find(
+    (e) => e.district.toLowerCase() === aliased.toLowerCase()
+  );
+  if (exactDistrict) {
+    return buildDistrictResult(
+      data,
+      query,
+      exactDistrict.district,
+      exactDistrict.regency,
+      exactDistrict.province
+    );
+  }
+
+  if (isPoi(aliased)) return null;
 
   const results = fuse.search(aliased, { limit: 20 });
   if (results.length === 0) return null;

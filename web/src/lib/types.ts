@@ -39,6 +39,7 @@ export interface KosResult {
 export interface SearchRequest {
   query: string;
   area?: string;
+  regency?: string;
   top_k?: number;
   force_scrape?: boolean;
   stream?: boolean;

@@ -29,6 +29,7 @@ router = APIRouter()
 class SearchRequest(BaseModel):
     query: str
     area: Optional[str] = None
+    regency: Optional[str] = None
     min_rating: Optional[float] = None
     gender: Optional[str] = None
     top_k: int = 8
@@ -99,7 +100,7 @@ async def search(req: SearchRequest):
             raise HTTPException(500, f"Indexing failed: {idx_result.get('message')}")
         pipeline_status["index"] = f"{idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
 
-    results = search_and_rank(req.query, area, req.top_k)
+    results = search_and_rank(req.query, area, req.top_k, regency=req.regency)
 
     if req.stream:
         formatted = _format_items(results)
