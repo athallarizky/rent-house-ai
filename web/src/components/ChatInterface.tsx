@@ -398,7 +398,7 @@ export default function ChatInterface() {
 
       {/* Right panel — results */}
       {showRight && (
-        <div className="w-80 shrink-0 border-l border-border bg-card hidden md:block">
+        <div className="w-80 shrink-0 h-full border-l border-border bg-card hidden md:block overflow-hidden">
           <KosCardList
             results={filteredResults}
             selectedKos={selectedKos}
