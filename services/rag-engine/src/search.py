@@ -81,6 +81,43 @@ def search(
     return items[:top_k]
 
 
+def list_kos(
+    kecamatan: Optional[str] = None,
+    province: Optional[str] = None,
+    limit: int = 500,
+) -> List[Dict[str, Any]]:
+    """Return all kos for a kecamatan (metadata-only filter, no semantic search).
+
+    Uses collection.get (exact where) instead of collection.query, so it returns
+    the full dataset for a district without embedding the query.
+    """
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    collection = client.get_collection(COLLECTION_NAME)
+
+    where = _build_where(kecamatan, province, None)
+    result = collection.get(
+        where=where,
+        limit=limit,
+        include=["documents", "metadatas"],
+    )
+
+    items: List[Dict[str, Any]] = []
+    ids = result.get("ids") or []
+    documents = result.get("documents") or []
+    metadatas = result.get("metadatas") or []
+    for i, doc_id in enumerate(ids):
+        meta = metadatas[i] if i < len(metadatas) else {}
+        text = documents[i] if i < len(documents) else ""
+        items.append({"doc_id": doc_id, "metadata": meta, "text": text})
+
+    # No semantic score here; sort by rating desc as a stable default for browsing.
+    items.sort(
+        key=lambda it: (it["metadata"].get("rating", 0), it["metadata"].get("review_count", 0)),
+        reverse=True,
+    )
+    return items
+
+
 def _build_where(
     kecamatan: Optional[str],
     province: Optional[str],
