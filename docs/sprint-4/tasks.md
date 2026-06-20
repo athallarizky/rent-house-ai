@@ -36,15 +36,15 @@
 
 ---
 
-## Phase 3 — Login Page ⬜
+## Phase 3 — Login Page ✅
 
 > Astro page + React login form.
 
 | ID   | Task | Difficulty | Status |
 |------|------|-----------|--------|
-| 3.1  | Create `web/src/pages/login.astro` — full-screen login page | Easy | ⬜ |
-| 3.2  | Create `web/src/components/LoginForm.tsx` — email + password form | Medium | ⬜ |
-| 3.3  | Create `web/src/lib/auth.ts` — auth client (login, logout, token) | Medium | ⬜ |
+| 3.1  | Create `web/src/pages/login.astro` — full-screen login page | Easy | ✅ |
+| 3.2  | Create `web/src/components/LoginForm.tsx` — email + password form | Medium | ✅ |
+| 3.3  | Create `web/src/lib/auth.ts` — auth client (login, logout, token) | Medium | ✅ |
 
 ---
 
@@ -92,7 +92,7 @@ Phase 5 (Polish) ──────── dep on Phase 4
 |-------|-------|-----------|--------|
 | 1 — Backend Auth Core | 4 | 2h | ✅ |
 | 2 — Protect Endpoints | 3 | 1h | ✅ |
-| 3 — Login Page | 3 | 2h | ⬜ |
+| 3 — Login Page | 3 | 2h | ✅ |
 | 4 — Frontend Integration | 4 | 1.5h | ⬜ |
 | 5 — Polish | 4 | 1h | ⬜ |
 | **Total** | **18** | **~7.5h** | **⬜** |
