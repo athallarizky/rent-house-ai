@@ -55,8 +55,8 @@ def geocode(query: str) -> Optional[Dict[str, Any]]:
         )
 
         district = (
-            addr.get("suburb")
-            or addr.get("city_district")
+            addr.get("city_district")
+            or addr.get("suburb")
             or addr.get("village")
             or addr.get("hamlet")
             or addr.get("town")

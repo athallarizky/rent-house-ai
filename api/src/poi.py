@@ -26,6 +26,7 @@ async def poi_resolve(req: PoiResolveRequest):
 
     regency = geo.get("regency", "")
     province = geo.get("province", "")
+    district = geo.get("district", "")
 
     # Try to resolve the regency to get districts
     districts = []
@@ -35,11 +36,20 @@ async def poi_resolve(req: PoiResolveRequest):
             districts = area.get("districts", [])
             province = province or area.get("province", "")
 
+    # Find the district that matches the geocoded location
+    matched_district = None
+    if district:
+        for d in districts:
+            if d.get("name", "").lower() == district.lower():
+                matched_district = d.get("name")
+                break
+
     return {
         "lat": geo["lat"],
         "lon": geo["lon"],
         "display_name": geo["display_name"],
         "regency": regency or province,
         "province": province,
+        "district": matched_district or district,
         "districts": districts,
     }

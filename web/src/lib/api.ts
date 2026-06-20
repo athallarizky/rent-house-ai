@@ -158,6 +158,7 @@ export interface PoiResolveResult {
   display_name: string;
   regency: string;
   province: string;
+  district: string | null;
   districts: Array<{ name: string; postalCodes?: number[] }>;
 }
 
