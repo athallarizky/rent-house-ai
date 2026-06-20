@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Trash2, History, MapPin } from "lucide-react";
 import type { SavedSearch } from "../lib/types";
 import { cn, formatRelativeTime } from "../lib/utils";
+import ConfirmModal from "./ConfirmModal";
 
 interface SavedSearchesProps {
   searches: SavedSearch[];
@@ -9,6 +10,7 @@ interface SavedSearchesProps {
   onSelect: (search: SavedSearch) => void;
   onNew: () => void;
   onDelete: (id: string) => void;
+  onClearAll?: () => void;
 }
 
 export default function SavedSearches({
@@ -17,16 +19,18 @@ export default function SavedSearches({
   onSelect,
   onNew,
   onDelete,
+  onClearAll,
 }: SavedSearchesProps) {
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<SavedSearch | null>(null);
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const requestDelete = (s: SavedSearch, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Hapus pencarian ini?")) {
-      setDeletingId(id);
-      onDelete(id);
-      setDeletingId(null);
-    }
+    setPendingDelete(s);
+  };
+
+  const confirmDelete = () => {
+    if (pendingDelete) onDelete(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   return (
@@ -89,18 +93,14 @@ export default function SavedSearches({
                   <span
                     role="button"
                     tabIndex={0}
-                    onClick={(e) => handleDelete(s.id, e)}
+                    onClick={(e) => requestDelete(s, e)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") handleDelete(s.id, e as unknown as React.MouseEvent);
+                      if (e.key === "Enter") requestDelete(s, e as unknown as React.MouseEvent);
                     }}
                     className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-1 cursor-pointer"
                     aria-label="Hapus pencarian"
                   >
-                    {deletingId === s.id ? (
-                      <Trash2 className="w-3.5 h-3.5 animate-pulse" />
-                    ) : (
-                      <Trash2 className="w-3.5 h-3.5" />
-                    )}
+                    <Trash2 className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </button>
@@ -109,11 +109,35 @@ export default function SavedSearches({
         )}
       </div>
 
-      <div className="border-t border-border p-3">
+      <div className="border-t border-border p-3 space-y-2">
         <p className="text-[11px] text-muted-foreground text-center">
           {searches.length} {searches.length === 1 ? "pencarian" : "pencarian"} tersimpan
         </p>
+        {onClearAll && searches.length > 0 && (
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Hapus semua histori
+          </button>
+        )}
       </div>
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title="Hapus pencarian ini?"
+        message={
+          pendingDelete
+            ? `"${pendingDelete.query_text}" (${pendingDelete.area}) akan dihapus permanen.`
+            : ""
+        }
+        confirmLabel="Hapus"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
