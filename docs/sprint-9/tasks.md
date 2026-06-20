@@ -68,38 +68,38 @@ nukes ALL areas — landmine called out in earlier draft).
 
 | ID | Task | File | Diff | Est | Status |
 |----|------|------|------|-----|--------|
-| 1.1 | `delete_area_from_index(area)` — `collection.delete(where={"kecamatan": area})`; also delete `data/cleaned/<area>_docs.json`. Returns count removed. **Foundation for 1.3/1.4/1.5.** | `services/rag-engine/src/db.py` + `api/src/orchestrator.py` | Medium | 0.5h | ⬜ |
-| 1.2 | `run_index_background(area)` — process + index (skip scrape) | `api/src/orchestrator.py` | Easy | 0.25h | ⬜ |
-| 1.3 | `run_rebuild_background(area)` — `delete_area_from_index` → `ensure_processed(force)` → `ensure_indexed`. Per-area, NOT global force. | `api/src/orchestrator.py` | Medium | 0.5h | ⬜ |
-| 1.4 | `run_rescrape_background(area, postal_codes)` — per-area delete → full scrape → process → index | `api/src/orchestrator.py` | Medium | 0.5h | ⬜ |
-| 1.5 | `POST /pipeline/index` `{area}` — admin-only, start/queue | `api/src/pipeline_data.py` | Easy | 0.25h | ⬜ |
-| 1.6 | `POST /pipeline/rebuild` `{area}` — admin-only | `api/src/pipeline_data.py` | Easy | 0.25h | ⬜ |
-| 1.7 | `POST /pipeline/rescrape` `{area}` — admin-only | `api/src/pipeline_data.py` | Easy | 0.25h | ⬜ |
-| 1.8 | `POST /pipeline/delete` `{area, wipe_raw?}` — admin-only; default keep raw, `wipe_raw=true` deletes raw too (tier-2) | `api/src/pipeline_data.py` | Medium | 0.5h | ⬜ |
+| 1.1 | `delete_area_from_index(area)` — `collection.delete(where={"kecamatan": area})`; also delete `data/cleaned/<area>_docs.json`. Returns count removed. **Foundation for 1.3/1.4/1.5.** | `services/rag-engine/src/db.py` + `api/src/orchestrator.py` | Medium | 0.5h | ✅ |
+| 1.2 | `run_index_background(area)` — process + index (skip scrape) | `api/src/orchestrator.py` | Easy | 0.25h | ✅ |
+| 1.3 | `run_rebuild_background(area)` — `delete_area_from_index` → `ensure_processed(force)` → `ensure_indexed`. Per-area, NOT global force. | `api/src/orchestrator.py` | Medium | 0.5h | ✅ |
+| 1.4 | `run_rescrape_background(area, postal_codes)` — per-area delete → full scrape → process → index | `api/src/orchestrator.py` | Medium | 0.5h | ✅ |
+| 1.5 | `POST /pipeline/index` `{area}` — admin-only, start/queue | `api/src/pipeline_data.py` | Easy | 0.25h | ✅ |
+| 1.6 | `POST /pipeline/rebuild` `{area}` — admin-only | `api/src/pipeline_data.py` | Easy | 0.25h | ✅ |
+| 1.7 | `POST /pipeline/rescrape` `{area}` — admin-only | `api/src/pipeline_data.py` | Easy | 0.25h | ✅ |
+| 1.8 | `POST /pipeline/delete` `{area, wipe_raw?}` — admin-only; default keep raw, `wipe_raw=true` deletes raw too (tier-2) | `api/src/pipeline_data.py` | Medium | 0.5h | ✅ |
 
 ### Phase 2 — Frontend (actionable dashboard)
 
 | ID | Task | File | Diff | Est | Status |
 |----|------|------|------|-----|--------|
-| 2.1 | API client: `indexArea`, `rebuildArea`, `rescrapeArea`, `deleteArea` + types | `web/src/lib/api.ts` | Easy | 0.25h | ⬜ |
-| 2.2 | Per-row **contextual action buttons** (icon + short label): Index (Zap), Rebuild (RefreshCw), Rescrape (Globe), Delete (Trash2, red). Max 3 visible per row (contextual). | `web/src/components/PipelineDashboard.tsx` | Medium | 0.75h | ⬜ |
-| 2.3 | **Disable ALL action buttons while `pipeline.running !== null`** (focus 1 row, avoid concurrent). Tooltip: "Pipeline aktif: {running}" | `web/src/components/PipelineDashboard.tsx` | Easy | 0.25h | ⬜ |
-| 2.4 | **Confirm modal**: Rescrape (expensive) + Delete (destructive, tier-2 full-wipe w/ raw) | `web/src/components/PipelineDashboard.tsx` + `ConfirmModal.tsx` | Easy | 0.25h | ⬜ |
-| 2.5 | **Warning icon** (AlertTriangle, amber) next to area name for likely-broken data; hover → suggestion (see detection rules below) | `web/src/components/PipelineDashboard.tsx` | Medium | 0.5h | ⬜ |
-| 2.6 | **Status-badge tooltips** — hover ✅ shows count: scraped→scraped_count, processed→docs_count, indexed→indexed_count (native `title`, only when on) | `web/src/components/PipelineDashboard.tsx` (`StatusBadge`) | Easy | 0.25h | ⬜ |
-| 2.7 | Wire actions to existing 5s auto-refresh: trigger → `pipeline.running` non-null → polling resumes → live status | `web/src/components/PipelineDashboard.tsx` | Trivial | 0.1h | ⬜ |
+| 2.1 | API client: `indexArea`, `rebuildArea`, `rescrapeArea`, `deleteArea` + types | `web/src/lib/api.ts` | Easy | 0.25h | ✅ |
+| 2.2 | Per-row **contextual action buttons** (icon + short label): Index (Zap), Rebuild (RefreshCw), Rescrape (Globe), Delete (Trash2, red). Max 3 visible per row (contextual). | `web/src/components/PipelineDashboard.tsx` | Medium | 0.75h | ✅ |
+| 2.3 | **Disable ALL action buttons while `pipeline.running !== null`** (focus 1 row, avoid concurrent). Tooltip: "Pipeline aktif: {running}" | `web/src/components/PipelineDashboard.tsx` | Easy | 0.25h | ✅ |
+| 2.4 | **Confirm modal**: Rescrape (expensive) + Delete (destructive, tier-2 full-wipe w/ raw) | `web/src/components/PipelineDashboard.tsx` + `ConfirmModal.tsx` | Easy | 0.25h | ✅ |
+| 2.5 | **Warning icon** (AlertTriangle, amber) next to area name for likely-broken data; hover → suggestion (see detection rules below) | `web/src/components/PipelineDashboard.tsx` | Medium | 0.5h | ✅ |
+| 2.6 | **Status-badge tooltips** — hover ✅ shows count: scraped→scraped_count, processed→docs_count, indexed→indexed_count (native `title`, only when on) | `web/src/components/PipelineDashboard.tsx` (`StatusBadge`) | Easy | 0.25h | ✅ |
+| 2.7 | Wire actions to existing 5s auto-refresh: trigger → `pipeline.running` non-null → polling resumes → live status | `web/src/components/PipelineDashboard.tsx` | Trivial | 0.1h | ✅ |
 
 ### Phase 3 — Validation
 
 | ID | Task | Diff | Est | Status |
 |----|------|------|-----|--------|
-| 3.1 | Index: scraped-only area → ✅✅ in seconds | Easy | 0.25h | ⬜ |
-| 3.2 | Rebuild: RCA-029-style empty docs → docs repopulated, indexed_count climbs | Easy | 0.25h | ⬜ |
-| 3.3 | Rescrape: confirm modal → fresh data | Easy | 0.25h | ⬜ |
-| 3.4 | Delete (default): chroma+docs gone, raw kept → Rebuild still works after | Easy | 0.25h | ⬜ |
-| 3.5 | Delete (wipe_raw): area fully gone from dashboard | Easy | 0.15h | ⬜ |
-| 3.6 | Admin-only: non-admin token → 403 on all 4 endpoints | Easy | 0.15h | ⬜ |
-| 3.7 | Disable: buttons disabled while running; 2nd click ignored (no crash, no concurrent scrape) | Easy | 0.2h | ⬜ |
+| 3.1 | Index: scraped-only area → ✅✅ in seconds | Easy | 0.25h | ✅ |
+| 3.2 | Rebuild: RCA-029-style empty docs → docs repopulated, indexed_count climbs | Easy | 0.25h | ✅ |
+| 3.3 | Rescrape: confirm modal → fresh data | Easy | 0.25h | ✅ |
+| 3.4 | Delete (default): chroma+docs gone, raw kept → Rebuild still works after | Easy | 0.25h | ✅ |
+| 3.5 | Delete (wipe_raw): area fully gone from dashboard | Easy | 0.15h | ✅ |
+| 3.6 | Admin-only: non-admin token → 403 on all 4 endpoints | Easy | 0.15h | ✅ |
+| 3.7 | Disable: buttons disabled while running; 2nd click ignored (no crash, no concurrent scrape) | Easy | 0.2h | ✅ |
 
 ---
 

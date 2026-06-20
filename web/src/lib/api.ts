@@ -507,4 +507,41 @@ export async function getPipelineData(): Promise<PipelineDataResponse> {
   return resp.json();
 }
 
+// === Pipeline Actions (Sprint 9 — admin-only) ===
+
+export interface PipelineActionResponse {
+  success: boolean;
+  pipeline_started?: boolean;
+  pipeline_queued?: boolean;
+  pipeline_blocked?: boolean;
+  message?: string;
+  pipeline?: PipelineStatus;
+  removed_from_index?: number;
+  docs_deleted?: boolean;
+  raw_deleted?: boolean;
+}
+
+async function pipelineAction(path: string, area: string, extra: Record<string, unknown> = {}): Promise<PipelineActionResponse> {
+  const resp = await fetch(`${API_URL}/pipeline/${path}`, {
+    method: "POST",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ area, ...extra }),
+  });
+  if (!resp.ok) {
+    const detail = await resp.text();
+    throw new Error(`Pipeline ${path} failed (${resp.status}): ${detail}`);
+  }
+  return resp.json();
+}
+
+/** Process + index an already-scraped area (skip scrape). */
+export const indexArea = (area: string) => pipelineAction("index", area);
+/** Reprocess + reingest — fix data quality without re-scraping. */
+export const rebuildArea = (area: string) => pipelineAction("rebuild", area);
+/** Full re-scrape → process → index. Expensive (Google Maps). */
+export const rescrapeArea = (area: string) => pipelineAction("rescrape", area);
+/** Delete an area's index + docs. wipe_raw=true also removes raw data. */
+export const deleteArea = (area: string, wipe_raw = false) =>
+  pipelineAction("delete", area, { wipe_raw });
+
 export { API_URL };
