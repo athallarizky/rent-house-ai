@@ -134,8 +134,15 @@ def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stal
 
 def ensure_processed(area: str) -> Dict[str, Any]:
     docs_path = ROOT / "data" / "cleaned" / f"{area}_docs.json"
+    # Treat as cached ONLY if the file has real content. A failed/partial earlier
+    # run can leave an empty [] (2 bytes) docs file; checking just .exists()
+    # would skip reprocessing forever and the area indexes 0 docs (see RCA-029).
     if docs_path.exists():
-        return {"status": "cached"}
+        try:
+            if docs_path.stat().st_size > 100:
+                return {"status": "cached"}
+        except OSError:
+            pass
 
     try:
         _data().process_area(area)
