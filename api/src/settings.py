@@ -1,15 +1,16 @@
 """GET/PUT /settings + POST /settings/test — LLM provider config.
 
-Settings are persisted to data/settings.json (single-user, local MVP — no auth).
-The RAG engine reads the key/model from this file via config.py.
+Settings are persisted to data/settings.json. The RAG engine reads the key/model
+from this file via config.py. GET requires authentication; PUT + POST /test require admin.
 """
 
 import json
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from .auth import get_current_user, require_admin
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SETTINGS_PATH = ROOT / "data" / "settings.json"
@@ -62,7 +63,7 @@ def _write(s: Settings) -> None:
 
 
 @router.get("")
-async def get_settings():
+async def get_settings(user: dict = Depends(get_current_user)):
     s = _read()
     # Don't echo the full key back to the client — return a masked hint.
     masked = ""
@@ -78,7 +79,7 @@ async def get_settings():
 
 
 @router.put("")
-async def update_settings(req: Settings):
+async def update_settings(req: Settings, user: dict = Depends(require_admin)):
     # Empty api_key means "keep existing" (client sends masked/no key).
     if not req.api_key:
         existing = _read()
@@ -88,7 +89,7 @@ async def update_settings(req: Settings):
 
 
 @router.post("/test")
-async def test_settings(req: SettingsTestRequest):
+async def test_settings(req: SettingsTestRequest, user: dict = Depends(require_admin)):
     """Ping Z.AI with a trivial message to validate the key/model server-side.
 
     Done server-side to avoid browser CORS against the Z.AI endpoint.

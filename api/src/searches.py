@@ -10,8 +10,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from .auth import get_current_user
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DB_PATH = ROOT / "data" / "search_history.db"
@@ -47,7 +48,7 @@ def _conn() -> sqlite3.Connection:
 
 
 @router.get("")
-async def list_searches():
+async def list_searches(user: dict = Depends(get_current_user)):
     """Return all saved searches, newest first."""
     conn = _conn()
     try:
@@ -61,7 +62,7 @@ async def list_searches():
 
 
 @router.post("")
-async def save_search(req: SavedSearch):
+async def save_search(req: SavedSearch, user: dict = Depends(get_current_user)):
     """Insert a saved search. Generates id/created_at if the client didn't."""
     now = datetime.utcnow().isoformat() + "Z"
     sid = req.id or str(_uuid.uuid4())
@@ -87,7 +88,7 @@ async def save_search(req: SavedSearch):
 
 
 @router.delete("/{search_id}")
-async def delete_search(search_id: str):
+async def delete_search(search_id: str, user: dict = Depends(get_current_user)):
     conn = _conn()
     try:
         conn.execute("DELETE FROM saved_searches WHERE id = ?", (search_id,))
@@ -98,7 +99,7 @@ async def delete_search(search_id: str):
 
 
 @router.delete("")
-async def delete_all_searches():
+async def delete_all_searches(user: dict = Depends(get_current_user)):
     conn = _conn()
     try:
         cur = conn.execute("DELETE FROM saved_searches")

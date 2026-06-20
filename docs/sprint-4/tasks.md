@@ -24,15 +24,15 @@
 
 ---
 
-## Phase 2 — Protect Backend Endpoints ⬜
+## Phase 2 — Protect Backend Endpoints ✅
 
 > Add auth dependencies to existing routes.
 
 | ID   | Task | Difficulty | Status |
 |------|------|-----------|--------|
-| 2.1  | Protect `PUT /settings`, `POST /settings/test` with `require_admin` | Easy | ⬜ |
-| 2.2  | Protect `POST /search`, `POST /area/load`, `*/searches`, `*/intent` with `get_current_user` | Easy | ⬜ |
-| 2.3  | Open: `GET /health`, `GET /health/services`, `GET /locations/*`, `POST /poi/resolve` | Easy | ⬜ |
+| 2.1  | Protect `PUT /settings`, `POST /settings/test` with `require_admin` | Easy | ✅ |
+| 2.2  | Protect `POST /search`, `POST /area/load`, `*/searches`, `*/intent` with `get_current_user` | Easy | ✅ |
+| 2.3  | Open: `GET /health`, `GET /health/services`, `GET /locations/*`, `POST /poi/resolve` | Easy | ✅ |
 
 ---
 
@@ -91,7 +91,7 @@ Phase 5 (Polish) ──────── dep on Phase 4
 | Phase | Tasks | Est. Hours | Status |
 |-------|-------|-----------|--------|
 | 1 — Backend Auth Core | 4 | 2h | ✅ |
-| 2 — Protect Endpoints | 3 | 1h | ⬜ |
+| 2 — Protect Endpoints | 3 | 1h | ✅ |
 | 3 — Login Page | 3 | 2h | ⬜ |
 | 4 — Frontend Integration | 4 | 1.5h | ⬜ |
 | 5 — Polish | 4 | 1h | ⬜ |
