@@ -34,5 +34,6 @@ Thumbs.db
 # Go binary
 services/scraper/google-maps-scraper/gmaps-scraper
 
-# Kodepos node_modules
-services/geo-router/kodepos/node_modules/
+# Docker
+model-cache/
+build/

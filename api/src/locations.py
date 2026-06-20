@@ -1,6 +1,7 @@
 """GET /locations/* — proxy to geo-router + area list."""
 
 import json
+import os
 import urllib.request
 import urllib.parse
 from pathlib import Path
@@ -10,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter(prefix="/locations", tags=["locations"])
 
-GEO_ROUTER_URL = "http://localhost:3001"
+GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
 KODEPOS_PATH = Path(__file__).resolve().parent.parent.parent / "services" / "geo-router" / "kodepos" / "data" / "kodepos.json"
 
 _regencies_cache: List[dict] = []
