@@ -82,3 +82,33 @@ done
 curl -s -X POST http://localhost:8080/area/load -H "$AUTH" -H "Content-Type: application/json" \
   -d '{"district":"Bekasi Timur"}' -o /dev/null -w "area/load: %{time_total}s\n"
 ```
+
+---
+
+## Results After Sprint 8 (measured 2026-06-20, local in-process)
+
+Same machine, same 54-kos Bekasi Timur dataset (ingested locally), bge-m3 loaded
+resident at FastAPI startup. macOS arm64, torch 2.8.0 CPU, chromadb 1.5.9.
+
+| Path | Before (subprocess) | After (in-process) | Factor |
+|------|---------------------|--------------------|--------|
+| `/health` | 3.6 ms | 1.0 ms | — |
+| `/area/load` (list_kos) | 9.99 s | **32–39 ms** (warm) | **~280x** |
+| `/search` mode=rag run 1 (cold) | ~14.3 s | 2.67 s | — |
+| `/search` mode=rag run 2 (warm) | ~14.3 s | **58 ms** | **~246x** |
+| `/search` mode=rag run 3 (warm) | ~14.3 s | **48 ms** | **~298x** |
+
+**Headline: warm retrieval ~50 ms vs ~14,300 ms = ~280x faster.** This exceeds
+both the plan's "20–50x" claim and the ~70–140x projection, because (a) the
+baseline turned out worse than assumed (~14s, not 5–13s) and (b) warm in-process
+retrieval is ~50 ms, better than the 100–200 ms projected.
+
+Notes:
+- Run 1 (2.67 s) is cold — first-call torch/embedding warm-up + chroma client
+  init. Runs 2+ are warm (~50 ms) once the model + ChromaDB client are resident.
+- list_kos first call was 213 ms (chroma client construction, now cached via
+  `db.py`); warm calls are 32–39 ms.
+- Ingest of 54 docs: ~12 s embedding (one-time per area) + insert — the per-area
+  pipeline overhead (previously ~10 s of import spawn per ingest call) is gone.
+- End-to-end with a real LLM is still LLM-capped (~2–5 s) once an API key is set.
+
