@@ -65,7 +65,7 @@ async def area_load(req: AreaLoadRequest, user: dict = Depends(get_current_user)
 @router.get("/pipeline/status")
 async def pipeline_status(user: dict = Depends(get_current_user)):
     """Return current pipeline state (idle, running, queued, progress)."""
-    return get_pipeline_state().snapshot()
+    return get_pipeline_state().state()
 
 
 @router.post("/search")
@@ -118,7 +118,7 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
                 "success": False,
                 "pipeline_blocked": True,
                 "message": f"Pipeline for '{area}' is already running.",
-                "pipeline": state.snapshot(),
+                "pipeline": state.state(),
             }
 
         # Layer 3: Another pipeline running → queue
@@ -129,14 +129,14 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
                     "success": False,
                     "pipeline_queued": True,
                     "message": f"Pipeline for '{state.running}' is running. '{area}' queued.",
-                    "pipeline": state.snapshot(),
+                    "pipeline": state.state(),
                 }
             else:
                 return {
                     "success": False,
                     "pipeline_blocked": True,
                     "message": f"Pipeline for '{area}' is already running (dedup).",
-                    "pipeline": state.snapshot(),
+                    "pipeline": state.state(),
                 }
 
         # Start pipeline in background
@@ -146,7 +146,7 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
                 "success": False,
                 "pipeline_blocked": True,
                 "message": "Another pipeline is already running.",
-                "pipeline": state.snapshot(),
+                "pipeline": state.state(),
             }
 
         background_tasks.add_task(run_pipeline_background, area, postal_codes, req.force_scrape)
@@ -155,7 +155,7 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
             "success": False,
             "pipeline_started": True,
             "message": f"Pipeline started for '{area}'. Poll /pipeline/status for progress.",
-            "pipeline": state.snapshot(),
+            "pipeline": state.state(),
         }
 
     # No pipeline — lightweight search (existing behavior)

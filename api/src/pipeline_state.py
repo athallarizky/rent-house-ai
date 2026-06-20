@@ -1,7 +1,10 @@
-"""Pipeline state manager — thread-safe single-pipeline coordinator.
+"""Pipeline state tracker — thread-safe singleton.
 
-Used by the search endpoint to prevent concurrent scrape/process/index
-pipelines. Maximum 1 pipeline runs at a time; maximum 1 area in queue.
+Keeps track of the currently-running and queued pipeline jobs so the API can:
+1. Check if an area is already cached (skip pipeline)
+2. Check if pipeline is already running for this area (dedup)
+3. Queue a new area if pipeline is busy
+4. Expose status via GET /pipeline/status
 """
 
 import threading
@@ -10,30 +13,21 @@ from typing import Optional
 
 
 class PipelineState:
-    """Thread-safe singleton tracker for the background pipeline.
-
-    Attributes:
-        running: Area name currently being processed, or None if idle.
-        queued: Area name waiting to be processed, or None.
-        status: Current stage — 'idle','scraping','processing','indexing'.
-        started_at: Unix timestamp when the current pipeline started.
-        progress: Human-readable status message.
-    """
+    """Thread-safe singleton tracking the single pipeline slot + queue slot."""
 
     _instance: Optional["PipelineState"] = None
     _instance_lock = threading.Lock()
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self.running: Optional[str] = None
-        self.queued: Optional[str] = None
-        self.status: str = "idle"
+        self.running: Optional[str] = None       # area name currently running
+        self.status: str = "idle"                # idle | scraping | processing | indexing
+        self.queued: Optional[str] = None         # area waiting (max 1, overwritten)
         self.started_at: Optional[float] = None
         self.progress: Optional[str] = None
 
     @classmethod
     def get(cls) -> "PipelineState":
-        """Return the singleton instance (thread-safe)."""
         if cls._instance is None:
             with cls._instance_lock:
                 if cls._instance is None:
@@ -41,52 +35,45 @@ class PipelineState:
         return cls._instance
 
     def start(self, area: str) -> bool:
-        """Attempt to start a pipeline for *area*.
-
-        Returns True if the pipeline was started, False if one is already running.
-        """
+        """Attempt to start pipeline for `area`. Returns False if already running."""
         with self._lock:
             if self.running is not None:
                 return False
             self.running = area
-            self.queued = None
             self.status = "scraping"
+            self.queued = None
             self.started_at = time.time()
-            self.progress = "Starting pipeline..."
+            self.progress = f"Starting pipeline for {area}..."
             return True
 
     def queue(self, area: str) -> bool:
-        """Put *area* in the single-slot queue.
-
-        Returns True if the area was queued, False if it is the same as the
-        currently-running area (dedup — no need to queue).
-        """
+        """Place `area` in the single queue slot. Returns False if same area running."""
         with self._lock:
-            if area == self.running:
-                return False  # same area, skip — already running
+            if self.running == area:
+                return False  # same area already running — dedup
             self.queued = area
             return True
 
     def finish(self) -> Optional[str]:
-        """Mark the current pipeline as complete.
-
-        Returns the queued area name if one exists (caller may start it next),
-        or None if the queue is empty.
-        """
+        """Mark pipeline as done. Returns queued area name or None."""
         with self._lock:
             next_area = self.queued
             self.running = None
+            self.status = "completed"  # keep "completed" so frontend can read result
             self.queued = None
-            self.status = "idle"
             self.started_at = None
-            self.progress = None
+            # progress stays — shows final result
             return next_area
 
-    def snapshot(self) -> dict:
-        """Return a read-only snapshot of the current state.
+    def reset(self) -> None:
+        """Reset to idle (called when frontend acknowledges completion)."""
+        with self._lock:
+            if self.status == "completed":
+                self.status = "idle"
+                self.progress = None
 
-        Safe to call from any thread without holding the lock.
-        """
+    def state(self) -> dict:
+        """Return current state as a serializable dict."""
         with self._lock:
             elapsed = None
             if self.started_at is not None:
@@ -100,6 +87,6 @@ class PipelineState:
             }
 
 
+# Convenience accessor
 def get_pipeline_state() -> PipelineState:
-    """Convenience accessor for the singleton."""
     return PipelineState.get()
