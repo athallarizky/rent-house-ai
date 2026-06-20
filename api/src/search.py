@@ -305,10 +305,30 @@ def _sse(payload: dict) -> str:
 
 
 def _extract_area(query: str) -> Optional[str]:
+    # Substring match against the query. Specific kecamatan MUST come before
+    # their regency/city (e.g. "bekasi timur" before "bekasi"), otherwise the
+    # shorter name matches first and resolves to the wrong level.
     areas = [
-        "cengkareng", "jakarta barat", "jakarta selatan", "jakarta timur",
-        "jakarta pusat", "jakarta utara", "bandung", "surabaya", "yogyakarta",
-        "tangerang", "bekasi", "depok", "bogor", "semarang",
+        # Jakarta Timur
+        "cilincing", "pulo gadung", "pulogadung", "cakung", "matraman",
+        "jatinegara", "duren sawit", "kramat jati", "makasar", "pasar rebo",
+        "ciracas", "cipayung",
+        # Jakarta Utara
+        "tanjung priok", "kelapa gading", "penjaringan", "koja",
+        # Jakarta Barat
+        "cengkareng", "kalideres", "kebon jeruk", "grogol petamburan",
+        "taman sari", "tambora",
+        # Jakarta Selatan
+        "kebayoran baru", "kebayoran lama", "mampang prapatan", "pasar minggu",
+        "cilandak", "jagakarsa", "pesanggrahan", "tebet", "setiabudi",
+        # Jakarta Pusat
+        "menteng", "tanah abang", "kemayoran", "sawah besar",
+        # Bekasi (kecamatan before kota)
+        "bekasi timur", "bekasi barat", "bekasi selatan", "bekasi utara",
+        # Kota / kabupaten (generic, last)
+        "jakarta barat", "jakarta selatan", "jakarta timur", "jakarta pusat",
+        "jakarta utara", "tangerang selatan", "tangerang", "bekasi", "depok",
+        "bogor", "bandung", "surabaya", "yogyakarta", "semarang", "malang",
     ]
     lower = query.lower()
     for a in areas:
