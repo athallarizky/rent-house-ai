@@ -148,7 +148,7 @@ Dropdown options:
 | 8.3  | RCA-011: District switch fallback menyesatkan ke district lama | Medium   | ✅ RCA-011 | ✅     |
 | 8.4  | RCA-012: RAG mode response quality (score filtering + area detection) | Medium | ✅ RCA-012 | ✅     |
 | 8.5  | RCA-013: Area resolution regression setelah POI search | Medium   | ✅ RCA-013 | ✅     |
-| 8.7  | RCA-015: Review count discrepancy + truncated text (1.5K→4K) | Low      | ✅ RCA-015 | ✅     |
+| 8.8  | RCA-016: POI geocode gagal chat-style queries + fused forms | Medium   | ✅ RCA-016 | ✅     |
 
 ---
 
