@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal, ShieldAlert } from "lucide-react";
 import { cn } from "../lib/utils";
+import { validateQuery } from "../lib/sanitize";
 
 interface MessageInputProps {
   onSend: (message: string) => void;
@@ -14,11 +15,18 @@ export default function MessageInput({
   placeholder = 'cth: "kos di Cengkareng wifi kenceng parkir luas"',
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   const submit = () => {
     const trimmed = message.trim();
     if (!trimmed || disabled) return;
+    const check = validateQuery(trimmed);
+    if (!check.ok) {
+      setError(check.reason || "Pesan ditolak.");
+      return;
+    }
+    setError(null);
     onSend(trimmed);
     setMessage("");
   };
@@ -44,16 +52,20 @@ export default function MessageInput({
           <textarea
             ref={ref}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              if (error) setError(null);
+            }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
             rows={1}
             className={cn(
-              "w-full resize-none rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm",
+              "w-full resize-none rounded-xl border bg-background px-3.5 py-2.5 text-sm",
               "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-shadow",
               "disabled:opacity-60 disabled:cursor-not-allowed",
-              "max-h-40 overflow-y-auto thin-scroll"
+              "max-h-40 overflow-y-auto thin-scroll",
+              error ? "border-destructive" : "border-border"
             )}
           />
         </div>
@@ -71,10 +83,17 @@ export default function MessageInput({
           <SendHorizontal className="w-4 h-4" />
         </button>
       </div>
-      <p className="mt-1.5 text-[11px] text-muted-foreground">
-        <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Enter</kbd> kirim ·{" "}
-        <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Shift+Enter</kbd> baris baru
-      </p>
+      {error ? (
+        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-destructive">
+          <ShieldAlert className="w-3 h-3 shrink-0" />
+          {error}
+        </p>
+      ) : (
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Enter</kbd> kirim ·{" "}
+          <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Shift+Enter</kbd> baris baru
+        </p>
+      )}
     </div>
   );
 }

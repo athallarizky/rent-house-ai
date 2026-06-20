@@ -25,6 +25,7 @@ import SavedSearches from "./SavedSearches";
 import DistrictSwitcher from "./DistrictSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import MobileNav from "./MobileNav";
+import ConfirmModal from "./ConfirmModal";
 
 const GENDER_KEYS = ["putra", "putri", "campur"];
 const DEFAULT_AREA = "Cengkareng";
@@ -361,20 +362,26 @@ export default function ChatInterface() {
   // Rev-001: session is per-district, so "Cari di SEMUA" (cross-district) is
   // deferred — see revisions/rev-001 §11. Picker's all-option is not wired.
 
+  const [pendingSwitch, setPendingSwitch] = useState<string | null>(null);
+
   const onSwitchDistrict = (name: string) => {
     if (
       currentDistrict &&
       name.toLowerCase() === currentDistrict.toLowerCase()
     )
       return;
-    if (
-      dataset.length > 0 &&
-      !confirm(`Pindah ke ${name}? Relevansi chat akan direset.`)
-    )
+    // If a dataset is loaded, confirm before discarding the current session.
+    if (dataset.length > 0) {
+      setPendingSwitch(name);
       return;
-    // loadDistrict always runs an initial recommendation ("kos di <name>")
-    // which names the district — no separate "Beralih" note needed.
+    }
     void loadDistrict(name, currentRegency || undefined);
+  };
+
+  const confirmSwitch = () => {
+    const name = pendingSwitch;
+    setPendingSwitch(null);
+    if (name) void loadDistrict(name, currentRegency || undefined);
   };
 
   const handleNewSearch = () => {
@@ -409,6 +416,12 @@ export default function ChatInterface() {
       .catch(() => {});
   };
 
+  // TODO(sprint berikutnya): implement clear-all (bulk delete di backend + refresh).
+  const [showClearAllNotice, setShowClearAllNotice] = useState(false);
+  const handleClearAllSaved = () => {
+    setShowClearAllNotice(true);
+  };
+
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
       {/* Left panel — saved searches */}
@@ -424,6 +437,7 @@ export default function ChatInterface() {
               onSelect={handleSelectSaved}
               onNew={handleNewSearch}
               onDelete={handleDeleteSaved}
+              onClearAll={handleClearAllSaved}
             />
           </div>
           <div className="md:hidden fixed inset-0 z-40 flex">
@@ -440,6 +454,7 @@ export default function ChatInterface() {
                   setShowLeft(false);
                 }}
                 onDelete={handleDeleteSaved}
+                onClearAll={handleClearAllSaved}
               />
             </div>
             <div className="flex-1 bg-black/30" onClick={() => setShowLeft(false)} />
@@ -525,7 +540,7 @@ export default function ChatInterface() {
       {showRight && (
         <>
           {/* Desktop column */}
-          <div className="w-80 shrink-0 h-full border-l border-border bg-card hidden md:block overflow-hidden">
+          <div className="w-[440px] shrink-0 h-full border-l border-border bg-card hidden md:block overflow-hidden">
             <KosCardList
               results={filteredDataset}
               selectedKos={selectedKos}
@@ -563,6 +578,27 @@ export default function ChatInterface() {
           </div>
         </>
       )}
+
+      {/* Confirm: switch district (discards current session relevance) */}
+      <ConfirmModal
+        open={pendingSwitch !== null}
+        title={`Pindah ke ${pendingSwitch ?? ""}?`}
+        message="Relevansi chat akan direset. Dataset district baru akan dimuat."
+        confirmLabel="Pindah"
+        onConfirm={confirmSwitch}
+        onClose={() => setPendingSwitch(null)}
+      />
+
+      {/* Notice: clear-all history (stub — implementation next sprint) */}
+      <ConfirmModal
+        open={showClearAllNotice}
+        title="Hapus semua histori"
+        message="Fitur hapus semua histori pencarian akan diimplementasikan di sprint berikutnya."
+        confirmLabel="Mengerti"
+        cancelLabel={null}
+        onConfirm={() => setShowClearAllNotice(false)}
+        onClose={() => setShowClearAllNotice(false)}
+      />
     </div>
   );
 }

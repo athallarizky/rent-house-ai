@@ -295,4 +295,22 @@ export async function listModels(apiKey: string, baseUrl?: string): Promise<stri
   return data.models || [];
 }
 
+export interface ServiceStatus {
+  ok: boolean;
+  url?: string;
+  entries?: number;
+}
+export interface ServicesHealth {
+  fastapi: ServiceStatus;
+  geo_router: ServiceStatus;
+  rag: ServiceStatus;
+  all_ok: boolean;
+}
+
+export async function getServicesHealth(): Promise<ServicesHealth> {
+  const resp = await fetch(`${API_URL}/health/services`);
+  if (!resp.ok) throw new Error(`getServicesHealth failed (${resp.status})`);
+  return resp.json();
+}
+
 export { API_URL };

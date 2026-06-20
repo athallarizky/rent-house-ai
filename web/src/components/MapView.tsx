@@ -1,22 +1,33 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png?url";
+import markerIcon from "leaflet/dist/images/marker-icon.png?url";
+import markerShadow from "leaflet/dist/images/marker-shadow.png?url";
 import { Star } from "lucide-react";
 import type { KosResult } from "../lib/types";
 import { tagLabel } from "../lib/types";
 
-// Fix default marker icon under bundlers (Vite/React).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+// Build an explicit icon instance from the bundled asset URLs. This is the
+// reliable fix for Leaflet's default marker rendering as a broken image under
+// bundlers (Vite) — we pass `icon={...}` to each <Marker> instead of relying on
+// L.Icon.Default.mergeOptions.
+function useKosIcon() {
+  return useMemo(
+    () =>
+      L.icon({
+        iconUrl: markerIcon,
+        iconRetinaUrl: markerIcon2x,
+        shadowUrl: markerShadow,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41],
+      }),
+    []
+  );
+}
 
 interface MapViewProps {
   markers: KosResult[];
@@ -60,6 +71,8 @@ export default function MapView({
     (m) => typeof m.lat === "number" && typeof m.lon === "number"
   );
 
+  const kosIcon = useKosIcon();
+
   const defaultCenter: [number, number] =
     center ||
     (valid[0] ? [valid[0].lat, valid[0].lon] : [-6.147, 106.727]);
@@ -81,6 +94,7 @@ export default function MapView({
         <Marker
           key={m.place_id || m.name}
           position={[m.lat, m.lon]}
+          icon={kosIcon}
           eventHandlers={{ click: () => onMarkerClick?.(m) }}
         >
           <Popup>

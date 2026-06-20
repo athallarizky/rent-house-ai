@@ -9,6 +9,7 @@ import {
   PlugZap,
   Database,
   HardDrive,
+  Palette,
 } from "lucide-react";
 import {
   getSettings,
@@ -18,6 +19,8 @@ import {
   type ConnectionTestResult,
 } from "../lib/api";
 import { cn } from "../lib/utils";
+import ThemeToggle from "./ThemeToggle";
+import ServerStatus from "./ServerStatus";
 
 // Fallback suggestions if the dynamic /models fetch fails (kept in sync with
 // the known Z.AI ids, but the form prefers the live list from the API).
@@ -260,6 +263,26 @@ export default function ProviderSettings() {
           </div>
         )}
       </section>
+
+      {/* Preferences — theme */}
+      <section className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Palette className="w-5 h-5 text-primary" />
+          <h2 className="font-semibold">Preferensi</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <div className="text-sm font-medium">Tema tampilan</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Light / Dark / mengikuti sistem.
+            </div>
+          </div>
+          <ThemeToggle />
+        </div>
+      </section>
+
+      {/* Server status */}
+      <ServerStatus />
 
       {/* Data paths (read-only info) */}
       <section className="rounded-xl border border-border bg-card p-5">

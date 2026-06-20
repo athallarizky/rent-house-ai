@@ -68,7 +68,7 @@ export default function KosDetail({ kos, onBack }: KosDetailProps) {
   const phoneDigits = kos.phone ? kos.phone.replace(/[^\d+]/g, "") : "";
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       <button
         type="button"
         onClick={onBack}
@@ -78,7 +78,7 @@ export default function KosDetail({ kos, onBack }: KosDetailProps) {
         Kembali ke daftar
       </button>
 
-      <div className="flex-1 overflow-y-auto thin-scroll px-3 pb-4 space-y-3">
+      <div className="flex-1 overflow-y-auto thin-scroll px-3 pb-12 space-y-3">
         <div className="rounded-xl border border-border bg-card p-4">
           <h3 className="font-bold text-base leading-snug">{kos.name}</h3>
 
