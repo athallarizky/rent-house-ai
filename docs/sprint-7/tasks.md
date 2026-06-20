@@ -1,6 +1,6 @@
 # Sprint 7 — Pipeline Dashboard Page
 
-> Status: ⬜ Planned | Created: 2026-06-20
+> Status: 🔵 In Progress | Created: 2026-06-20
 > Branch: `feat/pipeline-dashboard`
 
 Status legend: ⬜ pending | 🔵 in_progress | ✅ completed | ❌ blocked
@@ -38,21 +38,21 @@ per-area status (scraped/processed/indexed + kos count). New frontend page
 
 | ID  | Task | File | Diff | Est | Status |
 |-----|------|------|------|-----|--------|
-| 1.1 | `GET /pipeline/data` — scan raw/cleaned/ChromaDB, return per-area inventory | `api/src/pipeline_data.py` (NEW), `api/src/main.py` | Medium | 0.75h | ⬜ |
+| 1.1 | `GET /pipeline/data` — scan raw/cleaned/ChromaDB, return per-area inventory | `api/src/pipeline_data.py` (NEW), `api/src/main.py` | Medium | 0.75h | ✅ |
 
 ### Phase 2 — Frontend
 
 | ID  | Task | File | Diff | Est | Status |
 |-----|------|------|------|-----|--------|
-| 2.1 | `getPipelineData()` API client + TypeScript types | `web/src/lib/api.ts` | Easy | 0.25h | ⬜ |
-| 2.2 | `PipelineDashboard` component — table + summary cards + live banner | `web/src/components/PipelineDashboard.tsx` (NEW) | Medium | 0.75h | ⬜ |
-| 2.3 | `/pipeline` page route + sidebar nav item | `web/src/pages/pipeline.astro` (NEW), `web/src/layouts/DashboardLayout.astro` | Easy | 0.25h | ⬜ |
+| 2.1 | `getPipelineData()` API client + TypeScript types | `web/src/lib/api.ts` | Easy | 0.25h | ✅ |
+| 2.2 | `PipelineDashboard` component — table + summary cards + live banner | `web/src/components/PipelineDashboard.tsx` (NEW) | Medium | 0.75h | ✅ |
+| 2.3 | `/pipeline` page route + sidebar nav item | `web/src/pages/pipeline.astro` (NEW), `web/src/layouts/DashboardLayout.astro` | Easy | 0.25h | ✅ |
 
 ### Phase 3 — Validation
 
 | ID  | Task | Diff | Est | Status |
 |-----|------|------|-----|--------|
-| 3.1 | Verify: all known areas show correct status ( Bekasi Timur ✅, Cakung scraped-only, etc.) | Easy | 0.25h | ⬜ |
+| 3.1 | Verify: all known areas show correct status ( Bekasi Timur ✅, Cakung scraped-only, etc.) | Easy | 0.25h | ✅ |
 | 3.2 | Verify: live pipeline banner auto-refreshes during active scrape | Easy | 0.25h | ⬜ |
 
 ---

@@ -5,6 +5,7 @@ import { cn } from "../lib/utils";
 const NAV = [
   { href: "/", label: "Beranda", emoji: "🏡" },
   { href: "/search", label: "Pencarian", emoji: "🔍" },
+  { href: "/pipeline", label: "Pipeline", emoji: "📊" },
   { href: "/settings", label: "Pengaturan", emoji: "⚙️" },
 ];
 
