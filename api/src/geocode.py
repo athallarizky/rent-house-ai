@@ -24,7 +24,28 @@ def _rate_limit():
 
 
 def geocode(query: str) -> Optional[Dict[str, Any]]:
-    """Convert a location query (e.g., 'stasiun poris tangerang') to lat/lon + admin info."""
+    """Convert a location query (e.g., 'stasiun poris tangerang') to lat/lon + admin info.
+    
+    Retries with cleaned query if the original fails (e.g., 'mall tangcity' → 'tangcity').
+    """
+    # Try original query first
+    result = _geocode_query(query)
+    if result:
+        return result
+
+    # Strip common POI prefixes for retry: "mall X" → "X", "stasiun Y" → "Y"
+    for prefix in ["mall ", "stasiun ", "terminal ", "bandara ", "universitas ", "kampus ", "pasar ", "alun-alun "]:
+        if query.lower().startswith(prefix):
+            stripped = query[len(prefix):].strip()
+            if stripped:
+                result = _geocode_query(stripped)
+                if result:
+                    return result
+
+    return None
+
+
+def _geocode_query(query: str) -> Optional[Dict[str, Any]]:
     _rate_limit()
     params = urllib.parse.urlencode({
         "q": query,
