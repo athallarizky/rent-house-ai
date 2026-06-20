@@ -1,7 +1,7 @@
 # Sprint 2 Summary — UI Dashboard + Agentic Chat
 
 > **Status:** ✅ Complete | 32/32 tasks | Created 2026-06-19
-> **Handoff:** next sprint → [`../sprint-3/INSTRUCTIONS.md`](../sprint-3/INSTRUCTIONS.md)
+> **Handoff:** next sprint → [`../sprint-3/AGENTS.md`](../sprint-3/AGENTS.md)
 
 ---
 
@@ -69,7 +69,7 @@ cd web && npm run dev                           # :4321
 
 ## 8. Known Issues & Backlog (→ Sprint 3)
 
-See [`../sprint-3/INSTRUCTIONS.md`](../sprint-3/INSTRUCTIONS.md) §Backlog for the
+See [`../sprint-3/AGENTS.md`](../sprint-3/AGENTS.md) §Backlog for the
 prioritized list. Highlights: clear-all history (stub), cross-district search,
 persistent RAG server (warm model — biggest perf win), follow-up chat context,
 data-quality (255 empty-kecamatan docs, review chunking), geo-router unit tests.
