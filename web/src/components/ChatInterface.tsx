@@ -173,6 +173,16 @@ export default function ChatInterface() {
     };
     setMessages((prev) => [...prev, userMsg]);
 
+    // Build chat history for context (last 3 pairs, including this message)
+    const chatHistory: Array<{ role: string; content: string }> = [];
+    for (let i = messages.length - 1; i >= 0 && chatHistory.length < 6; i--) {
+      const m = messages[i];
+      if (m.isPicker) continue;
+      chatHistory.unshift({ role: m.role, content: m.content });
+      if (m.role === "assistant") break;
+    }
+    chatHistory.push({ role: "user", content: text });
+
     // Extract intent via LLM (area, tags, gender, keywords) — fall back to
     // hardcoded area extraction if the backend is unreachable.
     let intentArea: string | null = null;
@@ -238,7 +248,7 @@ export default function ChatInterface() {
         currentDistrict &&
         districtName.toLowerCase() === currentDistrict.toLowerCase()
       ) {
-        await queryDataset(text, currentDistrict);
+        await queryDataset(text, currentDistrict, { chatHistory });
         return;
       }
 
@@ -257,7 +267,7 @@ export default function ChatInterface() {
           timestamp: new Date().toISOString(),
         },
       ]);
-      if (currentDistrict) await queryDataset(text, currentDistrict);
+      if (currentDistrict) await queryDataset(text, currentDistrict, { chatHistory });
       else await loadDistrict(area, undefined, text);
     }
   }
@@ -316,7 +326,7 @@ export default function ChatInterface() {
   async function queryDataset(
     query: string,
     district: string,
-    opts: { saveSearch?: boolean; regency?: string | null } = {}
+    opts: { saveSearch?: boolean; regency?: string | null; chatHistory?: Array<{ role: string; content: string }> } = {}
   ) {
     const saveSearch = opts.saveSearch !== false;
     setIsLoading(true);
@@ -334,6 +344,7 @@ export default function ChatInterface() {
         area: district,
         regency: opts.regency ?? currentRegency ?? undefined,
         top_k: 10,
+        chat_history: opts.chatHistory,
       })) {
         const t = event.type as string;
         if (t === "results") {

@@ -45,6 +45,7 @@ export interface SearchRequest {
   top_k?: number;
   force_scrape?: boolean;
   stream?: boolean;
+  chat_history?: Array<{ role: string; content: string }>;
 }
 
 export interface SearchPipeline {

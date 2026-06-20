@@ -196,17 +196,17 @@ def search_and_rank(
         return []
 
 
-def format_results(results: List[Dict[str, Any]], query: str) -> str:
+def format_results(results: List[Dict[str, Any]], query: str, chat_history: Optional[List[Dict[str, str]]] = None) -> str:
     if not results:
         return f"No results for: {query}"
 
-    input_data = json.dumps({"query": query, "results": results[:10]})
+    input_data = json.dumps({"query": query, "results": results[:10], "chat_history": chat_history})
     proc = subprocess.run(
         [sys.executable, "-c",
          f"import json, sys; "
          f"from src.summarize import summarize; "
          f"data = json.loads(sys.stdin.read()); "
-         f"print(summarize(data['query'], data['results']))"],
+         f"print(summarize(data['query'], data['results'], chat_history=data.get('chat_history')))"],
         cwd=str(ROOT / "services" / "rag-engine"),
         input=input_data,
         timeout=60,
@@ -220,20 +220,20 @@ def format_results(results: List[Dict[str, Any]], query: str) -> str:
     return proc.stdout.strip() or _format_fallback(results, query)
 
 
-def format_results_stream(results: List[Dict[str, Any]], query: str):
+def format_results_stream(results: List[Dict[str, Any]], query: str, chat_history: Optional[List[Dict[str, str]]] = None):
     """Stream summary tokens via the RAG engine subprocess.
 
     Yields token strings as they arrive. The subprocess prints each token as a
     JSON-encoded line ({"t": "<token>"}) so we can stream across the process
     boundary without buffering. Falls back to a single error token on failure.
     """
-    input_data = json.dumps({"query": query, "results": results[:10]})
+    input_data = json.dumps({"query": query, "results": results[:10], "chat_history": chat_history})
     proc = subprocess.Popen(
         [sys.executable, "-u", "-c",
          "import json, sys; "
          "from src.summarize import stream_to_stdout; "
          "data = json.loads(sys.stdin.read()); "
-         "stream_to_stdout(data['query'], data['results'])"],
+         "stream_to_stdout(data['query'], data['results'], chat_history=data.get('chat_history'))"],
         cwd=str(ROOT / "services" / "rag-engine"),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
