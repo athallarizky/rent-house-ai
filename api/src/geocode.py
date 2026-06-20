@@ -33,14 +33,28 @@ def geocode(query: str) -> Optional[Dict[str, Any]]:
     if result:
         return result
 
-    # Strip common POI prefixes for retry: "mall X" → "X", "stasiun Y" → "Y"
-    for prefix in ["mall ", "stasiun ", "terminal ", "bandara ", "universitas ", "kampus ", "pasar ", "alun-alun "]:
-        if query.lower().startswith(prefix):
-            stripped = query[len(prefix):].strip()
-            if stripped:
-                result = _geocode_query(stripped)
-                if result:
-                    return result
+    # Second attempt: recursively strip known prefixes from the query
+    # "Kos di sekitar mall One Belpark" → "One Belpark"
+    stripped = query
+    prefixes = [
+        "kos di sekitar ", "kos sekitar ", "kosan di sekitar ", "kosan sekitar ",
+        "cari kos di ", "cari kosan di ", "di sekitar ", "di dekat ",
+        "mall ", "stasiun ", "terminal ", "bandara ", "universitas ", "kampus ",
+        "pasar ", "alun-alun ", "taman ",
+    ]
+    changed = True
+    while changed:
+        changed = False
+        for prefix in prefixes:
+            if stripped.lower().startswith(prefix):
+                stripped = stripped[len(prefix):].strip()
+                changed = True
+                break
+
+    if stripped != query and stripped:
+        result = _geocode_query(stripped)
+        if result:
+            return result
 
     return None
 
