@@ -1,6 +1,6 @@
 # Sprint 4 — Authentication & Authorization
 
-> Status: ⬜ Pending | Created: 2026-06-20
+> Status: 🔵 In Progress | Created: 2026-06-20
 >
 > **Mission:** Add login, JWT auth, and role-based access control.
 > Admin can manage LLM config; users can search only.
@@ -11,16 +11,16 @@
 
 ---
 
-## Phase 1 — Backend Auth Core ⬜
+## Phase 1 — Backend Auth Core ✅
 
 > JWT utilities, SQLite users table, login/me endpoints, seed admin.
 
 | ID   | Task | Difficulty | Status |
 |------|------|-----------|--------|
-| 1.1  | Create `api/src/auth.py` — JWT, password hash, `get_current_user`, `require_admin` | Medium | ⬜ |
-| 1.2  | Create `api/src/users.py` — SQLite users table, `seed_admin` | Easy | ⬜ |
-| 1.3  | Create `api/src/auth_routes.py` — `POST /auth/login`, `GET /auth/me` | Medium | ⬜ |
-| 1.4  | Register routes in `main.py` + startup seed | Easy | ⬜ |
+| 1.1  | Create `api/src/auth.py` — JWT, password hash, `get_current_user`, `require_admin` | Medium | ✅ |
+| 1.2  | Create `api/src/users.py` — SQLite users table, `seed_admin` | Easy | ✅ |
+| 1.3  | Create `api/src/auth_routes.py` — `POST /auth/login`, `GET /auth/me` | Medium | ✅ |
+| 1.4  | Register routes in `main.py` + startup seed | Easy | ✅ |
 
 ---
 
@@ -90,7 +90,7 @@ Phase 5 (Polish) ──────── dep on Phase 4
 
 | Phase | Tasks | Est. Hours | Status |
 |-------|-------|-----------|--------|
-| 1 — Backend Auth Core | 4 | 2h | ⬜ |
+| 1 — Backend Auth Core | 4 | 2h | ✅ |
 | 2 — Protect Endpoints | 3 | 1h | ⬜ |
 | 3 — Login Page | 3 | 2h | ⬜ |
 | 4 — Frontend Integration | 4 | 1.5h | ⬜ |
