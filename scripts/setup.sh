@@ -1,65 +1,75 @@
 #!/usr/bin/env bash
 # ============================================================
 #  Kos AI — One-command setup
-#  Jalankan dari root project:
 #    ./scripts/setup.sh
 # ============================================================
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-echo "========================================="
-echo "  Kos AI — Setup"
-echo "========================================="
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+ok()   { echo -e "  ${GREEN}✓${NC} $1"; }
+warn() { echo -e "  ${YELLOW}⚠${NC} $1"; }
+err()  { echo -e "  ${RED}✗${NC} $1"; }
+info() { echo -e "  ${CYAN}➤${NC} $1"; }
+
+echo ""
+echo -e "${CYAN}╔═══════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║         Kos AI — Setup               ║${NC}"
+echo -e "${CYAN}╚═══════════════════════════════════════╝${NC}"
 echo ""
 
-# 1. Check Docker
+# ── Check Docker ──
 if ! command -v docker &> /dev/null; then
-    echo "[ERROR] Docker tidak ditemukan. Install Docker dulu:"
-    echo "  macOS:  https://docs.docker.com/desktop/setup/mac/"
-    echo "  Linux:  curl -fsSL https://get.docker.com | sh"
+    err "Docker tidak ditemukan. Install dulu:"
+    echo "    https://docs.docker.com/desktop/"
     exit 1
 fi
-echo "[✓] Docker tersedia: $(docker --version)"
+ok "Docker $(docker --version 2>/dev/null | cut -d' ' -f3 | cut -d',' -f1)"
 
 if ! docker compose version &> /dev/null; then
-    echo "[ERROR] docker compose tidak tersedia."
+    err "docker compose tidak tersedia."
     exit 1
 fi
-echo "[✓] docker compose tersedia"
+ok "docker compose ready"
 echo ""
 
-# 2. Build Go scraper binary (first time only — skip if already exists)
+# ── Build Go binary ──
 SCRAPER_BIN="services/scraper/google-maps-scraper/gmaps-scraper"
-if [ -f "$SCRAPER_BIN" ]; then
-    echo "[✓] Go scraper binary sudah ada: $SCRAPER_BIN ($(du -h "$SCRAPER_BIN" | cut -f1))"
+if [ -f "$SCRAPER_BIN" ] && file "$SCRAPER_BIN" 2>/dev/null | grep -q "ELF"; then
+    ok "Go scraper binary ready ($(du -h "$SCRAPER_BIN" | cut -f1))"
 else
-    echo "[*] Membangun Go scraper binary..."
-    ./scripts/build-scraper.sh
+    info "Building Go scraper binary (~2 min)..."
+    ./scripts/build-scraper.sh 2>&1 | while IFS= read -r line; do
+        echo "    $line"
+    done
+    ok "Go binary built"
 fi
 echo ""
 
-# 3. Build Docker images (only if needed)
-echo "[*] Membangun Docker images (skip jika sudah ada)..."
-docker compose build
-echo ""
+# ── Build & Start ──
+info "Building Docker images..."
+docker compose build 2>&1 | grep -E "Built|ERROR|error" || true
+ok "Images ready"
 
-# 4. Start services
-echo "[*] Menjalankan semua service..."
-docker compose up -d
 echo ""
+info "Starting services..."
+docker compose up -d 2>&1
 
-# 5. Wait for healthy
-echo "[*] Menunggu service siap..."
-sleep 5
+# ── Wait ──
+echo ""
+info "Waiting for services..."
+sleep 3
 ATTEMPTS=0
-MAX_ATTEMPTS=24
-while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+MAX=36
+while [ $ATTEMPTS -lt $MAX ]; do
     STATUS=$(docker compose ps --format json 2>/dev/null | python3 -c "
 import sys, json
-lines = sys.stdin.read().strip().split('\n')
-if not lines or lines[0] == '': 
-    print('waiting')
-    sys.exit(0)
+lines = [l.strip() for l in sys.stdin.read().strip().split('\n') if l.strip()]
 all_ok = True
 for line in lines:
     try:
@@ -67,33 +77,37 @@ for line in lines:
         if 'Health' in item and item['Health'] != 'healthy':
             all_ok = False
     except: pass
-print('ok' if all_ok else 'waiting')
+print('ok' if all_ok and lines else 'waiting')
 " 2>/dev/null || echo "waiting")
+
     if [ "$STATUS" = "ok" ]; then
         echo ""
-        echo "========================================="
-        echo "  Semua service berjalan!"
-        echo "========================================="
+        echo -e "${GREEN}╔═══════════════════════════════════════╗${NC}"
+        echo -e "${GREEN}║      Semua service berjalan! 🎉      ║${NC}"
+        echo -e "${GREEN}╚═══════════════════════════════════════╝${NC}"
         echo ""
-        echo "  Buka di browser:"
-        echo "    http://localhost"
+        echo -e "  Buka di browser:  ${CYAN}http://localhost${NC}"
         echo ""
-        echo "  Login:"
-        echo "    Email:    admin@kos.ai"
-        echo "    Password: admin123"
+        echo    "  Login:"
+        echo -e "    Email:    ${CYAN}admin@kos.ai${NC}"
+        echo -e "    Password: ${CYAN}admin123${NC}"
         echo ""
-        echo "  Setup selesai! 🎉"
+        echo -e "  ${YELLOW}Catatan:${NC} Pencarian pertama akan lambat (~2-5 menit)"
+        echo    "  karena download model AI. Selanjutnya akan cepat."
+        echo ""
         exit 0
     fi
+
     sleep 5
     ATTEMPTS=$((ATTEMPTS + 1))
-    if [ $((ATTEMPTS % 4)) -eq 0 ]; then
-        echo "  ... masih menunggu (${ATTEMPTS}s) ..."
-        docker compose ps 2>/dev/null | head -5
+    if [ $((ATTEMPTS % 6)) -eq 0 ]; then
+        warn "Masih menunggu (${ATTEMPTS}s)..."
     fi
 done
 
-echo "[WARN] Timeout menunggu service. Cek status:"
-docker compose ps
 echo ""
-echo "Coba buka http://localhost — kalau halaman muncul, setup berhasil."
+warn "Timeout. Cek status manual:"
+echo "  docker compose ps"
+echo "  docker compose logs api"
+echo ""
+echo "Kalau halaman muncul di http://localhost, setup berhasil."
