@@ -470,15 +470,18 @@ export default function ChatInterface() {
       // Backend async pipeline: activate polling UI if pipeline started/queued
       const pipelineInfo = (res as { pipeline?: { pipeline_started?: boolean; pipeline_queued?: boolean } }).pipeline;
       if (pipelineInfo?.pipeline_started || pipelineInfo?.pipeline_queued) {
+        // Still set district context for UI (switcher, etc.) even though data isn't ready
+        setCurrentDistrict(district);
+        setCurrentRegency(regency || null);
         setPipelineActive(true);
         setDatasetLoading(false);
-        setPendingArea({ query: initialQuery || `kos di ${district}`, regency: regency || "" });
+        setPendingArea({ query: initialQuery || `kos di ${district}`, regency: regency || district });
         setMessages((prev) => [
           ...prev,
           {
             id: uuid(),
             role: "assistant" as const,
-            content: `📋 Pipeline dimulai untuk **${district}**. Scrape → process → index berjalan di background. Kamu bisa tetap browsing area lain.`,
+            content: `📋 Pipeline dimulai untuk **${district}**. Scrape → process → index berjalan di background. Hasil akan muncul setelah selesai.`,
             timestamp: new Date().toISOString(),
           },
         ]);
