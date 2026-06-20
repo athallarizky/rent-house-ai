@@ -45,7 +45,7 @@ const EMPTY_FILTERS: Filters = {
   budget: null,
 };
 
-const POI_PATTERN = /sekitar|dekat|sekitaran|deket|mall|stasiun|terminal|universitas|kampus|bandara|pelabuhan|pasar|alun\b/i;
+const POI_PATTERN = /sekitar|dekat|sekitaran|deket|mall|stasiun|terminal|universitas|kampus|bandara|pelabuhan|pasar|alun|taman\b/i;
 
 function activeFilterCount(filters: Filters): number {
   let n = 0;
@@ -219,8 +219,12 @@ export default function ChatInterface() {
         intentTags = intent.tags || [];
         intentGender = intent.gender || null;
       } catch {
-        // LLM intent unavailable — area extraction below handles it
+        // LLM intent unavailable — fall back to POI pattern detection
       }
+    }
+    // If intent failed but query looks like POI, try direct geocode
+    if (!intentPoi && !intentArea && looksLikePoi) {
+      intentPoi = text;
     }
 
     // POI-based search: geocode the POI → find regency → auto-load or show picker
