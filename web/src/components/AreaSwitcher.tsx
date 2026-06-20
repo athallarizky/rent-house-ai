@@ -4,6 +4,8 @@ import { cn } from "../lib/utils";
 import { listAreas } from "../lib/api";
 import type { AreaEntry } from "../lib/api";
 
+const DEBOUNCE_MS = 250;
+
 interface AreaSwitcherProps {
   disabled?: boolean;
   onSelectArea: (regency: string) => void;
@@ -16,6 +18,7 @@ export default function AreaSwitcher({ disabled = false, onSelectArea }: AreaSwi
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;
@@ -36,13 +39,21 @@ export default function AreaSwitcher({ disabled = false, onSelectArea }: AreaSwi
     void search("");
   }, [open]);
 
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
   const search = useCallback(async (q: string) => {
     setQuery(q);
     if (q.length > 0 && q.length < 2) return;
-    setLoading(true);
-    const areas = await listAreas(q);
-    setResults(areas);
-    setLoading(false);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      const areas = await listAreas(q);
+      setResults(areas);
+      setLoading(false);
+    }, DEBOUNCE_MS);
   }, []);
 
   const handleSelect = (regency: string) => {
