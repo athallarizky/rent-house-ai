@@ -325,6 +325,24 @@ export default function ChatInterface() {
           setPendingArea({ query: text, regency: poiResult.regency || poiResult.province });
           return;
         }
+        // POI resolved to a broad region (e.g. "sekitar Papua Barat" -> province).
+        // Render the drill-down picker instead of "not found".
+        if (poiResult && poiResult.broad_region && poiResult.regions?.length) {
+          const regionList = poiResult.regions;
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: uuid(),
+              role: "assistant" as const,
+              content: poiResult.message || `'${poiResult.region}' adalah area luas. Pilih salah satu sub-area:`,
+              timestamp: new Date().toISOString(),
+              isPicker: true,
+              districts: regionList.map((name: string) => ({ name, postalCodes: [] })),
+            },
+          ]);
+          setPendingArea({ query: text, regency: poiResult.region || poiResult.province });
+          return;
+        }
         // POI geocoding returned no results — try regex area fallback before showing error
         const regexFallback = extractArea(text);
         if (regexFallback) {
