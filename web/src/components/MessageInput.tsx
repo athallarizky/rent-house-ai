@@ -13,8 +13,8 @@ interface MessageInputProps {
 }
 
 const MODE_OPTIONS: { key: ChatMode; label: string; desc: string; Icon: typeof Brain }[] = [
-  { key: "ai", label: "AI", desc: "Ringkasan + rekomendasi LLM", Icon: Brain },
-  { key: "rag", label: "RAG", desc: "Hasil langsung tanpa LLM", Icon: Search },
+  { key: "ai", label: "AI", desc: "Ringkasan + rekomendasi AI", Icon: Brain },
+  { key: "rag", label: "Cepat", desc: "Hasil langsung tanpa AI", Icon: Search },
 ];
 
 export default function MessageInput({
@@ -70,38 +70,19 @@ export default function MessageInput({
 
   return (
     <div className="border-t border-border bg-card px-3 py-3">
-      <div className="flex items-end gap-2">
-        <div className="flex-1 relative">
-          <textarea
-            ref={ref}
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              if (error) setError(null);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            rows={1}
-            className={cn(
-              "w-full resize-none rounded-xl border bg-background px-3.5 py-2.5 text-sm",
-              "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-shadow",
-              "disabled:opacity-60 disabled:cursor-not-allowed",
-              "max-h-40 overflow-y-auto thin-scroll",
-              error ? "border-destructive" : "border-border"
-            )}
-          />
-        </div>
+      <div className="flex items-center gap-2">
         {onToggleMode && chatMode && (
-          <div className="relative" ref={modeRef}>
+          <div className="relative shrink-0 mb-0.5" ref={modeRef}>
             <button
               type="button"
               onClick={() => setModeOpen((v) => !v)}
               disabled={disabled}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-2.5 py-2 text-xs font-medium transition-colors",
-                "hover:bg-accent disabled:opacity-50",
-                chatMode === "ai" ? "text-primary border-primary/30" : "text-muted-foreground"
+                "inline-flex items-center gap-1.5 rounded-xl px-2.5 py-0 text-xs font-semibold transition-all h-9",
+                "disabled:opacity-50",
+                chatMode === "ai"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                  : "border border-border bg-background text-muted-foreground hover:bg-accent"
               )}
               title={activeMode.desc}
             >
@@ -111,7 +92,7 @@ export default function MessageInput({
             </button>
 
             {modeOpen && (
-              <div className="absolute right-0 bottom-full z-50 mb-1 w-44 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
+              <div className="absolute left-0 bottom-full z-50 mb-1 w-44 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
                 {MODE_OPTIONS.map((opt) => (
                   <button
                     key={opt.key}
@@ -138,6 +119,30 @@ export default function MessageInput({
             )}
           </div>
         )}
+        <div className="flex-1 relative">
+          <textarea
+            ref={ref}
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              if (error) setError(null);
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            rows={1}
+            className={cn(
+              "w-full resize-none rounded-xl border-2 bg-background px-3.5 py-2.5 text-sm",
+              "focus:outline-none focus:border-primary transition-all duration-200",
+              "disabled:opacity-60 disabled:cursor-not-allowed",
+              "max-h-40 overflow-y-auto thin-scroll",
+              chatMode === "ai" && !error
+                ? "border-primary shadow-[0_0_18px_rgba(59,130,246,0.22),inset_0_0_6px_rgba(59,130,246,0.05)]"
+                : "border-border focus:ring-0",
+              error ? "border-destructive" : ""
+            )}
+          />
+        </div>
         <button
           type="button"
           onClick={submit}
