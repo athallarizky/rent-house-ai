@@ -8,7 +8,7 @@ import threading
 from queue import Queue
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from .auth import get_current_user
@@ -22,7 +22,10 @@ from .orchestrator import (
     format_results,
     format_results_stream,
     load_area,
+    run_pipeline_background,
+    is_area_cached,
 )
+from .pipeline_state import get_pipeline_state
 
 router = APIRouter()
 
@@ -59,8 +62,14 @@ async def area_load(req: AreaLoadRequest, user: dict = Depends(get_current_user)
     return result
 
 
+@router.get("/pipeline/status")
+async def pipeline_status(user: dict = Depends(get_current_user)):
+    """Return current pipeline state (idle, running, queued, progress)."""
+    return get_pipeline_state().snapshot()
+
+
 @router.post("/search")
-async def search(req: SearchRequest, user: dict = Depends(get_current_user)):
+async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     area = req.area or _extract_area(req.query)
     if not area:
         raise HTTPException(400, "Could not determine area. Provide 'area' field.")
@@ -68,42 +77,88 @@ async def search(req: SearchRequest, user: dict = Depends(get_current_user)):
     pipeline_status: Optional[dict] = None
 
     if req.ensure_pipeline:
-        # Full pipeline (cached after first run). Used as fallback / first load.
+        # ================================================================
+        # 3-layer check: cache → dedup → queue → background
+        # ================================================================
+        state = get_pipeline_state()
+
+        # Layer 1: Cache hit — skip pipeline entirely
+        if is_area_cached(area):
+            # Area already indexed — search directly
+            results = search_and_rank(req.query, area, req.top_k, regency=req.regency)
+            items = _format_items(results)
+            if req.stream:
+                return StreamingResponse(
+                    _stream_response(req.query, area, {"status": "cached"}, items, results, req.chat_history, req.mode),
+                    media_type="text/event-stream",
+                )
+            return {
+                "success": True,
+                "query": req.query,
+                "pipeline": {"status": "cached"},
+                "results": items,
+            }
+
+        # Resolve geo for postal codes (needed regardless of path)
         geo = resolve_area(area)
         if geo.get("type") == "POI":
             raise HTTPException(400, f"'{area}' is a Point of Interest, not an area.")
-
         districts = geo.get("districts", [])
         if not districts and not req.area:
             raise HTTPException(400, f"Area '{area}' not found.")
-
         postal_codes: list = []
         for d in districts:
             postal_codes.extend(d.get("postalCodes", []))
         if not postal_codes:
             raise HTTPException(400, f"No postal codes found for '{area}'")
 
-        pipeline_status = {
-            "area": area,
-            "regency": geo.get("regency", ""),
-            "province": geo.get("province", ""),
+        # Layer 2: Same area already running
+        if state.running == area:
+            return {
+                "success": False,
+                "pipeline_blocked": True,
+                "message": f"Pipeline for '{area}' is already running.",
+                "pipeline": state.snapshot(),
+            }
+
+        # Layer 3: Another pipeline running → queue
+        if state.running is not None:
+            ok = state.queue(area)
+            if ok:
+                return {
+                    "success": False,
+                    "pipeline_queued": True,
+                    "message": f"Pipeline for '{state.running}' is running. '{area}' queued.",
+                    "pipeline": state.snapshot(),
+                }
+            else:
+                return {
+                    "success": False,
+                    "pipeline_blocked": True,
+                    "message": f"Pipeline for '{area}' is already running (dedup).",
+                    "pipeline": state.snapshot(),
+                }
+
+        # Start pipeline in background
+        ok = state.start(area)
+        if not ok:
+            return {
+                "success": False,
+                "pipeline_blocked": True,
+                "message": "Another pipeline is already running.",
+                "pipeline": state.snapshot(),
+            }
+
+        background_tasks.add_task(run_pipeline_background, area, postal_codes, req.force_scrape)
+
+        return {
+            "success": False,
+            "pipeline_started": True,
+            "message": f"Pipeline started for '{area}'. Poll /pipeline/status for progress.",
+            "pipeline": state.snapshot(),
         }
 
-        scrape_result = ensure_scraped(area, postal_codes, req.force_scrape)
-        if scrape_result["status"] == "error":
-            raise HTTPException(500, f"Scrape failed: {scrape_result.get('message')}")
-        pipeline_status["scrape"] = scrape_result["status"]
-
-        proc_result = ensure_processed(area)
-        if proc_result["status"] == "error":
-            raise HTTPException(500, f"Processing failed: {proc_result.get('message')}")
-        pipeline_status["process"] = proc_result["status"]
-
-        idx_result = ensure_indexed(area)
-        if idx_result["status"] == "error":
-            raise HTTPException(500, f"Indexing failed: {idx_result.get('message')}")
-        pipeline_status["index"] = f"{idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
-
+    # No pipeline — lightweight search (existing behavior)
     results = search_and_rank(req.query, area, req.top_k, regency=req.regency)
 
     if req.stream:
