@@ -10,6 +10,7 @@ import {
   Database,
   HardDrive,
   Palette,
+  ShieldAlert,
 } from "lucide-react";
 import {
   getSettings,
@@ -18,6 +19,7 @@ import {
   listModels,
   type ConnectionTestResult,
 } from "../lib/api";
+import { getAuth } from "../lib/auth";
 import { cn } from "../lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import ServerStatus from "./ServerStatus";
@@ -41,6 +43,12 @@ export default function ProviderSettings() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+    setIsAdmin(auth.user?.role === "admin");
+  }, []);
 
   useEffect(() => {
     getSettings()
@@ -115,6 +123,17 @@ export default function ProviderSettings() {
       <div className="flex items-center justify-center py-12 text-muted-foreground">
         <Loader2 className="w-5 h-5 animate-spin mr-2" />
         Memuat pengaturan…
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="max-w-2xl">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          <ShieldAlert className="w-4 h-4 shrink-0" />
+          Hanya admin yang dapat mengubah pengaturan LLM.
+        </div>
       </div>
     );
   }

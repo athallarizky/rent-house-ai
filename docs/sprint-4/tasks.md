@@ -48,16 +48,16 @@
 
 ---
 
-## Phase 4 — Frontend Integration ⬜
+## Phase 4 — Frontend Integration ✅
 
 > Wire auth into existing pages and components.
 
 | ID   | Task | Difficulty | Status |
 |------|------|-----------|--------|
-| 4.1  | Update `web/src/lib/api.ts` — add `Authorization` header to all requests | Easy | ⬜ |
-| 4.2  | Update `DashboardLayout.astro` — logout button, hide admin nav for users | Medium | ⬜ |
-| 4.3  | Protect `/search` and `/settings` pages — redirect to login if not authenticated | Medium | ⬜ |
-| 4.4  | Hide `ProviderSettings` for non-admin users (read-only view) | Easy | ⬜ |
+| 4.1  | Update `web/src/lib/api.ts` — add `Authorization` header to all requests | Easy | ✅ |
+| 4.2  | Update `DashboardLayout.astro` — logout button, hide admin nav for users | Medium | ✅ |
+| 4.3  | Protect `/search` and `/settings` pages — redirect to login if not authenticated | Medium | ✅ |
+| 4.4  | Hide `ProviderSettings` for non-admin users (read-only view) | Easy | ✅ |
 
 ---
 
@@ -93,7 +93,7 @@ Phase 5 (Polish) ──────── dep on Phase 4
 | 1 — Backend Auth Core | 4 | 2h | ✅ |
 | 2 — Protect Endpoints | 3 | 1h | ✅ |
 | 3 — Login Page | 3 | 2h | ✅ |
-| 4 — Frontend Integration | 4 | 1.5h | ⬜ |
+| 4 — Frontend Integration | 4 | 1.5h | ✅ |
 | 5 — Polish | 4 | 1h | ⬜ |
 | **Total** | **18** | **~7.5h** | **⬜** |
 

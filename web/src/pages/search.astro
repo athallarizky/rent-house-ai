@@ -2,6 +2,7 @@
 import '../styles/globals.css';
 import { noFlashScript } from '../lib/theme';
 import ChatInterface from '../components/ChatInterface';
+import AuthGuard from '../components/AuthGuard';
 ---
 
 <!doctype html>
@@ -14,6 +15,8 @@ import ChatInterface from '../components/ChatInterface';
     <script is:inline set:html={noFlashScript} />
   </head>
   <body>
-    <ChatInterface client:only="react" />
+    <AuthGuard client:only="react">
+      <ChatInterface client:only="react" />
+    </AuthGuard>
   </body>
 </html>
