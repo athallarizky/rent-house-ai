@@ -25,9 +25,9 @@ Focus areas:
 | 1 — Delete Chat History | ✅ | `DELETE /searches` (bulk) + frontend wiring |
 | 2 — Scheduled Re-Scrape | ✅ | TTL-based cache invalidation (30-day freshness) |
 | 3 — Query Understanding | ✅ | LLM intent extraction (replace regex, auto-filters) |
-| 4 — Price Range Detection | ⬜ | Regex price parsing from reviews |
+| 4 — Price Range Detection | ✅ | Regex price parsing from reviews |
 | 5 — Follow-up Chat Context | ✅ | Pass chat history to summarize |
-| 6 — Cross-District Search | ⬜ | Wire "Cari di SEMUA kecamatan" |
+| 6 — Cross-District Search | ✅ | Wire "Cari di SEMUA kecamatan" |
 | 7 — Persistent RAG Server | ⬜ | Warm bge-m3 model (biggest perf win) |
 | 8 — Workflow Fixes | ⬜ | User-reported issues (waterfall) |
 | 9 — AI Chat Mode Toggle | ⬜ | Manual RAG/AI mode dropdown di input chat |
