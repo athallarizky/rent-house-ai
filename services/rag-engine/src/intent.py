@@ -27,9 +27,10 @@ Facility tags to detect (only include if explicitly mentioned or strongly implie
 wifi, ac, parkir, dapur, kamar_mandi_dalam, laundry, tv, kasur, lemari, listrik, keamanan.
 
 Area detection:
-- "Cengkareng", "Jakarta Barat", "Bandung", "Surabaya", "Yogyakarta", "Tangerang", etc.
+- "Cengkareng", "Jakarta Barat", "Bandung", "Surabaya", "Yogyakarta", "Tangerang", "Bekasi", "Depok", "Bogor", "Semarang", etc.
 - Returns the area name if a specific district/regency/city is mentioned.
-- Returns null if no specific area is mentioned (e.g. "dekat stasiun" is not a named area).
+- IMPORTANT: If the query mentions a landmark/POI (stasiun, mall, terminal, universitas, etc.), return the CITY or REGENCY that the landmark is in — NOT the raw landmark name. Example: "sekitar stasiun poris" → area: "Tangerang" (Poris station is in Tangerang). "dekat UI" → area: "Depok". "dekat stasiun gambir" → area: "Jakarta Pusat".
+- Returns null if no specific area can be determined.
 
 Gender detection:
 - "cewek/perempuan/putri/wanita/cewe" → putri
