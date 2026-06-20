@@ -1,4 +1,23 @@
+# ============================================================
+# Stage 1: Build Go scraper binary
+# ============================================================
+FROM golang:1.26-bookworm AS go-builder
+
+WORKDIR /build
+
+# Cache module downloads — copy go.mod/go.sum first
+COPY services/scraper/google-maps-scraper/go.mod services/scraper/google-maps-scraper/go.sum ./
+RUN go mod download
+
+# Copy source and build
+COPY services/scraper/google-maps-scraper/ ./
+RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o gmaps-scraper .
+
+# ============================================================
+# Stage 2: Python runtime with Chromium + Node.js + Go binary
+# ============================================================
 FROM python:3.11-slim
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
@@ -20,6 +39,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
+# Copy pre-built Go scraper binary from stage 1
+COPY --from=go-builder /build/gmaps-scraper /app/services/scraper/google-maps-scraper/gmaps-scraper
+RUN chmod +x /app/services/scraper/google-maps-scraper/gmaps-scraper
+
 WORKDIR /app
 
 # Install PyTorch CPU-only FIRST so sentence-transformers won't pull CUDA torch
@@ -34,6 +57,10 @@ COPY api/ ./api/
 COPY services/ ./services/
 COPY scripts/docker-startup.sh /usr/local/bin/docker-startup.sh
 RUN chmod +x /usr/local/bin/docker-startup.sh
+
+# Ensure compiled Go binary overwrites any source copied above
+COPY --from=go-builder /build/gmaps-scraper /app/services/scraper/google-maps-scraper/gmaps-scraper
+RUN chmod +x /app/services/scraper/google-maps-scraper/gmaps-scraper
 
 RUN mkdir -p data/raw data/cleaned data/chroma_db && \
     ln -sf /app/services/geo-router/kodepos/data/kodepos.json /app/data/kodepos.json
