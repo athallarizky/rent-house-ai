@@ -224,6 +224,8 @@ def search_and_rank(
     radius_km: Optional[float] = None,
 ) -> List[Dict[str, Any]]:
     kec_filter = _resolve_kecamatan(area, regency)
+    if user_lat is not None and user_lon is not None:
+        print(f"[/search] RADIUS query: area={area} lat={user_lat} lon={user_lon} radius_km={radius_km}", flush=True)
     try:
         rag = _rag()
         results = rag.search(

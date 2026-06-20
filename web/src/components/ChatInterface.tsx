@@ -304,7 +304,7 @@ export default function ChatInterface() {
             {
               id: uuid(),
               role: "assistant",
-              content: `📍 **${locationLabel}** di ${districtName || ""}, ${poiResult.regency || poiResult.province}. Mencari kos di sekitar lokasi ini…`,
+              content: `📍 **${locationLabel}** di ${districtName || ""}, ${poiResult.regency || poiResult.province}. Mencari kos dalam radius 5km dari lokasi ini…`,
               timestamp: new Date().toISOString(),
             },
           ]);
@@ -316,6 +316,7 @@ export default function ChatInterface() {
               user_lat: poiResult.lat,
               user_lon: poiResult.lon,
               radius_km: 5,
+              geoLabel: locationLabel,
             });
             return;
           }
@@ -519,7 +520,7 @@ export default function ChatInterface() {
     regency?: string,
     initialQuery?: string,
     loadAll = false,
-    geo?: { user_lat?: number; user_lon?: number; radius_km?: number }
+    geo?: { user_lat?: number; user_lon?: number; radius_km?: number; geoLabel?: string }
   ) {
     // Guard: never hit the API with an empty/undefined district. On refresh the
     // URL may carry ?area=undefined (stringified null), and other callers may
@@ -595,6 +596,7 @@ export default function ChatInterface() {
         user_lat: geo?.user_lat,
         user_lon: geo?.user_lon,
         radius_km: geo?.radius_km,
+        geoLabel: geo?.geoLabel,
       });
     } catch (e) {
       console.error("loadDistrict failed", e);
@@ -616,6 +618,7 @@ export default function ChatInterface() {
       user_lat?: number;
       user_lon?: number;
       radius_km?: number;
+      geoLabel?: string;
     } = {}
   ) {
     const saveSearch = opts.saveSearch !== false;
@@ -709,8 +712,16 @@ export default function ChatInterface() {
             // reflects what the user actually asked for, not just top-rated kos.
             const relevant = relItems.filter((r) => (r.score || 0) > 0);
             const shown = relevant.length > 0 ? relevant : relItems.slice(0, 5);
+            // POI radius mode: surface the radius context so the user can see
+            // the proximity filter/ranking is active (count alone looks the same
+            // at wide radius, so make it explicit).
+            const radiusPrefix = opts.geoLabel
+              ? `Dalam radius ${opts.radius_km ?? 5}km dari **${opts.geoLabel}** — menampilkan **${shown.length} kos** terdekat`
+              : null;
             const lines = [
-              relevant.length > 0
+              radiusPrefix
+                ? `${radiusPrefix}:`
+                : relevant.length > 0
                 ? `Menampilkan **${shown.length} kos** di ${districtLabel} yang cocok dengan *"${query}"*:`
                 : `Tidak ada kos yang persis cocok di ${districtLabel}. Menampilkan **${shown.length} kos** teratas:`,
               "",
