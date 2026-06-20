@@ -26,4 +26,7 @@ print(f'  Model ready ({elapsed:.0f}s)', flush=True)
 # Seed admin user
 echo ""
 echo "[2/2] Starting API server..."
-exec python -m uvicorn api.src.main:app --host 0.0.0.0 --port 8080
+# Sprint 8: bge-m3 (~2.3 GB) is loaded resident in each worker. Multi-worker
+# uvicorn would duplicate the model and OOM an 8 GB VM. Pin to 1 worker; scale
+# out via a separate TEI/embedding container (Sprint 9), not more workers.
+exec python -m uvicorn api.src.main:app --host 0.0.0.0 --port 8080 --workers 1

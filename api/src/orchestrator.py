@@ -18,6 +18,32 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
 
 
+# Sprint 8 — in-process RAG bridge. Imported lazily so the API stays importable
+# without torch/chromadb installed (e.g. local dev, unit tests). The first call
+# loads the rag-engine package + (via startup) the bge-m3 model; sys.modules
+# caches it thereafter.
+_rag_bridge = None
+
+
+def _rag():
+    global _rag_bridge
+    if _rag_bridge is None:
+        from . import rag_bridge
+        _rag_bridge = rag_bridge
+    return _rag_bridge
+
+
+_data_bridge = None
+
+
+def _data():
+    global _data_bridge
+    if _data_bridge is None:
+        from . import data_bridge
+        _data_bridge = data_bridge
+    return _data_bridge
+
+
 def is_area_cached(area: str) -> bool:
     """Check if an area has already been scraped, processed, and indexed.
 
@@ -111,17 +137,10 @@ def ensure_processed(area: str) -> Dict[str, Any]:
     if docs_path.exists():
         return {"status": "cached"}
 
-    proc_dir = ROOT / "services" / "data-processor"
-    proc = subprocess.run(
-        [sys.executable, "-m", "src.pipeline", area],
-        cwd=str(proc_dir),
-        timeout=120,
-        capture_output=True,
-        text=True,
-    )
-
-    if proc.returncode != 0:
-        return {"status": "error", "message": proc.stderr[-300:]}
+    try:
+        _data().process_area(area)
+    except Exception as exc:  # noqa: BLE001 — surface to pipeline state
+        return {"status": "error", "message": str(exc)[:300]}
 
     return {"status": "processed"}
 
@@ -131,25 +150,12 @@ def ensure_indexed(area: str) -> Dict[str, Any]:
     if not docs_path.exists():
         return {"status": "error", "message": "No processed docs found"}
 
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json; from src.ingest import ingest; "
-         f"result = ingest('{docs_path}'); "
-         f"print(json.dumps(result))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=120,
-        capture_output=True,
-        text=True,
-    )
-
-    if proc.returncode != 0:
-        return {"status": "error", "message": proc.stderr[-300:]}
-
     try:
-        result = json.loads(proc.stdout.strip())
-        return {"status": "indexed", "new": result.get("indexed", 0), "skipped": result.get("skipped", 0)}
-    except Exception:
-        return {"status": "indexed", "new": 0, "skipped": 0}
+        result = _rag().ingest(docs_path)
+    except Exception as exc:  # noqa: BLE001 — surface to pipeline state
+        return {"status": "error", "message": str(exc)[:300]}
+
+    return {"status": "indexed", "new": result.get("indexed", 0), "skipped": result.get("skipped", 0)}
 
 
 # ============================================================
@@ -172,47 +178,6 @@ def is_area_cached(area: str) -> bool:
     except OSError:
         return False
     return True
-
-
-async def run_pipeline_background(area: str, postal_codes: List[int], force: bool = False) -> None:
-    """Run scrape → process → index in background without blocking the event loop.
-
-    Each sync stage runs via asyncio.to_thread() so Uvicorn can serve other
-    requests concurrently. PipelineState is updated at each stage.
-    """
-    state = get_pipeline_state()
-    try:
-        # Stage 1: Scrape
-        state.status = "scraping"
-        state.progress = f"Scraping {len(postal_codes)} postal codes for {area}..."
-        scrape_result = await asyncio.to_thread(
-            functools.partial(ensure_scraped, area, postal_codes, force)
-        )
-        if scrape_result["status"] == "error":
-            state.progress = f"Scrape failed: {scrape_result.get('message', '')}"
-            return
-
-        # Stage 2: Process
-        state.status = "processing"
-        state.progress = "Processing scraped data..."
-        proc_result = await asyncio.to_thread(functools.partial(ensure_processed, area))
-        if proc_result["status"] == "error":
-            state.progress = f"Processing failed: {proc_result.get('message', '')}"
-            return
-
-        # Stage 3: Index
-        state.status = "indexing"
-        state.progress = f"Indexing {area} to ChromaDB..."
-        idx_result = await asyncio.to_thread(functools.partial(ensure_indexed, area))
-        if idx_result["status"] == "error":
-            state.progress = f"Indexing failed: {idx_result.get('message', '')}"
-            return
-
-        state.progress = f"Pipeline complete: {idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
-    except Exception as exc:
-        state.progress = f"Pipeline error: {exc}"
-    finally:
-        state.finish()
 
 
 def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str]:
@@ -246,93 +211,44 @@ def search_and_rank(
     query: str, area: str, top_k: int = 5, regency: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     kec_filter = _resolve_kecamatan(area, regency)
-
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json; "
-         f"from src.search import search; from src.rank import rank; "
-         f"results = search({json.dumps(query)}, kecamatan={json.dumps(kec_filter)}, top_k={max(top_k * 3, 30)}); "
-         f"ranked = rank(results); "
-          f"output = [{{'metadata': r['metadata'], 'score': r.get('score', 0), 'text': r.get('text', '')[:1000]}} for r in ranked[:{top_k}]]; "
-         f"print(json.dumps(output))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=30,
-        capture_output=True,
-        text=True,
-    )
-
-    if proc.returncode != 0:
-        return []
-
     try:
-        return json.loads(proc.stdout.strip())
-    except json.JSONDecodeError:
+        rag = _rag()
+        results = rag.search(query_text=query, kecamatan=kec_filter, top_k=max(top_k * 3, 30))
+        ranked = rag.rank(results)
+    except Exception:
         return []
+    return [
+        {"metadata": r["metadata"], "score": r.get("score", 0), "text": r.get("text", "")[:1000]}
+        for r in ranked[:top_k]
+    ]
 
 
 def format_results(results: List[Dict[str, Any]], query: str, chat_history: Optional[List[Dict[str, str]]] = None) -> str:
     if not results:
         return f"No results for: {query}"
-
-    input_data = json.dumps({"query": query, "results": results[:10], "chat_history": chat_history})
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json, sys; "
-         f"from src.summarize import summarize; "
-         f"data = json.loads(sys.stdin.read()); "
-         f"print(summarize(data['query'], data['results'], chat_history=data.get('chat_history')))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        input=input_data,
-        timeout=60,
-        capture_output=True,
-        text=True,
-    )
-
-    if proc.returncode != 0:
+    try:
+        out = _rag().summarize(query, results[:10], chat_history=chat_history)
+        return out or _format_fallback(results, query)
+    except Exception:
         return _format_fallback(results, query)
-
-    return proc.stdout.strip() or _format_fallback(results, query)
 
 
 def format_results_stream(results: List[Dict[str, Any]], query: str, chat_history: Optional[List[Dict[str, str]]] = None):
-    """Stream summary tokens via the RAG engine subprocess.
+    """Stream summary tokens from the in-process rag-engine (Sprint 8).
 
-    Yields token strings as they arrive. The subprocess prints each token as a
-    JSON-encoded line ({"t": "<token>"}) so we can stream across the process
-    boundary without buffering. Falls back to a single error token on failure.
+    `summarize_stream()` is a sync generator yielding str tokens. We keep this
+    wrapper a sync generator too — the search endpoint bridges it to the async
+    event loop via a thread + queue (see `_stream_response` in search.py). Falls
+    back to a single chunk on failure so the client always gets a summary.
     """
-    input_data = json.dumps({"query": query, "results": results[:10], "chat_history": chat_history})
-    proc = subprocess.Popen(
-        [sys.executable, "-u", "-c",
-         "import json, sys; "
-         "from src.summarize import stream_to_stdout; "
-         "data = json.loads(sys.stdin.read()); "
-         "stream_to_stdout(data['query'], data['results'], chat_history=data.get('chat_history'))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    assert proc.stdin is not None and proc.stdout is not None
+    if not results:
+        yield f"No results for: {query}"
+        return
     try:
-        proc.stdin.write(input_data)
-        proc.stdin.close()
-        for line in proc.stdout:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                yield json.loads(line).get("t", "")
-            except json.JSONDecodeError:
-                continue
-        proc.wait(timeout=30)
+        for token in _rag().summarize_stream(query, results[:10], chat_history=chat_history):
+            yield token
     except Exception:
-        proc.kill()
         yield _format_fallback(results, query)
-    finally:
-        if proc.poll() is None:
-            proc.kill()
 
 
 def _format_fallback(results: List[Dict], query: str) -> str:
@@ -437,7 +353,7 @@ def load_area(district: str, regency: Optional[str] = None, load_all: bool = Fal
             for d in regency_districts
         ]
 
-    raw_items = _list_kos_subprocess(resolved_district)
+    raw_items = _list_kos(resolved_district)
     dataset = _format_kos_items(raw_items)
 
     return {
@@ -472,7 +388,7 @@ def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, p
             failed.append(name)
             continue
 
-        raw = _list_kos_subprocess(name)
+        raw = _list_kos(name)
         items = _format_kos_items(raw)
         all_items.extend(items)
 
@@ -498,23 +414,11 @@ def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, p
     }
 
 
-def _list_kos_subprocess(kecamatan: str) -> List[Dict[str, Any]]:
-    """Call rag-engine list_kos(kecamatan) via subprocess (no semantic search)."""
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json; from src.search import list_kos; "
-         f"items = list_kos(kecamatan={json.dumps(kecamatan)}, limit=500); "
-         f"print(json.dumps(items))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=60,
-        capture_output=True,
-        text=True,
-    )
-    if proc.returncode != 0:
-        return []
+def _list_kos(kecamatan: str) -> List[Dict[str, Any]]:
+    """Return all kos for a kecamatan via in-process rag-engine (metadata only, no embedding)."""
     try:
-        return json.loads(proc.stdout.strip())
-    except json.JSONDecodeError:
+        return _rag().list_kos(kecamatan=kecamatan, limit=500)
+    except Exception:
         return []
 
 

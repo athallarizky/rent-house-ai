@@ -3,9 +3,8 @@
 import math
 from typing import List, Dict, Any, Optional
 
-import chromadb
-
-from .config import CHROMA_PATH, COLLECTION_NAME, SEARCH_TOP_K
+from .config import SEARCH_TOP_K
+from .db import get_collection
 from .model_cache import get_model
 
 
@@ -34,8 +33,7 @@ def search(
     radius_km: Optional[float] = None,
     top_k: int = SEARCH_TOP_K,
 ) -> List[Dict[str, Any]]:
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
-    collection = client.get_collection(COLLECTION_NAME)
+    collection = get_collection()
 
     model = get_model()
     query_embedding = model.encode([query_text]).tolist()
@@ -87,8 +85,7 @@ def list_kos(
     Uses collection.get (exact where) instead of collection.query, so it returns
     the full dataset for a district without embedding the query.
     """
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
-    collection = client.get_collection(COLLECTION_NAME)
+    collection = get_collection()
 
     where = _build_where(kecamatan, province, None)
     result = collection.get(
