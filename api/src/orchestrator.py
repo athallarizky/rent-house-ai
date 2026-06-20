@@ -21,24 +21,11 @@ GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
 def is_area_cached(area: str) -> bool:
     """Check if an area has already been scraped, processed, and indexed.
 
-    Returns True if both cleaned docs AND ChromaDB data exist for the area.
+    Returns True only if the full pipeline output exists (cleaned docs).
+    Raw JSONL existence alone means scrape finished but process/index may not have.
     """
     docs_path = ROOT / "data" / "cleaned" / f"{area}_docs.json"
-    if not docs_path.exists():
-        return False
-
-    # Quick check: are there raw JSONL files too?
-    cache_dir = ROOT / "data" / "raw" / area
-    if not cache_dir.exists():
-        return False
-
-    jsonl_files = list(cache_dir.glob("*.jsonl"))
-    if not jsonl_files:
-        return False
-
-    # At least one file has content (> 100 bytes)
-    has_content = any(f.stat().st_size > 100 for f in jsonl_files)
-    return has_content
+    return docs_path.exists() and docs_path.stat().st_size > 100
 
 
 def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
