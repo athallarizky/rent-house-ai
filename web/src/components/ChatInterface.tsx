@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PanelLeft, PanelRight, Bot, AlertCircle } from "lucide-react";
 import type {
+  ChatMode,
   Filters,
   KosResult,
   Message,
@@ -84,6 +85,21 @@ export default function ChatInterface() {
   const [showRight, setShowRight] = useState(
     () => typeof window !== "undefined" && window.innerWidth >= 768
   );
+
+  // Chat mode: "rag" = results only (no LLM), "ai" = full pipeline
+  const [chatMode, setChatMode] = useState<ChatMode>(() => {
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem("kos-ai.chat-mode");
+      if (stored === "rag" || stored === "ai") return stored;
+    }
+    return "ai";
+  });
+  const toggleChatMode = (mode: ChatMode) => {
+    setChatMode(mode);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("kos-ai.chat-mode", mode);
+    }
+  };
 
   const bootstrapped = useRef(false);
 
@@ -183,18 +199,19 @@ export default function ChatInterface() {
     }
     chatHistory.push({ role: "user", content: text });
 
-    // Extract intent via LLM (area, tags, gender, keywords) — fall back to
-    // hardcoded area extraction if the backend is unreachable.
+    // Extract intent via LLM (area, tags, gender, keywords) — skip in RAG mode.
     let intentArea: string | null = null;
     let intentTags: string[] = [];
     let intentGender: string | null = null;
-    try {
-      const intent = await extractIntent(text);
-      intentArea = intent.area;
-      intentTags = intent.tags || [];
-      intentGender = intent.gender || null;
-    } catch {
-      // LLM intent unavailable — area extraction below handles it
+    if (chatMode === "ai") {
+      try {
+        const intent = await extractIntent(text);
+        intentArea = intent.area;
+        intentTags = intent.tags || [];
+        intentGender = intent.gender || null;
+      } catch {
+        // LLM intent unavailable — area extraction below handles it
+      }
     }
 
     // Pre-fill filter chips with detected tags/gender
@@ -346,12 +363,12 @@ export default function ChatInterface() {
         regency: opts.regency ?? currentRegency ?? undefined,
         top_k: 10,
         chat_history: opts.chatHistory,
+        mode: chatMode,
       })) {
         const t = event.type as string;
         if (t === "results") {
           relItems = (event.results as KosResult[]) || [];
           setRelevantIds(new Set(relItems.map((r) => r.place_id)));
-          // Merge relevance scores into the dataset so cards can show match %
           if (relItems.length) {
             const scoreMap = new Map(
               relItems.map((r) => [r.place_id, r.score || 0])
@@ -367,6 +384,11 @@ export default function ChatInterface() {
         } else if (t === "token") {
           collected += event.token as string;
           setStreamingContent(collected);
+        } else if (t === "done") {
+          // RAG mode: backend doesn't send tokens, show result count
+          if (chatMode === "rag") {
+            collected = `Menampilkan ${relItems.length} kos di ${district} yang relevan dengan "${query}".`;
+          }
         }
       }
 
@@ -633,6 +655,8 @@ export default function ChatInterface() {
         <MessageInput
           onSend={(t) => handleSendMessage(t)}
           disabled={isLoading || datasetLoading}
+          chatMode={chatMode}
+          onToggleMode={toggleChatMode}
         />
       </div>
 
