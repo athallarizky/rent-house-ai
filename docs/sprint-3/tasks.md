@@ -145,6 +145,8 @@ Dropdown options:
 |------|-----------------------------------------------------------|------------|------|--------|
 | 8.1  | RCA-009: RAG imports shadowed by `api/src/` package (reverted to subprocess) | Medium | ✅ RCA-009 | ✅     |
 | 8.2  | RCA-010: RAG mode chat body kosong — format as markdown list | Low      | ✅ RCA-010 | ✅     |
+| 8.3  | RCA-011: District switch fallback menyesatkan ke district lama | Medium   | ✅ RCA-011 | ✅     |
+| 8.4  | RCA-012: RAG mode response quality (score filtering + area detection) | Medium | ✅ RCA-012 | ✅     |
 
 ---
 
