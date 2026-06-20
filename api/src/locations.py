@@ -57,3 +57,23 @@ async def list_areas(q: str = Query(default="", description="Filter by name")):
         if lower in r["regency"].lower() or lower in r["province"].lower()
     ]
     return {"areas": filtered[:50]}
+
+
+@router.get("/resolve")
+async def resolve_location(q: str = Query(..., description="Location name")):
+    try:
+        url = f"{GEO_ROUTER_URL}/resolve?q={urllib.parse.quote(q)}"
+        resp = urllib.request.urlopen(url, timeout=5)
+        return json.loads(resp.read())
+    except Exception as e:
+        raise HTTPException(502, f"Geo-router unavailable: {e}")
+
+
+@router.get("/expand")
+async def expand_location(q: str = Query(..., description="Regency name")):
+    try:
+        url = f"{GEO_ROUTER_URL}/expand?q={urllib.parse.quote(q)}"
+        resp = urllib.request.urlopen(url, timeout=5)
+        return json.loads(resp.read())
+    except Exception as e:
+        raise HTTPException(502, f"Geo-router unavailable: {e}")
