@@ -531,21 +531,29 @@ export default function ChatInterface() {
     try {
       const res = await loadArea(district, regency, loadAll);
 
-      // Backend async pipeline: activate polling UI if pipeline started/queued
-      const pipelineInfo = (res as { pipeline?: { pipeline_started?: boolean; pipeline_queued?: boolean } }).pipeline;
-      if (pipelineInfo?.pipeline_started || pipelineInfo?.pipeline_queued) {
+      // Backend async pipeline: activate polling UI if pipeline started/queued.
+      // NOTE: pipeline_started/pipeline_queued are TOP-LEVEL flags on the
+      // response (not inside res.pipeline, which is the state dict). Checking
+      // the wrong nesting caused queued/started responses to fall through to
+      // queryDataset with an undefined district -> spurious region drill-down.
+      const resFlags = res as { pipeline_started?: boolean; pipeline_queued?: boolean };
+      if (resFlags.pipeline_started || resFlags.pipeline_queued) {
         // Still set district context for UI (switcher, etc.) even though data isn't ready
         setCurrentDistrict(district);
         setCurrentRegency(regency || null);
         setPipelineActive(true);
         setDatasetLoading(false);
         setPendingArea({ query: initialQuery || `kos di ${district}`, regency: regency || district });
+        const pipe = (res as { pipeline?: { running?: string | null } }).pipeline;
+        const queueMsg = resFlags.pipeline_queued && pipe?.running && pipe.running !== district
+          ? `📋 Area **${district}** sedang antri di belakang **${pipe.running}**. Akan dimuat otomatis setelah pipeline selesai.`
+          : `📋 Pipeline dimulai untuk **${district}**. Scrape → process → index berjalan di background. Hasil akan muncul setelah selesai.`;
         setMessages((prev) => [
           ...prev,
           {
             id: uuid(),
             role: "assistant" as const,
-            content: `📋 Pipeline dimulai untuk **${district}**. Scrape → process → index berjalan di background. Hasil akan muncul setelah selesai.`,
+            content: queueMsg,
             timestamp: new Date().toISOString(),
           },
         ]);
