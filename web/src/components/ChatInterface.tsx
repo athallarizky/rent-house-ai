@@ -219,17 +219,37 @@ export default function ChatInterface() {
       }
     }
 
-    // POI-based search: geocode the POI → find regency → show picker
+    // POI-based search: geocode the POI → find regency → auto-load or show picker
     if (intentPoi && !intentArea) {
       try {
         const poiResult = await resolvePoi(intentPoi);
         if (poiResult && poiResult.districts.length > 0) {
+          const districtName = poiResult.district || poiResult.districts[0]?.name;
+          const locationLabel = poiResult.display_name?.split(",")[0]?.trim() || intentPoi;
+
           setMessages((prev) => [
             ...prev,
             {
               id: uuid(),
               role: "assistant",
-              content: `📍 **${poiResult.display_name || intentPoi}** di ${poiResult.regency || poiResult.province}. Mencari kos di sekitar lokasi ini. ${poiResult.districts.length > 1 ? `${poiResult.regency} memiliki ${poiResult.districts.length} kecamatan. Pilih salah satu:` : ""}`,
+              content: `📍 **${locationLabel}** di ${districtName || ""}, ${poiResult.regency || poiResult.province}. Mencari kos di sekitar lokasi ini…`,
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+
+          if (districtName) {
+            // Auto-load the specific district containing the POI
+            void loadDistrict(districtName, poiResult.regency || poiResult.province, text);
+            return;
+          }
+
+          // Fallback: show regency picker
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: uuid(),
+              role: "assistant",
+              content: `${poiResult.regency} memiliki ${poiResult.districts.length} kecamatan. Pilih salah satu untuk memuat data:`,
               timestamp: new Date().toISOString(),
               isPicker: true,
               districts: poiResult.districts.map((d: District) => ({
