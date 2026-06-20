@@ -73,16 +73,31 @@ export type ChatMode = "rag" | "ai";
   "Menampilkan {N} kos di {district} yang relevan dengan \"{query}\"."
   ```
 
-### 3d. `web/src/components/MessageInput.tsx` — Mode dropdown
+### 3d. `web/src/components/MessageInput.tsx` — Mode dropdown + AI visual
 
-New props: `chatMode`, `onToggleMode`. Renders a dropdown button between the
-textarea and send button:
+New props: `chatMode`, `onToggleMode`. Mode selector placed on the **left** side of
+the textarea for natural reading flow:
 
-- Default: shows current mode icon + label (Brain for AI, Search for RAG)
-- Active AI mode: blue-tinted border
-- Active RAG mode: muted
-- Dropdown popup: 2 options with icon + label + description
-- Click-outside-to-close behavior via `useRef` + `useEffect`
+```
+[AI▼] [textarea with neon glow] [Send]
+```
+
+**Mode button variants:**
+- **AI** (active): solid blue `bg-primary text-primary-foreground`, shadow-sm
+- **Cepat** (active): outlined `border border-border bg-background`, muted text
+- **Cepat** (inactive): solid blue (same as AI)
+- Height: `h-9` (36px), aligned with textarea via `items-center` + `mb-0.5`
+
+**Textarea AI indicator:**
+- `border-2 border-primary` (full opacity)
+- Neon glow: `shadow-[0_0_18px_rgba(59,130,246,0.22),inset_0_0_6px_rgba(59,130,246,0.05)]`
+- Smooth transition: `transition-all duration-200`
+
+**Labels:**
+- "AI" — Ringkasan + rekomendasi AI (Brain icon)
+- "Cepat" — Hasil langsung tanpa AI (Search icon)
+
+Dropdown popup: 2 options with icon + label + description, click-outside-to-close.
 
 ### 3e. `web/src/lib/api.ts`
 
