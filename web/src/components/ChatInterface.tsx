@@ -200,14 +200,14 @@ export default function ChatInterface() {
     }
     chatHistory.push({ role: "user", content: text });
 
-    // Extract intent via LLM (area, tags, gender, keywords, poi).
-    // In RAG mode: only extract area when no district is loaded (need location).
-    // In AI mode: always extract full intent.
+    // Extract intent via LLM only when no district is loaded (initial query).
+    // Follow-up / refinement queries within a loaded district skip intent
+    // to avoid unnecessary LLM latency and potential timeouts.
     let intentArea: string | null = null;
     let intentPoi: string | null = null;
     let intentTags: string[] = [];
     let intentGender: string | null = null;
-    if (chatMode === "ai" || !currentDistrict) {
+    if (!currentDistrict) {
       try {
         const intent = await extractIntent(text);
         intentArea = intent.area;
