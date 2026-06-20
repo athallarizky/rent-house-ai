@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 import chromadb
-from sentence_transformers import SentenceTransformer
 
-from .config import CHROMA_PATH, COLLECTION_NAME, EMBED_MODEL
+from .config import CHROMA_PATH, COLLECTION_NAME
+from .model_cache import get_model
 
 
 def load_docs(docs_path: Path) -> List[Dict[str, Any]]:
@@ -73,12 +73,7 @@ def ingest(docs_path: Path, force: bool = False) -> Dict[str, Any]:
         return {"indexed": 0, "skipped": len(docs), "total": len(docs)}
 
     # Load the embedding model lazily (only when there's something to embed).
-    # attn_implementation="eager" avoids a PyTorch scaled_dot_product_attention
-    # "Invalid buffer size" failure seen with bge-m3 on some setups.
-    print(f"Loading embedding model: {EMBED_MODEL}...")
-    model = SentenceTransformer(
-        EMBED_MODEL, model_kwargs={"attn_implementation": "eager"}
-    )
+    model = get_model()
 
     ids = [d["doc_id"] for d in new_docs]
     texts = [d["text"] for d in new_docs]

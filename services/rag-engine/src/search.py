@@ -4,9 +4,9 @@ import math
 from typing import List, Dict, Any, Optional
 
 import chromadb
-from sentence_transformers import SentenceTransformer
 
-from .config import CHROMA_PATH, COLLECTION_NAME, EMBED_MODEL, SEARCH_TOP_K
+from .config import CHROMA_PATH, COLLECTION_NAME, SEARCH_TOP_K
+from .model_cache import get_model
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -37,11 +37,7 @@ def search(
     client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_collection(COLLECTION_NAME)
 
-    # attn_implementation="eager" avoids a PyTorch scaled_dot_product_attention
-    # "Invalid buffer size" failure seen with bge-m3 on some setups.
-    model = SentenceTransformer(
-        EMBED_MODEL, model_kwargs={"attn_implementation": "eager"}
-    )
+    model = get_model()
     query_embedding = model.encode([query_text]).tolist()
 
     where: Optional[Dict] = _build_where(kecamatan, province, min_rating)

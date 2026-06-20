@@ -28,7 +28,7 @@ Focus areas:
 | 4 — Price Range Detection | ✅ | Regex price parsing from reviews |
 | 5 — Follow-up Chat Context | ✅ | Pass chat history to summarize |
 | 6 — Cross-District Search | ✅ | Wire "Cari di SEMUA kecamatan" |
-| 7 — Persistent RAG Server | ⬜ | Warm bge-m3 model (biggest perf win) |
+| 7 — Persistent RAG Server | ✅ | Warm bge-m3 model (biggest perf win) |
 | 8 — Workflow Fixes | ⬜ | User-reported issues (waterfall) |
 | 9 — AI Chat Mode Toggle | ⬜ | Manual RAG/AI mode dropdown di input chat |
 
