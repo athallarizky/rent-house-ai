@@ -143,7 +143,7 @@ Dropdown options:
 
 | ID   | Issue                                                     | Difficulty | RCA? | Status |
 |------|-----------------------------------------------------------|------------|------|--------|
-| 8.1  | (pending user report)                                     | —          | —    | ⬜     |
+| 8.1  | RCA-009: RAG imports shadowed by `api/src/` package        | Medium     | ✅ RCA-009 | ✅     |
 
 ---
 
