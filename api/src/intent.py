@@ -45,7 +45,7 @@ def _extract_intent_subprocess(query: str) -> Dict[str, Any]:
          f"result = extract_intent({json.dumps(query)}); "
          f"print(json.dumps(result))"],
         cwd=str(RAG_DIR),
-        timeout=45,
+        timeout=25,
         capture_output=True,
         text=True,
     )
