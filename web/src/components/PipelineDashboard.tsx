@@ -49,14 +49,24 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-/** Detect likely-broken / action-needed data and suggest the right action. */
+/** Detect likely-broken / action-needed data and suggest the right action.
+ *  Every suggestion MUST map to a button that is actually shown:
+ *    - "index"   → Index button shows when scraped && !indexed
+ *    - "rebuild" → Rebuild button shows when scraped
+ *    - "rescrape"→ always shown
+ *  So "index" rules require !indexed; inconsistent-but-indexed states point to
+ *  "rebuild" (which clears stale leftovers). */
 function warnFor(area: PipelineArea): { msg: string; action: string } | null {
-  if (area.scraped && !area.processed)
+  // Index path: scraped but not yet indexed (Index button is shown)
+  if (area.scraped && !area.processed && !area.indexed)
     return { msg: "Belum diproses — butuh **Index**", action: "index" };
-  if (area.processed && (area.docs_count ?? 0) === 0)
-    return { msg: "Docs kosong (data rusak) — butuh **Rebuild**", action: "rebuild" };
   if (area.scraped && area.processed && !area.indexed)
     return { msg: "Sudah diproses, belum di-index — butuh **Index**", action: "index" };
+  // Inconsistent: indexed but docs missing/empty → stale leftover, needs Rebuild
+  if (area.scraped && area.indexed && !area.processed)
+    return { msg: "Indexed tapi docs hilang (inkonsisten) — butuh **Rebuild**", action: "rebuild" };
+  if (area.processed && (area.docs_count ?? 0) === 0)
+    return { msg: "Docs kosong (data rusak) — butuh **Rebuild**", action: "rebuild" };
   if (area.indexed && area.indexed_count === 0)
     return { msg: "0 terindex padahal ada data — butuh **Rebuild**", action: "rebuild" };
   if (area.scrape_date) {
@@ -231,6 +241,7 @@ export default function PipelineDashboard() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                <th className="font-medium px-3 py-2.5 text-center w-8">#</th>
                 <th className="font-medium px-4 py-2.5">Area</th>
                 <th className="font-medium px-3 py-2.5 text-center">S</th>
                 <th className="font-medium px-3 py-2.5 text-center">P</th>
@@ -242,14 +253,15 @@ export default function PipelineDashboard() {
             <tbody>
               {areas.length === 0 && !error && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
                     Belum ada area. Jalankan pipeline dari halaman pencarian.
                   </td>
                 </tr>
               )}
-              {areas.map((area) => (
+              {areas.map((area, i) => (
                 <AreaRow
                   key={area.area}
+                  number={i + 1}
                   area={area}
                   busy={pipelineRunning}
                   onIndex={(a) => runAction(indexArea, a)}
@@ -289,6 +301,7 @@ export default function PipelineDashboard() {
 }
 
 interface AreaRowProps {
+  number: number;
   area: PipelineArea;
   busy: boolean;
   onIndex: (area: string) => void;
@@ -297,7 +310,7 @@ interface AreaRowProps {
   onDelete: (area: string) => void;
 }
 
-function AreaRow({ area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaRowProps) {
+function AreaRow({ number, area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaRowProps) {
   const count = area.indexed_count || area.docs_count || area.scraped_count || 0;
   const isRawFallback =
     area.indexed_count === 0 && area.docs_count == null && area.scraped_count > 0;
@@ -305,6 +318,9 @@ function AreaRow({ area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaR
 
   return (
     <tr className="border-b border-border last:border-0 hover:bg-accent/40 transition-colors">
+      <td className="px-3 py-2.5 text-center text-xs text-muted-foreground tabular-nums">
+        {number}
+      </td>
       <td className="px-4 py-2.5 font-medium">
         <div className="flex items-center gap-2">
           <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
