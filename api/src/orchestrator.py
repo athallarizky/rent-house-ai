@@ -1,7 +1,6 @@
 """Pipeline orchestrator — coordinates geo-router, scraper, processor, and RAG engine."""
 
 import asyncio
-import functools
 import glob
 import json
 import os
@@ -17,6 +16,29 @@ from .pipeline_state import get_pipeline_state
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
+
+
+def is_area_cached(area: str) -> bool:
+    """Check if an area has already been scraped, processed, and indexed.
+
+    Returns True if both cleaned docs AND ChromaDB data exist for the area.
+    """
+    docs_path = ROOT / "data" / "cleaned" / f"{area}_docs.json"
+    if not docs_path.exists():
+        return False
+
+    # Quick check: are there raw JSONL files too?
+    cache_dir = ROOT / "data" / "raw" / area
+    if not cache_dir.exists():
+        return False
+
+    jsonl_files = list(cache_dir.glob("*.jsonl"))
+    if not jsonl_files:
+        return False
+
+    # At least one file has content (> 100 bytes)
+    has_content = any(f.stat().st_size > 100 for f in jsonl_files)
+    return has_content
 
 
 def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -507,3 +529,49 @@ def _list_kos_subprocess(kecamatan: str) -> List[Dict[str, Any]]:
         return json.loads(proc.stdout.strip())
     except json.JSONDecodeError:
         return []
+
+
+# ============================================================
+# Async pipeline runner — non-blocking scrape→process→index
+# ============================================================
+
+async def run_pipeline_background(area: str, postal_codes: List[int], force: bool = False):
+    """Run the full pipeline (scrape→process→index) without blocking the event loop.
+
+    Existing sync functions are wrapped via asyncio.to_thread() so Uvicorn can
+    keep serving HTTP requests while the pipeline runs. PipelineState is updated
+    at each stage for the status endpoint.
+    """
+    state = get_pipeline_state()
+    try:
+        # Stage 1: Scrape
+        state.status = "scraping"
+        state.progress = f"Scraping {len(postal_codes)} postal codes for {area}..."
+        scrape_result = await asyncio.to_thread(ensure_scraped, area, postal_codes, force)
+        if scrape_result["status"] == "error":
+            state.progress = f"Scrape failed: {scrape_result.get('message', '')}"
+            return
+
+        # Stage 2: Process
+        state.status = "processing"
+        state.progress = f"Processing scraped data for {area}..."
+        proc_result = await asyncio.to_thread(ensure_processed, area)
+        if proc_result["status"] == "error":
+            state.progress = f"Processing failed: {proc_result.get('message', '')}"
+            return
+
+        # Stage 3: Index
+        state.status = "indexing"
+        state.progress = f"Indexing {area} to ChromaDB..."
+        idx_result = await asyncio.to_thread(ensure_indexed, area)
+        if idx_result["status"] == "error":
+            state.progress = f"Indexing failed: {idx_result.get('message', '')}"
+            return
+
+        new = idx_result.get("new", 0)
+        skipped = idx_result.get("skipped", 0)
+        state.progress = f"Done: {new} new, {skipped} skipped for {area}"
+    except Exception as exc:
+        state.progress = f"Pipeline error: {exc}"
+    finally:
+        state.finish()

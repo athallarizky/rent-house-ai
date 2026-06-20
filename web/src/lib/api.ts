@@ -411,4 +411,23 @@ export async function getServicesHealth(): Promise<ServicesHealth> {
   return resp.json();
 }
 
+/**
+ * Pipeline status — check if scrape/process/index is running.
+ */
+export interface PipelineStatus {
+  running: string | null;
+  status: "idle" | "scraping" | "processing" | "indexing";
+  queued: string | null;
+  progress: string | null;
+  elapsed_seconds: number | null;
+}
+
+export async function getPipelineStatus(): Promise<PipelineStatus> {
+  const resp = await fetch(`${API_URL}/pipeline/status`, {
+    headers: getAuthHeaders(),
+  });
+  if (!resp.ok) throw new Error(`Status check failed (${resp.status})`);
+  return resp.json();
+}
+
 export { API_URL };
