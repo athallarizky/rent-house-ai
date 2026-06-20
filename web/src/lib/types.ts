@@ -50,9 +50,10 @@ export interface SearchPipeline {
   regency?: string;
   province?: string;
   scrape?: string;
+  scrape_age_days?: number;
   process?: string;
   index?: string;
-  [key: string]: string | undefined;
+  [key: string]: string | number | undefined;
 }
 
 export interface SearchResponse {

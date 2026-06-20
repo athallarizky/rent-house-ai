@@ -25,15 +25,15 @@
 
 ---
 
-## Phase 2 — Scheduled Re-Scrape (Future Enhancement #6) ⬜
+## Phase 2 — Scheduled Re-Scrape (Future Enhancement #6) ✅
 
 > TTL-based cache invalidation. Re-scrape areas older than N days. Quick win — existing cache infra.
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 2.1  | Add TTL check in `services/scraper/src/run.py`            | Easy       | —           | ⬜     |
-| 2.2  | Hook into orchestrator pipeline (`ensure_scraped`)        | Easy       | 2.1         | ⬜     |
-| 2.3  | Add scrape freshness indicator in frontend                | Medium     | 2.2         | ⬜     |
+| 2.1  | Add TTL check in `services/scraper/src/run.py`            | Easy       | —           | ✅     |
+| 2.2  | Hook into orchestrator pipeline (`ensure_scraped`)        | Easy       | 2.1         | ✅     |
+| 2.3  | Add scrape freshness indicator in frontend                | Medium     | 2.2         | ✅     |
 
 ---
 

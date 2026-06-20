@@ -11,6 +11,7 @@ from .cache import (
     cache_path,
     all_cached,
     missing_codes,
+    stale_codes,
     read_jsonl,
     RAW_DIR,
 )
@@ -74,6 +75,7 @@ def scrape_area(
     postal_codes: List[int],
     config: Optional[ScraperConfig] = None,
     force: bool = False,
+    stale_days: int = 0,
 ) -> List[Dict[str, Any]]:
     if config is None:
         config = ScraperConfig()
@@ -81,13 +83,24 @@ def scrape_area(
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     (RAW_DIR / area).mkdir(parents=True, exist_ok=True)
 
-    if not force and all_cached(area, postal_codes):
-        print(f"[{area}] All {len(postal_codes)} postal codes cached — skipping scrape")
-        return _load_cached(area, postal_codes)
+    if force:
+        to_scrape = list(postal_codes)
+    elif stale_days > 0:
+        missing = missing_codes(area, postal_codes)
+        stale = stale_codes(area, postal_codes, max_age_days=stale_days)
+        to_scrape = list(set(missing + stale))
+        if not to_scrape:
+            print(f"[{area}] All {len(postal_codes)} codes cached and fresh — skipping scrape")
+            return _load_cached(area, postal_codes)
+        if stale:
+            print(f"[{area}] {len(stale)}/{len(postal_codes)} codes stale (> {stale_days}d), re-scraping")
+    else:
+        if all_cached(area, postal_codes):
+            print(f"[{area}] All {len(postal_codes)} postal codes cached — skipping scrape")
+            return _load_cached(area, postal_codes)
+        to_scrape = missing_codes(area, postal_codes)
 
-    to_scrape = postal_codes if force else missing_codes(area, postal_codes)
     cached = [c for c in postal_codes if c not in to_scrape]
-
     if cached:
         print(f"[{area}] {len(cached)}/{len(postal_codes)} codes cached, scraping {len(to_scrape)} remaining")
 

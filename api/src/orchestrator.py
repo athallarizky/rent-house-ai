@@ -46,20 +46,33 @@ def resolve_area(query: str) -> Dict[str, Any]:
     return {"type": "AREA", "regency": query, "districts": [], "province": ""}
 
 
-def ensure_scraped(area: str, postal_codes: List[int], force: bool = False) -> Dict[str, Any]:
+def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stale_days: int = 30) -> Dict[str, Any]:
     cache_dir = ROOT / "data" / "raw" / area
-    all_cached = force is False and all(
-        (cache_dir / f"{code}.jsonl").exists() for code in postal_codes
-    )
 
-    if all_cached:
+    import os
+    from datetime import datetime
+
+    max_age = 0.0
+    all_fresh = True
+    for code in postal_codes:
+        path = cache_dir / f"{code}.jsonl"
+        if path.exists():
+            mtime = datetime.fromtimestamp(os.path.getmtime(path))
+            age = (datetime.now() - mtime).total_seconds() / 86400
+            max_age = max(max_age, age)
+            if stale_days > 0 and age > stale_days:
+                all_fresh = False
+        else:
+            all_fresh = False
+
+    if not force and all_fresh:
         import glob
         count = len(list(cache_dir.glob("*.jsonl")))
-        return {"status": "cached", "files": count}
+        return {"status": "cached", "files": count, "scrape_age_days": round(max_age, 1)}
 
     codes_arg = ",".join(str(c) for c in postal_codes)
     scraper_dir = ROOT / "services" / "scraper"
-    flags = "force=True" if force else ""
+    flags = "force=True" if force else f"stale_days={stale_days}"
 
     proc = subprocess.run(
         [sys.executable, "-c",
@@ -77,7 +90,7 @@ def ensure_scraped(area: str, postal_codes: List[int], force: bool = False) -> D
 
     import glob
     count = len(list(cache_dir.glob("*.jsonl")))
-    return {"status": "scraped", "files": count}
+    return {"status": "scraped", "files": count, "scrape_age_days": 0.0}
 
 
 def ensure_processed(area: str) -> Dict[str, Any]:
@@ -320,6 +333,8 @@ def load_area(district: str, regency: Optional[str] = None) -> Dict[str, Any]:
     if scrape_result["status"] == "error":
         return {"success": False, "error": f"Scrape failed: {scrape_result.get('message')}"}
     pipeline["scrape"] = scrape_result["status"]
+    if "scrape_age_days" in scrape_result:
+        pipeline["scrape_age_days"] = scrape_result["scrape_age_days"]
 
     proc_result = ensure_processed(resolved_district)
     if proc_result["status"] == "error":

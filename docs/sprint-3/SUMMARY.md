@@ -22,8 +22,8 @@ Focus areas:
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| 1 — Delete Chat History | 🔵 | `DELETE /searches` (bulk) + frontend wiring |
-| 2 — Scheduled Re-Scrape | ⬜ | TTL-based cache invalidation |
+| 1 — Delete Chat History | ✅ | `DELETE /searches` (bulk) + frontend wiring |
+| 2 — Scheduled Re-Scrape | ✅ | TTL-based cache invalidation (30-day freshness) |
 | 3 — Query Understanding | ⬜ | LLM intent extraction (replace regex) |
 | 4 — Price Range Detection | ⬜ | Regex price parsing from reviews |
 | 5 — Follow-up Chat Context | ⬜ | Pass chat history to summarize |
