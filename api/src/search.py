@@ -127,14 +127,23 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
         # 400 / empty search (e.g. "kos di Lampung" -> list Lampung's regencies).
         if resolved and resolved["kind"] == "region":
             region = {k: v for k, v in resolved.items() if k != "kind"}
+            message = (
+                f"'{region['region']}' adalah area luas dengan "
+                f"{len(region['regions'])} sub-area. Pilih salah satu untuk cari kos."
+            )
+            # Streaming clients expect SSE — emit as an event so the frontend
+            # stream reader can parse it (a plain JSON body would be skipped by
+            # the data:-line parser). Non-streaming clients get JSON.
+            if req.stream:
+                return StreamingResponse(
+                    _region_response(region, message),
+                    media_type="text/event-stream",
+                )
             return {
                 "success": False,
                 "broad_region": True,
                 **region,
-                "message": (
-                    f"'{region['region']}' adalah area luas dengan "
-                    f"{len(region['regions'])} sub-area. Pilih salah satu untuk cari kos."
-                ),
+                "message": message,
             }
         raise HTTPException(400, "Could not determine area. Provide 'area' field.")
 
@@ -270,6 +279,25 @@ def _format_items(results: List[dict]) -> List[dict]:
             "text": r.get("text", ""),
         })
     return items
+
+
+async def _region_response(region: dict, message: str):
+    """Emit a broad-region drill-down as SSE: region → done.
+
+    Used when a streaming /search resolves to a broad region (province/regency)
+    instead of a specific area, so the frontend stream reader can surface the
+    sub-area list + message (a plain JSON body would be skipped by the data:
+    line parser).
+    """
+    yield _sse({
+        "type": "region",
+        "region_type": region.get("region_type"),
+        "region": region.get("region"),
+        "province": region.get("province", ""),
+        "regions": region.get("regions", []),
+        "message": message,
+    })
+    yield _sse({"type": "done"})
 
 
 async def _stream_response(query: str, area: str, pipeline: dict, items: List[dict], results: List[dict], chat_history: Optional[List[dict]] = None, mode: str = "ai"):
