@@ -42,6 +42,7 @@ import FilterChips from "./FilterChips";
 import KosCardList from "./KosCardList";
 import SavedSearches from "./SavedSearches";
 import DistrictSwitcher from "./DistrictSwitcher";
+import AreaSwitcher from "./AreaSwitcher";
 import MobileNav from "./MobileNav";
 import ConfirmModal from "./ConfirmModal";
 
@@ -696,6 +697,10 @@ export default function ChatInterface() {
     if (name) void loadDistrict(name, currentRegency || undefined);
   };
 
+  const handleSelectArea = (regency: string) => {
+    void handleSendMessage(regency);
+  };
+
   const handleNewSearch = () => {
     if (isLoading || datasetLoading) return;
     setMessages([]);
@@ -803,6 +808,12 @@ export default function ChatInterface() {
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold leading-tight truncate">Kos AI</h2>
+              <div className="flex items-center gap-1">
+                <AreaSwitcher
+                  disabled={datasetLoading || isLoading}
+                  onSelectArea={handleSelectArea}
+                />
+              </div>
               <DistrictSwitcher
                 regency={currentRegency}
                 currentDistrict={currentDistrict}
