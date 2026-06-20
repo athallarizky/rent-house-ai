@@ -1,6 +1,6 @@
 # Sprint 4 — Authentication & Authorization
 
-> Status: 🔵 In Progress | Created: 2026-06-20
+> Status: ✅ Completed | Created: 2026-06-20
 >
 > **Mission:** Add login, JWT auth, and role-based access control.
 > Admin can manage LLM config; users can search only.
@@ -61,16 +61,16 @@
 
 ---
 
-## Phase 5 — Polish ⬜
+## Phase 5 — Polish ✅
 
 > Edge cases, error handling, UX.
 
 | ID   | Task | Difficulty | Status |
 |------|------|-----------|--------|
-| 5.1  | Token expiry handling — auto-logout or refresh | Easy | ⬜ |
-| 5.2  | Login error display (wrong password, network error) | Easy | ⬜ |
-| 5.3  | Redirect to original page after login | Easy | ⬜ |
-| 5.4  | Admin password change UI | Medium | ⬜ |
+| 5.1  | Token expiry handling — auto-logout or refresh | Easy | ✅ |
+| 5.2  | Login error display (wrong password, network error) | Easy | ✅ |
+| 5.3  | Redirect to original page after login | Easy | ✅ |
+| 5.4  | Admin password change UI | Medium | ✅ |
 
 ---
 
@@ -94,8 +94,8 @@ Phase 5 (Polish) ──────── dep on Phase 4
 | 2 — Protect Endpoints | 3 | 1h | ✅ |
 | 3 — Login Page | 3 | 2h | ✅ |
 | 4 — Frontend Integration | 4 | 1.5h | ✅ |
-| 5 — Polish | 4 | 1h | ⬜ |
-| **Total** | **18** | **~7.5h** | **⬜** |
+| 5 — Polish | 4 | 1h | ✅ |
+| **Total** | **18** | **~7.5h** | **✅** |
 
 > **Ref:** `docs/sprint-4/AGENTS.md` — full implementation guide
 > **Ref:** `docs/sprint-3/SUMMARY.md` — Sprint 3 handoff

@@ -61,6 +61,23 @@ export async function logout() {
   window.location.href = "/login";
 }
 
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const { API_URL } = await import("./api");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...getAuthHeaders(),
+  };
+  const resp = await fetch(`${API_URL}/auth/password`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.detail || "Gagal mengubah password");
+  }
+}
+
 function isTokenExpired(token: string): boolean {
   try {
     const parts = token.split(".");

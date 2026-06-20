@@ -1,6 +1,6 @@
 # Sprint 4 Summary — Authentication & Authorization
 
-> **Status:** ⬜ Pending | Created 2026-06-20
+> **Status:** ✅ Completed | Created 2026-06-20
 > **Handoff:** [`AGENTS.md`](./AGENTS.md)
 
 ---
@@ -43,11 +43,11 @@ Add authentication and role-based access control to Kos AI:
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| 1 — Backend Auth Core | ⬜ | JWT, password hash, SQLite users, login/me endpoints |
-| 2 — Protect Endpoints | ⬜ | Add auth deps to settings (admin), search (user) |
-| 3 — Login Page | ⬜ | Astro login page + React form |
-| 4 — Frontend Integration | ⬜ | Auth headers, sidebar, protected routes |
-| 5 — Polish | ⬜ | Token expiry, error states, admin password change |
+| 1 — Backend Auth Core | ✅ | JWT, password hash, SQLite users, login/me endpoints |
+| 2 — Protect Endpoints | ✅ | Add auth deps to settings (admin), search (user) |
+| 3 — Login Page | ✅ | Astro login page + React form |
+| 4 — Frontend Integration | ✅ | Auth headers, sidebar, protected routes |
+| 5 — Polish | ✅ | Token expiry, error states, admin password change |
 
 ---
 

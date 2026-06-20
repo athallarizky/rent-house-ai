@@ -11,6 +11,7 @@ import {
   HardDrive,
   Palette,
   ShieldAlert,
+  Lock,
 } from "lucide-react";
 import {
   getSettings,
@@ -20,6 +21,7 @@ import {
   type ConnectionTestResult,
 } from "../lib/api";
 import { getAuth } from "../lib/auth";
+import { changePassword } from "../lib/auth";
 import { cn } from "../lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import ServerStatus from "./ServerStatus";
@@ -115,6 +117,32 @@ export default function ProviderSettings() {
       setError(e instanceof Error ? e.message : "Gagal menyimpan");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [pwChanging, setPwChanging] = useState(false);
+  const [pwError, setPwError] = useState("");
+  const [pwOk, setPwOk] = useState(false);
+
+  const handleChangePassword = async () => {
+    setPwError("");
+    setPwOk(false);
+    if (!currentPw || !newPw) {
+      setPwError("Isi password saat ini dan password baru.");
+      return;
+    }
+    setPwChanging(true);
+    try {
+      await changePassword(currentPw, newPw);
+      setPwOk(true);
+      setCurrentPw("");
+      setNewPw("");
+    } catch (e) {
+      setPwError(e instanceof Error ? e.message : "Gagal mengubah password");
+    } finally {
+      setPwChanging(false);
     }
   };
 
@@ -297,6 +325,54 @@ export default function ProviderSettings() {
             </div>
           </div>
           <ThemeToggle />
+        </div>
+      </section>
+
+      {/* Ubah Password */}
+      <section className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Lock className="w-5 h-5 text-primary" />
+          <h2 className="font-semibold">Ubah Password Admin</h2>
+        </div>
+        <div className="space-y-3">
+          <input
+            type="password"
+            value={currentPw}
+            onChange={(e) => setCurrentPw(e.target.value)}
+            placeholder="Password saat ini"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm
+                       placeholder:text-muted-foreground focus:outline-none focus:ring-2
+                       focus:ring-primary/20 focus:border-primary"
+          />
+          <input
+            type="password"
+            value={newPw}
+            onChange={(e) => setNewPw(e.target.value)}
+            placeholder="Password baru (min. 4 karakter)"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm
+                       placeholder:text-muted-foreground focus:outline-none focus:ring-2
+                       focus:ring-primary/20 focus:border-primary"
+          />
+          {pwError && (
+            <div className="text-sm text-destructive">{pwError}</div>
+          )}
+          {pwOk && (
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <CheckCircle2 className="w-4 h-4" />
+              Password berhasil diubah.
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleChangePassword}
+            disabled={pwChanging || !currentPw || !newPw}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground
+                       px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50
+                       disabled:cursor-not-allowed transition-colors"
+          >
+            {pwChanging && <Loader2 className="w-4 h-4 animate-spin" />}
+            {pwChanging ? "Mengubah..." : "Ubah Password"}
+          </button>
         </div>
       </section>
 
