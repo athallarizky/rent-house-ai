@@ -67,15 +67,44 @@ const isActive = (key: string, href: string) =>
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
+            id="nav-settings"
           >
             <span class="text-base">⚙️</span>
             Pengaturan
           </a>
         </nav>
 
-        <div class="border-t border-border p-4">
+        <div class="border-t border-border p-4 space-y-3">
+          <div id="auth-user" class="text-xs text-muted-foreground truncate hidden"></div>
+          <button
+            id="logout-btn"
+            onclick="(function(){localStorage.removeItem('kos-ai.auth');window.location.href='/login'})()"
+            class="hidden w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors text-left"
+          >
+            <span class="text-base">🚪</span>
+            Keluar
+          </button>
           <p class="text-xs text-muted-foreground">Kos AI v0.1.0</p>
         </div>
+
+        <script>
+          try {
+            const raw = localStorage.getItem("kos-ai.auth");
+            if (raw) {
+              const auth = JSON.parse(raw);
+              if (auth.user) {
+                const el = document.getElementById("auth-user");
+                if (el) { el.textContent = auth.user.email + "  ·  " + auth.user.role; el.classList.remove("hidden"); }
+                const btn = document.getElementById("logout-btn");
+                if (btn) btn.classList.remove("hidden");
+                if (auth.user.role !== "admin") {
+                  const nav = document.getElementById("nav-settings");
+                  if (nav) nav.classList.add("hidden");
+                }
+              }
+            }
+          } catch(e) {}
+        </script>
       </aside>
 
       <!-- Main Content -->

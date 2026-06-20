@@ -7,6 +7,7 @@ import type {
   SavedSearch,
   AreaLoadResponse,
 } from "./types";
+import { getAuthHeaders } from "./auth";
 
 const API_URL =
   (import.meta.env.PUBLIC_API_URL as string | undefined) || "http://localhost:8080";
@@ -17,7 +18,7 @@ const API_URL =
 export async function searchKos(req: SearchRequest): Promise<SearchResponse> {
   const resp = await fetch(`${API_URL}/search`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
 
@@ -44,7 +45,7 @@ export async function* streamSearch(
 ): AsyncGenerator<{ type: string; [key: string]: unknown }> {
   const resp = await fetch(`${API_URL}/search`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({ ...req, stream: true }),
   });
 
@@ -114,7 +115,7 @@ export async function loadArea(
 ): Promise<AreaLoadResponse> {
   const resp = await fetch(`${API_URL}/area/load`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({ district, regency, load_all: loadAll }),
   });
   if (!resp.ok) {
@@ -140,7 +141,7 @@ export async function extractIntent(query: string): Promise<IntentResult> {
   try {
     const resp = await fetch(`${API_URL}/intent`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
     });
     if (resp.ok) return resp.json();
@@ -200,7 +201,9 @@ function writeLocal(items: SavedSearch[]): void {
 export async function listSavedSearches(): Promise<SavedSearch[]> {
   if (SAVED_SEARCHES_API_ENABLED) {
     try {
-      const resp = await fetch(`${API_URL}/searches`);
+      const resp = await fetch(`${API_URL}/searches`, {
+        headers: getAuthHeaders(),
+      });
       if (resp.ok) {
         const data = await resp.json();
         return data.searches || [];
@@ -219,7 +222,7 @@ export async function saveSavedSearch(
     try {
       const resp = await fetch(`${API_URL}/searches`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify(search),
       });
       if (resp.ok) return resp.json();
@@ -239,6 +242,7 @@ export async function deleteSavedSearch(id: string): Promise<void> {
     try {
       const resp = await fetch(`${API_URL}/searches/${id}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
       if (resp.ok) return;
     } catch {
@@ -255,6 +259,7 @@ export async function deleteAllSavedSearches(): Promise<number> {
     try {
       const resp = await fetch(`${API_URL}/searches`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -320,7 +325,9 @@ export interface BackendSettings {
 }
 
 export async function getSettings(): Promise<BackendSettings> {
-  const resp = await fetch(`${API_URL}/settings`);
+  const resp = await fetch(`${API_URL}/settings`, {
+    headers: getAuthHeaders(),
+  });
   if (!resp.ok) throw new Error(`getSettings failed (${resp.status})`);
   return resp.json();
 }
@@ -330,7 +337,7 @@ export async function saveSettings(
 ): Promise<{ ok: boolean }> {
   const resp = await fetch(`${API_URL}/settings`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(s),
   });
   if (!resp.ok) throw new Error(`saveSettings failed (${resp.status})`);
@@ -350,7 +357,7 @@ export async function testConnection(req: {
 }): Promise<ConnectionTestResult> {
   const resp = await fetch(`${API_URL}/settings/test`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
   if (!resp.ok) throw new Error(`testConnection failed (${resp.status})`);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanelLeft, PanelRight, Bot, AlertCircle } from "lucide-react";
+import { PanelLeft, PanelRight, Bot, AlertCircle, LogOut } from "lucide-react";
 import type {
   ChatMode,
   Filters,
@@ -22,6 +22,7 @@ import {
   resolvePoi,
 } from "../lib/api";
 import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
+import { getAuth, logout } from "../lib/auth";
 import ChatWindow from "./ChatWindow";
 import MessageInput from "./MessageInput";
 import FilterChips from "./FilterChips";
@@ -57,6 +58,10 @@ function activeFilterCount(filters: Filters): number {
   return n;
 }
 
+function isAuthError(e: unknown): boolean {
+  return e instanceof Error && e.message.includes("(401)");
+}
+
 export default function ChatInterface() {
   // Session state (Rev-001)
   const [dataset, setDataset] = useState<KosResult[]>([]);
@@ -67,6 +72,7 @@ export default function ChatInterface() {
   const [scrapePipeline, setScrapePipeline] = useState<SearchPipeline | null>(null);
   const [datasetLoading, setDatasetLoading] = useState(false);
   const [relevantOnly, setRelevantOnly] = useState(false);
+  const [authUser, setAuthUser] = useState<{ email: string; role: string } | null>(null);
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
@@ -107,6 +113,8 @@ export default function ChatInterface() {
   const bootstrapped = useRef(false);
 
   useEffect(() => {
+    const auth = getAuth();
+    if (auth.user) setAuthUser(auth.user);
     listSavedSearches().then(setSavedSearches).catch(() => {});
   }, []);
 
@@ -380,6 +388,7 @@ export default function ChatInterface() {
       await loadDistrict(districtName, regency || undefined, text);
     } catch (e) {
       console.error("handleSendMessage failed", e);
+      if (isAuthError(e)) { logout(); return; }
       const msg = friendlyError(e, "Gagal memproses pencarian.");
       setError(msg);
       setMessages((prev) => [
@@ -440,6 +449,7 @@ export default function ChatInterface() {
       });
     } catch (e) {
       console.error("loadDistrict failed", e);
+      if (isAuthError(e)) { logout(); return; }
       const msg = friendlyError(e, "Gagal memuat district.");
       setError(msg);
       setDatasetLoading(false);
@@ -768,6 +778,22 @@ export default function ChatInterface() {
           </div>
           <div className="ml-auto flex items-center gap-1.5">
             <ThemeToggle compact />
+            {authUser && (
+              <>
+                <span className="hidden sm:inline text-xs text-muted-foreground truncate max-w-[120px]">
+                  {authUser.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
+                  aria-label="Keluar"
+                  title="Keluar"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            )}
             <button
               type="button"
               onClick={() => setShowRight((v) => !v)}
