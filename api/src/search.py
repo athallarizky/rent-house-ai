@@ -54,12 +54,58 @@ class AreaLoadRequest(BaseModel):
 
 
 @router.post("/area/load")
-async def area_load(req: AreaLoadRequest, user: dict = Depends(get_current_user)):
-    """Load the full kos dataset for a district + sibling districts (switcher)."""
-    result = load_area(req.district, req.regency, load_all=req.load_all)
-    if not result.get("success"):
-        raise HTTPException(400, result.get("error", "Failed to load area"))
-    return result
+async def area_load(req: AreaLoadRequest, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    """Load the full kos dataset for a district + sibling districts (switcher).
+
+    With Sprint-6: if area is not cached, pipeline runs in background.
+    Frontend polls GET /pipeline/status for progress.
+    """
+    area = req.district
+
+    # Check cache first — fast path
+    if is_area_cached(area):
+        result = load_area(area, req.regency, load_all=req.load_all)
+        if not result.get("success"):
+            raise HTTPException(400, result.get("error", "Failed to load area"))
+        return result
+
+    # Not cached — use 3-layer check
+    state = get_pipeline_state()
+
+    if state.running == area:
+        raise HTTPException(409, f"Pipeline for '{area}' is already running.")
+
+    geo = resolve_area(area)
+    districts = geo.get("districts", [])
+    postal_codes = []
+    for d in districts:
+        postal_codes.extend(d.get("postalCodes", []))
+    if not postal_codes:
+        raise HTTPException(400, f"No postal codes found for '{area}'")
+
+    if state.running is not None:
+        ok = state.queue(area)
+        if ok:
+            return {
+                "success": False,
+                "pipeline_queued": True,
+                "message": f"Pipeline queued behind '{state.running}'.",
+                "pipeline": state.state(),
+            }
+        raise HTTPException(409, f"Pipeline already queued/running for '{area}'.")
+
+    ok = state.start(area)
+    if not ok:
+        raise HTTPException(503, "Pipeline slot occupied — try again soon.")
+
+    background_tasks.add_task(run_pipeline_background, area, postal_codes, req.load_all)
+
+    return {
+        "success": False,
+        "pipeline_started": True,
+        "message": f"Pipeline started for '{area}'. Poll /pipeline/status.",
+        "pipeline": state.state(),
+    }
 
 
 @router.get("/pipeline/status")

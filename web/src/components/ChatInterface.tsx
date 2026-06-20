@@ -45,6 +45,7 @@ import DistrictSwitcher from "./DistrictSwitcher";
 import AreaSwitcher from "./AreaSwitcher";
 import MobileNav from "./MobileNav";
 import ConfirmModal from "./ConfirmModal";
+import PipelineBanner from "./PipelineBanner";
 
 const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Terang", icon: Sun },
@@ -90,6 +91,7 @@ export default function ChatInterface() {
   const [siblingDistricts, setSiblingDistricts] = useState<District[]>([]);
   const [scrapePipeline, setScrapePipeline] = useState<SearchPipeline | null>(null);
   const [datasetLoading, setDatasetLoading] = useState(false);
+  const [pipelineActive, setPipelineActive] = useState(false);
   const [relevantOnly, setRelevantOnly] = useState(false);
   const [authUser, setAuthUser] = useState<{ email: string; role: string } | null>(null);
 
@@ -464,6 +466,25 @@ export default function ChatInterface() {
 
     try {
       const res = await loadArea(district, regency, loadAll);
+
+      // Backend async pipeline: activate polling UI if pipeline started/queued
+      const pipelineInfo = (res as { pipeline?: { pipeline_started?: boolean; pipeline_queued?: boolean } }).pipeline;
+      if (pipelineInfo?.pipeline_started || pipelineInfo?.pipeline_queued) {
+        setPipelineActive(true);
+        setDatasetLoading(false);
+        setPendingArea({ query: initialQuery || `kos di ${district}`, regency: regency || "" });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuid(),
+            role: "assistant" as const,
+            content: `📋 Pipeline dimulai untuk **${district}**. Scrape → process → index berjalan di background. Kamu bisa tetap browsing area lain.`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        return; // Don't proceed to queryDataset — will auto-retrigger on completion
+      }
+
       setDataset(res.dataset || []);
       setCurrentDistrict(res.district);
       setCurrentRegency(res.regency || null);
@@ -937,6 +958,17 @@ export default function ChatInterface() {
             <span className="truncate">{error}</span>
           </div>
         )}
+
+        <PipelineBanner
+          active={pipelineActive}
+          onCompleted={(msg) => {
+            setPipelineActive(false);
+            // Auto-retrigger search if pipeline just completed and user is waiting
+            if (currentDistrict && pendingArea) {
+              void loadDistrict(currentDistrict, currentRegency ?? undefined, pendingArea.query, true);
+            }
+          }}
+        />
 
         <ChatWindow
           messages={messages}
