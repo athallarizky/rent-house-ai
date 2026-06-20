@@ -9,9 +9,27 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from .geocode import geocode
+from .locations import _load_regencies
 from .orchestrator import resolve_area
 
 router = APIRouter(prefix="/poi", tags=["poi"])
+
+_PROVINCE_REGENCIES=None
+
+
+def _province_regencies():
+    """province (lower) -> {display, regencies:set} built lazily from kodepos."""
+    global _PROVINCE_REGENCIES
+    if _PROVINCE_REGENCIES is None:
+        idx = {}
+        for r in _load_regencies():
+            prov = r.get("province", "")
+            if not prov:
+                continue
+            entry = idx.setdefault(prov.lower(), {"display": prov, "regencies": set()})
+            entry["regencies"].add(r.get("regency", ""))
+        _PROVINCE_REGENCIES = idx
+    return _PROVINCE_REGENCIES
 
 
 class PoiResolveRequest(BaseModel):
@@ -44,7 +62,7 @@ async def poi_resolve(req: PoiResolveRequest):
                 matched_district = d.get("name")
                 break
 
-    return {
+    result = {
         "lat": geo["lat"],
         "lon": geo["lon"],
         "display_name": geo["display_name"],
@@ -53,3 +71,15 @@ async def poi_resolve(req: PoiResolveRequest):
         "district": matched_district or district,
         "districts": districts,
     }
+
+    # Province-level geocode (e.g. "Gorontalo"/"Maluku" resolves to the province
+    # point, regency is empty) -> offer the province's regencies as a drill-down
+    # instead of returning empty districts / "not found".
+    if not districts and province:
+        pe = _province_regencies().get(province.lower())
+        if pe:
+            result["broad_region"] = True
+            result["region_type"] = "province"
+            result["region"] = pe["display"]
+            result["regions"] = sorted(r for r in pe["regencies"] if r)
+    return result

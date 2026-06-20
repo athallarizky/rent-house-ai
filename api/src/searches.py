@@ -23,7 +23,7 @@ router = APIRouter(prefix="/searches", tags=["searches"])
 class SavedSearch(BaseModel):
     id: Optional[str] = None
     query_text: str
-    area: str
+    area: str = ""  # optional: broad-region/POI searches may have no specific area
     result_count: int = 0
     created_at: Optional[str] = None  # ISO 8601 from client
 
