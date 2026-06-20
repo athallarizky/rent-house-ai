@@ -11,8 +11,6 @@ Keyed by area name (which equals the kecamatan name in this system).
 """
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -102,35 +100,23 @@ def _count_docs(path: Path) -> Optional[int]:
 
 
 def _get_indexed_counts() -> Dict[str, int]:
-    """Query ChromaDB and group indexed document counts by metadata.kecamatan.
+    """Query ChromaDB in-process and group indexed document counts by metadata.kecamatan.
 
-    Runs in a rag-engine subprocess so the embedding/chromadb deps stay isolated.
     Returns a dict keyed by kecamatan name (the "area" in this system); areas
-    missing the kecamatan field fall back to "unknown".
+    missing the kecamatan field fall back to "unknown". Returns {} if the model
+    bridge / ChromaDB is unavailable (e.g. model not loaded, collection missing).
     """
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         "import json, chromadb; "
-         "from src.config import CHROMA_PATH, COLLECTION_NAME; "
-         "c = chromadb.PersistentClient(path=CHROMA_PATH); "
-         "col = c.get_collection(COLLECTION_NAME); "
-         "res = col.get(include=['metadatas']); "
-         "counts = {}; "
-         "for m in res.get('metadatas', []) or []: "
-         "    k = (m or {}).get('kecamatan') or 'unknown'; "
-         "    counts[k] = counts.get(k, 0) + 1; "
-         "print(json.dumps(counts))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=30,
-        capture_output=True,
-        text=True,
-    )
-    if proc.returncode != 0:
-        return {}
     try:
-        return json.loads(proc.stdout.strip())
-    except json.JSONDecodeError:
+        from .rag_bridge import get_collection
+        col = get_collection()
+        res = col.get(include=["metadatas"])
+    except Exception:
         return {}
+    counts: Dict[str, int] = {}
+    for m in res.get("metadatas", []) or []:
+        k = (m or {}).get("kecamatan") or "unknown"
+        counts[k] = counts.get(k, 0) + 1
+    return counts
 
 
 @router.get("/data")
