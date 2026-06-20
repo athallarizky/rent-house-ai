@@ -280,8 +280,13 @@ export default function ChatInterface() {
     }
 
     // LLM-extracted area wins over areaHint, falls back to hardcoded regex
-    const area =
-      intentArea || areaHint || currentDistrict || DEFAULT_AREA;
+    // If no area found AND no district loaded, try the raw query as area
+    let area =
+      intentArea || areaHint || currentDistrict;
+    if (!area) {
+      const regexArea = extractArea(text);
+      area = regexArea || DEFAULT_AREA;
+    }
 
     try {
       const resolved = await resolveLocation(area);
