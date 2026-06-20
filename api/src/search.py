@@ -374,7 +374,7 @@ _KNOWN_AREAS = [
     # Kota / kabupaten (generic, last)
     "jakarta barat", "jakarta selatan", "jakarta timur", "jakarta pusat",
     "jakarta utara", "tangerang selatan", "tangerang", "bekasi", "depok",
-    "bogor", "bandung", "surabaya", "yogyakarta", "semarang", "malang",
+    "bogor", "bandung", "surabaya", "semarang", "malang",
 ]
 
 # Words that are NOT place names — stripped before trying the geo-router so a
@@ -415,6 +415,54 @@ def _province_index() -> Dict[str, Dict[str, object]]:
     return _PROVINCE_INDEX
 
 
+# Common short forms / distinctive words -> official province name (lowercased).
+# This is normalization for the FIXED, complete 38-province set (not arbitrary
+# city detection) — abbreviations like "jabar"/"jogja"/"sumut" otherwise won't
+# match the official names ("Jawa Barat", "Daerah Istimewa Yogyakarta", ...).
+_PROVINCE_ALIASES = {
+    "jakarta": "dki jakarta", "dki": "dki jakarta",
+    "yogyakarta": "daerah istimewa yogyakarta", "jogja": "daerah istimewa yogyakarta", "diy": "daerah istimewa yogyakarta",
+    "jabar": "jawa barat", "jateng": "jawa tengah", "jatim": "jawa timur",
+    "sumut": "sumatera utara", "sumbar": "sumatera barat", "sumsel": "sumatera selatan",
+    "kalbar": "kalimantan barat", "kalsel": "kalimantan selatan", "kalteng": "kalimantan tengah",
+    "kaltim": "kalimantan timur", "kaltara": "kalimantan utara",
+    "sulbar": "sulawesi barat", "sulsel": "sulawesi selatan", "sulteng": "sulawesi tengah",
+    "sultra": "sulawesi tenggara", "sulut": "sulawesi utara",
+    "ntb": "nusa tenggara barat", "ntt": "nusa tenggara timur",
+    "babel": "kepulauan bangka belitung", "kepri": "kepulauan riau",
+    "pabar": "papua barat",
+}
+
+
+def _match_province(q_lower: str) -> Optional[dict]:
+    """Match the query against all 38 provinces ("1 per 1"). Returns a province
+    drill-down if the query contains a province name or a known short alias.
+    Cheap (O(40)) and avoids the fuzzy candidate extraction for provinces."""
+    provs = _province_index()
+    # 1) short aliases (word-boundary so "diy"/"ntt" don't match inside words)
+    for alias, prov_key in _PROVINCE_ALIASES.items():
+        if re.search(r"\b" + re.escape(alias) + r"\b", q_lower):
+            pe = provs.get(prov_key)
+            if pe:
+                return {
+                    "kind": "region",
+                    "region_type": "province",
+                    "region": pe["display"],
+                    "regions": sorted(r for r in pe["regencies"] if r),  # type: ignore[arg-type]
+                }
+    # 2) full official province name as substring (iterate all 38, longest first
+    #    so "Papua Pegunungan"/"Papua Barat Daya" match before generic "Papua")
+    for prov_key, pe in sorted(provs.items(), key=lambda kv: len(kv[0]), reverse=True):
+        if prov_key in q_lower:
+            return {
+                "kind": "region",
+                "region_type": "province",
+                "region": pe["display"],
+                "regions": sorted(r for r in pe["regencies"] if r),  # type: ignore[arg-type]
+            }
+    return None
+
+
 def _resolve_query(query: str) -> Optional[dict]:
     """Resolve a query's place into a specific kecamatan OR a broad region.
 
@@ -436,7 +484,14 @@ def _resolve_query(query: str) -> Optional[dict]:
         if a in lower:
             return {"kind": "area", "name": a}
 
-    # 2) candidate phrases from non-area words, longest contiguous span first
+    # 2) province check — iterate all 38 (cheap, robust). Done before regency/
+    #    kecamatan resolution so "kos di jawa barat"/"jabar"/"jogja" resolve as
+    #    a province drill-down, not a spurious single district.
+    province = _match_province(lower)
+    if province:
+        return province
+
+    # 3) candidate phrases from non-area words, longest contiguous span first
     tokens = [
         t for t in re.findall(r"[a-zA-Z]+", lower)
         if t not in _NON_AREA_WORDS and len(t) > 2
@@ -451,17 +506,7 @@ def _resolve_query(query: str) -> Optional[dict]:
                 continue
             seen.add(cand)
 
-            # Province? -> list its regencies/cities
-            pe = provs.get(cand)
-            if pe:
-                return {
-                    "kind": "region",
-                    "region_type": "province",
-                    "region": pe["display"],
-                    "regions": sorted(r for r in pe["regencies"] if r),  # type: ignore[arg-type]
-                }
-
-            # Geo-router resolve (cap calls to bound latency)
+            # Geo-router resolve (cap calls to bound latency) — regency / area
             if calls >= 8:
                 continue
             calls += 1
