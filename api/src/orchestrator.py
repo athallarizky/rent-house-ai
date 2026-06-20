@@ -228,15 +228,20 @@ def search_and_rank(
         print(f"[/search] RADIUS query: area={area} lat={user_lat} lon={user_lon} radius_km={radius_km}", flush=True)
     try:
         rag = _rag()
+        # POI/radius queries: widen the candidate pool to ALL kos (not just
+        # top-N by embedding similarity, which can exclude the closest kos if
+        # their text isn't semantically similar to the landmark name).
+        is_poi = user_lat is not None and user_lon is not None
+        search_top_k = 500 if is_poi else max(top_k * 3, 30)
         results = rag.search(
             query_text=query,
             kecamatan=kec_filter,
-            top_k=max(top_k * 3, 30),
+            top_k=search_top_k,
             user_lat=user_lat,
             user_lon=user_lon,
             radius_km=radius_km,
         )
-        ranked = rag.rank(results, user_lat=user_lat, user_lon=user_lon)
+        ranked = rag.rank(results, user_lat=user_lat, user_lon=user_lon, proximity_first=is_poi)
     except Exception:
         return []
     return [
