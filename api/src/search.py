@@ -4,6 +4,7 @@
 
 import asyncio
 import json
+import re
 import threading
 from queue import Queue
 from typing import List, Optional
@@ -304,34 +305,72 @@ def _sse(payload: dict) -> str:
     return f"data: {json.dumps(payload)}\n\n"
 
 
+# Known areas matched quickly by substring (no network). Specific kecamatan
+# MUST come before their regency/city (e.g. "bekasi timur" before "bekasi"),
+# since matching is substring-based. The geo-router fallback below covers any
+# area not listed here.
+_KNOWN_AREAS = [
+    # Jakarta Timur
+    "cilincing", "pulo gadung", "pulogadung", "cakung", "matraman",
+    "jatinegara", "duren sawit", "kramat jati", "makasar", "pasar rebo",
+    "ciracas", "cipayung",
+    # Jakarta Utara
+    "tanjung priok", "kelapa gading", "penjaringan", "koja",
+    # Jakarta Barat
+    "cengkareng", "kalideres", "kebon jeruk", "grogol petamburan",
+    "taman sari", "tambora",
+    # Jakarta Selatan
+    "kebayoran baru", "kebayoran lama", "mampang prapatan", "pasar minggu",
+    "cilandak", "jagakarsa", "pesanggrahan", "tebet", "setiabudi",
+    # Jakarta Pusat
+    "menteng", "tanah abang", "kemayoran", "sawah besar",
+    # Bekasi (kecamatan before kota)
+    "bekasi timur", "bekasi barat", "bekasi selatan", "bekasi utara",
+    # Kota / kabupaten (generic, last)
+    "jakarta barat", "jakarta selatan", "jakarta timur", "jakarta pusat",
+    "jakarta utara", "tangerang selatan", "tangerang", "bekasi", "depok",
+    "bogor", "bandung", "surabaya", "yogyakarta", "semarang", "malang",
+]
+
+# Words that are NOT place names — stripped before trying the geo-router so a
+# full sentence like "kos di sekitar tenjo" reduces to the place candidate "tenjo".
+_NON_AREA_WORDS = {
+    # kos / query verbs
+    "kos", "kost", "kosan", "cari", "mencari", "buat", "untuk", "saya", "aku",
+    # prepositions / location fillers
+    "di", "sekitar", "sekitarnya", "dekat", "dekatnya", "depan", "sebelah",
+    "seputar", "area", "pinggir", "dalam", "luar", "antara", "menuju",
+    # connectors
+    "yang", "dan", "atau", "dengan", "tapi", "yg", "dkk",
+    # facility / attribute terms
+    "murah", "mahal", "bersih", "luas", "putri", "putra", "campur", "khusus",
+    "wifi", "ac", "parkir", "kasur", "lemari", "dapur", "laundry", "listrik",
+    "harga", "dibawah", "diatas", "sebulan", "perbulan", "bulan",
+}
+
+
 def _extract_area(query: str) -> Optional[str]:
-    # Substring match against the query. Specific kecamatan MUST come before
-    # their regency/city (e.g. "bekasi timur" before "bekasi"), otherwise the
-    # shorter name matches first and resolves to the wrong level.
-    areas = [
-        # Jakarta Timur
-        "cilincing", "pulo gadung", "pulogadung", "cakung", "matraman",
-        "jatinegara", "duren sawit", "kramat jati", "makasar", "pasar rebo",
-        "ciracas", "cipayung",
-        # Jakarta Utara
-        "tanjung priok", "kelapa gading", "penjaringan", "koja",
-        # Jakarta Barat
-        "cengkareng", "kalideres", "kebon jeruk", "grogol petamburan",
-        "taman sari", "tambora",
-        # Jakarta Selatan
-        "kebayoran baru", "kebayoran lama", "mampang prapatan", "pasar minggu",
-        "cilandak", "jagakarsa", "pesanggrahan", "tebet", "setiabudi",
-        # Jakarta Pusat
-        "menteng", "tanah abang", "kemayoran", "sawah besar",
-        # Bekasi (kecamatan before kota)
-        "bekasi timur", "bekasi barat", "bekasi selatan", "bekasi utara",
-        # Kota / kabupaten (generic, last)
-        "jakarta barat", "jakarta selatan", "jakarta timur", "jakarta pusat",
-        "jakarta utara", "tangerang selatan", "tangerang", "bekasi", "depok",
-        "bogor", "bandung", "surabaya", "yogyakarta", "semarang", "malang",
-    ]
+    # 1) fast keyword match against known areas (no network)
     lower = query.lower()
-    for a in areas:
+    for a in _KNOWN_AREAS:
         if a in lower:
             return a
+
+    # 2) fallback: strip non-area words, try geo-router on remaining candidates
+    #    (covers ~7k Indonesian kecamatan the hardcoded list can't, e.g. "tenjo")
+    tokens = [
+        t for t in re.findall(r"[a-zA-Z]+", lower)
+        if t not in _NON_AREA_WORDS and len(t) > 2
+    ]
+    # try bigrams then unigrams, longest first (multi-word places like "tanjung priok")
+    candidates: list[str] = []
+    for i, tok in enumerate(tokens):
+        if i + 1 < len(tokens):
+            candidates.append(f"{tok} {tokens[i + 1]}")
+        candidates.append(tok)
+    candidates.sort(key=len, reverse=True)
+    for cand in candidates[:5]:  # cap geo-router calls
+        geo = resolve_area(cand)
+        if geo.get("type") == "AREA" and geo.get("districts"):
+            return geo["districts"][0].get("name") or cand
     return None
