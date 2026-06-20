@@ -539,6 +539,7 @@ export default function ChatInterface() {
 
     let collected = "";
     let relItems: KosResult[] = [];
+    let regionHandled = false;
     const progressId = uuid();
 
     // Show a progress message if the search takes longer than 5s (first-time district)
@@ -569,7 +570,27 @@ export default function ChatInterface() {
         mode: chatMode,
       })) {
         const t = event.type as string;
-        if (t === "results") {
+        if (t === "region") {
+          // Broad-region drill-down (province/regency): render clickable
+          // sub-area chips instead of a text result. Picking one re-runs the
+          // search scoped to that area via onPickKecamatan → loadDistrict.
+          regionHandled = true;
+          const regionName = (event.region as string) || "";
+          const regions = (event.regions as string[]) || [];
+          clearProgress();
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: uuid(),
+              role: "assistant" as const,
+              content: (event.message as string) || `'${regionName}' adalah area luas. Pilih salah satu sub-area:`,
+              timestamp: new Date().toISOString(),
+              isPicker: true,
+              districts: regions.map((name) => ({ name, postalCodes: [] })),
+            },
+          ]);
+          setPendingArea({ query, regency: regionName });
+        } else if (t === "results") {
           relItems = (event.results as KosResult[]) || [];
           setRelevantIds(new Set(relItems.map((r) => r.place_id)));
           if (relItems.length) {
@@ -617,6 +638,15 @@ export default function ChatInterface() {
             collected = `Tidak ada kos di ${district} yang cocok dengan *"${query}"*. Coba ubah filter atau kata kunci.`;
           }
         }
+      }
+
+      if (regionHandled) {
+        // Drill-down picker rendered — no text result / saved search to record.
+        setStreamingContent("");
+        setIsLoading(false);
+        clearProgress();
+        setActiveSearchId(null);
+        return;
       }
 
       if (collected.trim()) {
