@@ -434,6 +434,25 @@ export default function ChatInterface() {
 
     let collected = "";
     let relItems: KosResult[] = [];
+    const progressId = uuid();
+
+    // Show a progress message if the search takes longer than 5s (first-time district)
+    const progressTimer = setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: progressId,
+          role: "assistant" as const,
+          content: "Mencari data kos... lebih lama untuk daerah yang baru pertama kali dicari.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    }, 5000);
+
+    const clearProgress = () => {
+      clearTimeout(progressTimer);
+      setMessages((prev) => prev.filter((m) => m.id !== progressId));
+    };
 
     try {
       for await (const event of streamSearch({
@@ -508,6 +527,7 @@ export default function ChatInterface() {
       }
       setStreamingContent("");
       setIsLoading(false);
+      clearProgress();
 
       const saved: SavedSearch = {
         id: uuid(),
@@ -537,6 +557,7 @@ export default function ChatInterface() {
       ]);
       setIsLoading(false);
       setStreamingContent("");
+      clearProgress();
     }
   }
 
