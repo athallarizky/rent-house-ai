@@ -45,6 +45,8 @@ const EMPTY_FILTERS: Filters = {
   budget: null,
 };
 
+const POI_PATTERN = /sekitar|dekat|sekitaran|deket|mall|stasiun|terminal|universitas|kampus|bandara|pelabuhan|pasar|alun\b/i;
+
 function activeFilterCount(filters: Filters): number {
   let n = 0;
   for (const key of ["wifi", "ac", "parkir", "dapur", "kamar_mandi_dalam"]) {
@@ -200,14 +202,16 @@ export default function ChatInterface() {
     }
     chatHistory.push({ role: "user", content: text });
 
-    // Extract intent via LLM only when no district is loaded (initial query).
-    // Follow-up / refinement queries within a loaded district skip intent
-    // to avoid unnecessary LLM latency and potential timeouts.
+    // Extract intent via LLM only when:
+    // 1. No district loaded (initial query — need area detection), OR
+    // 2. Query looks like a POI/landmark search (e.g., "sekitar mall X")
+    // Follow-up chats within a loaded district skip intent to avoid latency.
+    const looksLikePoi = POI_PATTERN.test(text);
     let intentArea: string | null = null;
     let intentPoi: string | null = null;
     let intentTags: string[] = [];
     let intentGender: string | null = null;
-    if (!currentDistrict) {
+    if (!currentDistrict || looksLikePoi) {
       try {
         const intent = await extractIntent(text);
         intentArea = intent.area;
