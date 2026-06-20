@@ -82,7 +82,7 @@ def ingest(docs_path: Path, force: bool = False) -> Dict[str, Any]:
     # bge-m3 supports an 8192-token context, so a batch of long docs produces a
     # huge attention buffer ([B,H,S,S]) and crashes with "Invalid buffer size".
     # Cap each doc to a safe char budget and encode in small batches.
-    MAX_DOC_CHARS = 1500
+    MAX_DOC_CHARS = 4000
     safe_texts = [t[:MAX_DOC_CHARS] for t in texts]
     print(f"Embedding {len(new_docs)} documents...")
     embeddings = model.encode(
