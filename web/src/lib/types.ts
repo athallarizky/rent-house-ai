@@ -34,6 +34,8 @@ export interface KosResult {
   kecamatan: string;
   score: number;
   text: string;
+  price_min?: number | null;
+  price_max?: number | null;
 }
 
 export interface SearchRequest {
@@ -112,7 +114,8 @@ export interface Filters {
   dapur: boolean;
   kamar_mandi_dalam: boolean;
   gender: "putra" | "putri" | "campur" | null;
-  [key: string]: boolean | "putra" | "putri" | "campur" | null;
+  budget: string | null;
+  [key: string]: boolean | "putra" | "putri" | "campur" | string | null;
 }
 
 export type RightPanelMode = "list" | "map";

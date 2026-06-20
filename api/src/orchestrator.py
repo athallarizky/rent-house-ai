@@ -30,6 +30,8 @@ def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "kecamatan": meta.get("kecamatan", ""),
             "score": r.get("score", 0),
             "text": r.get("text", ""),
+            "price_min": meta.get("price_min") or None,
+            "price_max": meta.get("price_max") or None,
         })
     return items
 

@@ -88,6 +88,16 @@ export default function KosCard({ kos, selected = false, relevant = false, onCli
       <div className="flex items-center gap-1 text-xs mt-2">
         <MessageSquare className="w-3 h-3 text-muted-foreground" />
         <span className="text-muted-foreground">{kos.review_count} review</span>
+        {kos.price_min != null && kos.price_max != null && (
+          <>
+            <span className="mx-1 text-muted-foreground">·</span>
+            <span className="text-emerald-700 font-medium">
+              {kos.price_min === kos.price_max
+                ? `Rp${(kos.price_min / 1_000_000).toFixed(1)}jt`
+                : `Rp${(kos.price_min / 1_000_000).toFixed(1)}-${(kos.price_max / 1_000_000).toFixed(1)}jt`}
+            </span>
+          </>
+        )}
         {relevant && typeof kos.score === "number" && kos.score > 0 && (
           <>
             <span className="mx-1 text-muted-foreground">·</span>
