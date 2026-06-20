@@ -269,6 +269,17 @@ export default function ChatInterface() {
           setPendingArea({ query: text, regency: poiResult.regency || poiResult.province });
           return;
         }
+        // POI geocoding returned no results — show error, don't fallback
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuid(),
+            role: "assistant",
+            content: `📍 Tidak dapat menemukan lokasi **"${intentPoi}"**. Coba gunakan nama area yang lebih spesifik, misalnya nama kota atau kecamatan.`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        return;
       } catch {
         // Geocoding failed — fall through to area resolution
       }
