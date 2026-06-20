@@ -90,6 +90,11 @@ export default function KosDetail({ kos, onBack }: KosDetailProps) {
             <span className="flex items-center gap-1 text-muted-foreground">
               <MessageSquare className="w-3.5 h-3.5" />
               {kos.review_count} review
+              {parsed.reviews.length > 0 && parsed.reviews.length < kos.review_count && (
+                <span className="text-[11px] opacity-60">
+                  · {parsed.reviews.length} tersedia
+                </span>
+              )}
             </span>
             {kos.gender && (
               <span className="flex items-center gap-1 text-muted-foreground">
