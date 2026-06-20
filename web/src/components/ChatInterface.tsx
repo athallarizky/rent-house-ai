@@ -170,10 +170,17 @@ export default function ChatInterface() {
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const area = params.get("area");
+    const validArea = area && area !== "undefined" ? area : undefined;
+    // Strip a stale ?area=undefined (or empty) from the URL so it doesn't
+    // persist across refreshes and look broken in the address bar.
+    if (area && !validArea) {
+      params.delete("area");
+      window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+    }
     if (q) {
-      void handleSendMessage(q, area || extractArea(q) || undefined);
-    } else if (area) {
-      void loadDistrict(area, undefined);
+      void handleSendMessage(q, validArea || extractArea(q) || undefined);
+    } else if (validArea) {
+      void loadDistrict(validArea, undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -475,6 +482,12 @@ export default function ChatInterface() {
     initialQuery?: string,
     loadAll = false
   ) {
+    // Guard: never hit the API with an empty/undefined district. On refresh the
+    // URL may carry ?area=undefined (stringified null), and other callers may
+    // pass undefined when no district is selected — those should no-op, not 400.
+    if (!district || district === "undefined" || district.trim() === "") {
+      return;
+    }
     setDatasetLoading(true);
     setError(null);
     setRelevantIds(new Set());
