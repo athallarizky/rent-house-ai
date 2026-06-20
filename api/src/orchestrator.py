@@ -381,35 +381,35 @@ def load_area(district: str, regency: Optional[str] = None, load_all: bool = Fal
 
 
 def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, province: str) -> Dict[str, Any]:
+    """Cross-district browse: load kos from ALL **already-cached** districts in
+    the regency. Does NOT scrape — districts that haven't been scraped yet are
+    skipped (returned as `skipped_districts`). This keeps the request fast and
+    non-blocking; uncached districts are scraped via the normal async pipeline
+    when the user loads them individually."""
     all_items: List[Dict[str, Any]] = []
-    failed: List[str] = []
+    skipped: List[str] = []
 
     for d in regency_districts:
         name = d.get("name", "")
-        postal_codes: list = list(d.get("postalCodes", []))
-        if not postal_codes:
+        if not name:
             continue
-
+        if not is_area_cached(name):
+            skipped.append(name)
+            continue
         try:
-            sr = ensure_scraped(name, postal_codes)
-            if sr["status"] == "error":
-                failed.append(name)
-                continue
-            ensure_processed(name)
-            ensure_indexed(name)
+            raw = _list_kos(name)
+            items = _format_kos_items(raw)
+            all_items.extend(items)
         except Exception:
-            failed.append(name)
+            skipped.append(name)
             continue
-
-        raw = _list_kos(name)
-        items = _format_kos_items(raw)
-        all_items.extend(items)
 
     siblings = [
         {"name": d.get("name", ""), "postalCodes": d.get("postalCodes", [])}
         for d in regency_districts
     ]
 
+    loaded = len(regency_districts) - len(skipped)
     return {
         "success": True,
         "district": regency,
@@ -421,9 +421,11 @@ def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, p
             "area": regency,
             "regency": regency,
             "province": province,
-            "scrape": f"{len(regency_districts) - len(failed)}/{len(regency_districts)} districts",
+            "scrape": f"{loaded}/{len(regency_districts)} districts cached",
         },
-        "failed_districts": failed if failed else None,
+        "skipped_districts": skipped if skipped else None,
+        # keep the old field name for any client still reading it
+        "failed_districts": skipped if skipped else None,
     }
 
 
