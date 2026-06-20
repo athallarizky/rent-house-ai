@@ -82,7 +82,20 @@ Phase 2 (Protect API) ── dep on Phase 1
 Phase 3 (Login Page) ─── independent
 Phase 4 (FE Integration) ─ dep on Phase 2 + 3
 Phase 5 (Polish) ──────── dep on Phase 4
+Phase 6 (Area Switcher) ─ independent
 ```
+
+---
+
+## Phase 6 — Area Switcher ✅
+
+> Searchable regency dropdown di header — solve KNOWN_AREAS scalability untuk 489 regencies.
+
+| ID | Task | Difficulty | Status |
+|------|------|-----------|--------|
+| 6.1  | `GET /locations/areas` — list regencies (cached from kodepos) | Easy | ✅ |
+| 6.2  | `AreaSwitcher.tsx` — searchable dropdown component | Medium | ✅ |
+| 6.3  | Integrate into `ChatInterface` header | Easy | ✅ |
 
 ---
 
@@ -95,7 +108,8 @@ Phase 5 (Polish) ──────── dep on Phase 4
 | 3 — Login Page | 3 | 2h | ✅ |
 | 4 — Frontend Integration | 4 | 1.5h | ✅ |
 | 5 — Polish | 4 | 1h | ✅ |
-| **Total** | **18** | **~7.5h** | **✅** |
+| 6 — Area Switcher | 3 | 1h | ✅ |
+| **Total** | **21** | **~8.5h** | **✅** |
 
 > **Ref:** `docs/sprint-4/AGENTS.md` — full implementation guide
 > **Ref:** `docs/sprint-3/SUMMARY.md` — Sprint 3 handoff

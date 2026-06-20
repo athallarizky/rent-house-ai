@@ -177,7 +177,25 @@ export async function resolvePoi(query: string): Promise<PoiResolveResult | null
   return null;
 }
 
-// === Saved Searches ===
+// === Area Switcher ===
+
+export interface AreaEntry {
+  regency: string;
+  province: string;
+}
+
+export async function listAreas(query = ""): Promise<AreaEntry[]> {
+  try {
+    const resp = await fetch(`${API_URL}/locations/areas?q=${encodeURIComponent(query)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      return data.areas || [];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
 // Phase 5 wires the SQLite-backed `/searches` endpoint. The HTTP path is now
 // enabled; localStorage remains as a fallback if the backend is unreachable.
 const SAVED_SEARCHES_API_ENABLED = true;
