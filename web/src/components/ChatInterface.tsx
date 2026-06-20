@@ -558,10 +558,14 @@ export default function ChatInterface() {
   // --- Refine: RAG query over the current district (no dataset reload) ---
   async function queryDataset(
     query: string,
-    district: string,
+    district: string | undefined,
     opts: { saveSearch?: boolean; regency?: string | null; chatHistory?: Array<{ role: string; content: string }> } = {}
   ) {
     const saveSearch = opts.saveSearch !== false;
+    // district may be undefined when the frontend couldn't extract an area
+    // (the backend still resolves it via _resolve_query). Use a safe label so
+    // messages never render the literal "undefined".
+    const districtLabel = district?.trim() || "area ini";
     setIsLoading(true);
     setStreamingContent("");
     setRelevantIds(new Set());
@@ -647,8 +651,8 @@ export default function ChatInterface() {
             const shown = relevant.length > 0 ? relevant : relItems.slice(0, 5);
             const lines = [
               relevant.length > 0
-                ? `Menampilkan **${shown.length} kos** di ${district} yang cocok dengan *"${query}"*:`
-                : `Tidak ada kos yang persis cocok di ${district}. Menampilkan **${shown.length} kos** teratas:`,
+                ? `Menampilkan **${shown.length} kos** di ${districtLabel} yang cocok dengan *"${query}"*:`
+                : `Tidak ada kos yang persis cocok di ${districtLabel}. Menampilkan **${shown.length} kos** teratas:`,
               "",
             ];
             for (let i = 0; i < Math.min(shown.length, 10); i++) {
@@ -666,7 +670,7 @@ export default function ChatInterface() {
             }
             collected = lines.join("\n");
           } else if (chatMode === "rag") {
-            collected = `Tidak ada kos di ${district} yang cocok dengan *"${query}"*. Coba ubah filter atau kata kunci.`;
+            collected = `Tidak ada kos di ${districtLabel} yang cocok dengan *"${query}"*. Coba ubah filter atau kata kunci.`;
           }
         }
       }
@@ -698,7 +702,7 @@ export default function ChatInterface() {
       const saved: SavedSearch = {
         id: uuid(),
         query_text: query,
-        area: district,
+        area: district || "",
         result_count: relItems.length,
         created_at: new Date().toISOString(),
       };
