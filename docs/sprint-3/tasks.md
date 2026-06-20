@@ -76,15 +76,15 @@
 
 ---
 
-## Phase 6 — Cross-District Search / "Cari di SEMUA" (P0 #4) ⬜
+## Phase 6 — Cross-District Search / "Cari di SEMUA" (P0 #4) ✅
 
 > Wire KecamatanPicker's "all" button to load regency-wide results.
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 6.1  | Backend: `load_area` with `kecamatan=None` (regency scope) | Medium    | —           | ⬜     |
-| 6.2  | Frontend: wire `onPickAllKecamatan` in ChatInterface      | Medium     | 6.1         | ⬜     |
-| 6.3  | Merge multi-district results with district labels         | Medium     | 6.2         | ⬜     |
+| 6.1  | Backend: `load_area` with `load_all=true` (regency scope) | Medium     | —           | ✅     |
+| 6.2  | Frontend: wire `onPickAllKecamatan` in ChatInterface      | Medium     | 6.1         | ✅     |
+| 6.3  | Merge multi-district results with district labels         | Medium     | 6.2         | ✅     |
 
 ---
 

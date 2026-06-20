@@ -45,12 +45,13 @@ class SearchRequest(BaseModel):
 class AreaLoadRequest(BaseModel):
     district: str
     regency: Optional[str] = None
+    load_all: bool = False
 
 
 @router.post("/area/load")
 async def area_load(req: AreaLoadRequest):
     """Load the full kos dataset for a district + sibling districts (switcher)."""
-    result = load_area(req.district, req.regency)
+    result = load_area(req.district, req.regency, load_all=req.load_all)
     if not result.get("success"):
         raise HTTPException(400, result.get("error", "Failed to load area"))
     return result

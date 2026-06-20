@@ -109,12 +109,13 @@ export async function getHealth(): Promise<HealthResponse> {
  */
 export async function loadArea(
   district: string,
-  regency?: string
+  regency?: string,
+  loadAll = false
 ): Promise<AreaLoadResponse> {
   const resp = await fetch(`${API_URL}/area/load`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ district, regency }),
+    body: JSON.stringify({ district, regency, load_all: loadAll }),
   });
   if (!resp.ok) {
     const detail = await resp.text();

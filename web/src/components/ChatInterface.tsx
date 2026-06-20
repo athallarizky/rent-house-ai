@@ -276,7 +276,8 @@ export default function ChatInterface() {
   async function loadDistrict(
     district: string,
     regency?: string,
-    initialQuery?: string
+    initialQuery?: string,
+    loadAll = false
   ) {
     setDatasetLoading(true);
     setError(null);
@@ -286,7 +287,7 @@ export default function ChatInterface() {
     setRelevantOnly(false);
 
     try {
-      const res = await loadArea(district, regency);
+      const res = await loadArea(district, regency, loadAll);
       setDataset(res.dataset || []);
       setCurrentDistrict(res.district);
       setCurrentRegency(res.regency || null);
@@ -430,8 +431,22 @@ export default function ChatInterface() {
     void loadDistrict(name, regency, query);
   };
 
-  // Rev-001: session is per-district, so "Cari di SEMUA" (cross-district) is
-  // deferred — see revisions/rev-001 §11. Picker's all-option is not wired.
+  // Rev-001: "Cari di SEMUA kecamatan" loads all districts in the regency
+  const onPickAllKecamatan = () => {
+    if (!pendingArea) return;
+    const { query, regency } = pendingArea;
+    setPendingArea(null);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: uuid(),
+        role: "user",
+        content: `[SEMUA kecamatan di ${regency}]`,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    void loadDistrict(regency, regency, query, true);
+  };
 
   const [pendingSwitch, setPendingSwitch] = useState<string | null>(null);
 
@@ -603,6 +618,7 @@ export default function ChatInterface() {
           isLoading={isLoading || datasetLoading}
           streamingContent={streamingContent}
           onPickKecamatan={onPickKecamatan}
+          onPickAllKecamatan={onPickAllKecamatan}
         />
 
         <FilterChips

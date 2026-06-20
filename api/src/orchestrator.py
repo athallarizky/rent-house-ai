@@ -269,7 +269,7 @@ def _format_fallback(results: List[Dict], query: str) -> str:
     return "\n".join(lines)
 
 
-def load_area(district: str, regency: Optional[str] = None) -> Dict[str, Any]:
+def load_area(district: str, regency: Optional[str] = None, load_all: bool = False) -> Dict[str, Any]:
     """Load the full kos dataset for a district (session browse set).
 
     Runs the pipeline (cached after first run), then returns ALL kos for the
@@ -279,6 +279,9 @@ def load_area(district: str, regency: Optional[str] = None) -> Dict[str, Any]:
     inside that regency rather than resolved directly. This sidesteps the
     geo-router POI classifier, which mislabels real kecamatan like "Taman Sari"
     (contains the POI word "taman") as Points of Interest.
+
+    When load_all=True and regency resolves to multiple districts, loads ALL
+    kos across every district in the regency (cross-district search).
     """
     resolved_regency = ""
     province = ""
@@ -315,6 +318,10 @@ def load_area(district: str, regency: Optional[str] = None) -> Dict[str, Any]:
             regency_districts = rg.get("districts", [])
             if not province:
                 province = rg.get("province", province)
+
+    # Cross-district: load all districts in the regency
+    if load_all and regency_districts and len(regency_districts) > 1:
+        return _load_all_districts(regency_districts, resolved_regency, province)
 
     if not matched_district:
         return {"success": False, "error": f"District '{district}' not found."}
@@ -367,6 +374,53 @@ def load_area(district: str, regency: Optional[str] = None) -> Dict[str, Any]:
         "siblings": siblings,
         "dataset": dataset,
         "pipeline": pipeline,
+    }
+
+
+def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, province: str) -> Dict[str, Any]:
+    all_items: List[Dict[str, Any]] = []
+    failed: List[str] = []
+
+    for d in regency_districts:
+        name = d.get("name", "")
+        postal_codes: list = list(d.get("postalCodes", []))
+        if not postal_codes:
+            continue
+
+        try:
+            sr = ensure_scraped(name, postal_codes)
+            if sr["status"] == "error":
+                failed.append(name)
+                continue
+            ensure_processed(name)
+            ensure_indexed(name)
+        except Exception:
+            failed.append(name)
+            continue
+
+        raw = _list_kos_subprocess(name)
+        items = _format_kos_items(raw)
+        all_items.extend(items)
+
+    siblings = [
+        {"name": d.get("name", ""), "postalCodes": d.get("postalCodes", [])}
+        for d in regency_districts
+    ]
+
+    return {
+        "success": True,
+        "district": regency,
+        "regency": regency,
+        "province": province,
+        "siblings": siblings,
+        "dataset": all_items,
+        "pipeline": {
+            "area": regency,
+            "regency": regency,
+            "province": province,
+            "scrape": f"{len(regency_districts) - len(failed)}/{len(regency_districts)} districts",
+        },
+        "failed_districts": failed if failed else None,
     }
 
 
