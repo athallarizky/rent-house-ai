@@ -17,6 +17,7 @@ import {
   saveSavedSearch,
   deleteSavedSearch,
   deleteAllSavedSearches,
+  extractIntent,
 } from "../lib/api";
 import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
 import ChatWindow from "./ChatWindow";
@@ -143,11 +144,37 @@ export default function ChatInterface() {
     };
     setMessages((prev) => [...prev, userMsg]);
 
-    // Query-embedded area wins over the hint, so a regency-level query like
-    // "kos di bandung" re-triggers the district picker even when re-run from a
-    // saved search whose stored area is a specific district.
+    // Extract intent via LLM (area, tags, gender, keywords) — fall back to
+    // hardcoded area extraction if the backend is unreachable.
+    let intentArea: string | null = null;
+    let intentTags: string[] = [];
+    let intentGender: string | null = null;
+    try {
+      const intent = await extractIntent(text);
+      intentArea = intent.area;
+      intentTags = intent.tags || [];
+      intentGender = intent.gender || null;
+    } catch {
+      // LLM intent unavailable — area extraction below handles it
+    }
+
+    // Pre-fill filter chips with detected tags/gender
+    if (intentTags.length > 0 || intentGender) {
+      setFilters((prev) => {
+        const next: Filters = { ...prev };
+        for (const t of intentTags) {
+          if (t in next) (next as Record<string, boolean>)[t] = true;
+        }
+        if (intentGender && ["putri", "putra", "campur"].includes(intentGender)) {
+          next.gender = intentGender as Filters["gender"];
+        }
+        return next;
+      });
+    }
+
+    // LLM-extracted area wins over areaHint, falls back to hardcoded regex
     const area =
-      extractArea(text) || areaHint || currentDistrict || DEFAULT_AREA;
+      intentArea || areaHint || currentDistrict || DEFAULT_AREA;
 
     try {
       const resolved = await resolveLocation(area);
