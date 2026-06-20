@@ -199,11 +199,13 @@ export default function ChatInterface() {
     }
     chatHistory.push({ role: "user", content: text });
 
-    // Extract intent via LLM (area, tags, gender, keywords) — skip in RAG mode.
+    // Extract intent via LLM (area, tags, gender, keywords).
+    // In RAG mode: only extract area when no district is loaded (need location).
+    // In AI mode: always extract full intent.
     let intentArea: string | null = null;
     let intentTags: string[] = [];
     let intentGender: string | null = null;
-    if (chatMode === "ai") {
+    if (chatMode === "ai" || !currentDistrict) {
       try {
         const intent = await extractIntent(text);
         intentArea = intent.area;
@@ -213,9 +215,8 @@ export default function ChatInterface() {
         // LLM intent unavailable — area extraction below handles it
       }
     }
-
-    // Pre-fill filter chips with detected tags/gender
-    if (intentTags.length > 0 || intentGender) {
+    // Only pre-fill filters in AI mode
+    if (chatMode === "ai" && (intentTags.length > 0 || intentGender)) {
       setFilters((prev) => {
         const next: Filters = { ...prev };
         for (const t of intentTags) {
@@ -385,12 +386,18 @@ export default function ChatInterface() {
           setStreamingContent(collected);
         } else if (t === "done") {
           if (chatMode === "rag" && relItems.length > 0) {
+            // Filter to truly relevant results (score > 0) so the chat body
+            // reflects what the user actually asked for, not just top-rated kos.
+            const relevant = relItems.filter((r) => (r.score || 0) > 0);
+            const shown = relevant.length > 0 ? relevant : relItems.slice(0, 5);
             const lines = [
-              `Menampilkan **${relItems.length} kos** di ${district} yang relevan dengan *"${query}"*:`,
+              relevant.length > 0
+                ? `Menampilkan **${shown.length} kos** di ${district} yang cocok dengan *"${query}"*:`
+                : `Tidak ada kos yang persis cocok di ${district}. Menampilkan **${shown.length} kos** teratas:`,
               "",
             ];
-            for (let i = 0; i < Math.min(relItems.length, 10); i++) {
-              const r = relItems[i];
+            for (let i = 0; i < Math.min(shown.length, 10); i++) {
+              const r = shown[i];
               const stars = typeof r.rating === "number" ? r.rating.toFixed(1) : r.rating;
               const tags = (r.tags || []).slice(0, 4).join(", ");
               const pmn = r.price_min;
