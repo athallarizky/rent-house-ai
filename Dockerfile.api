@@ -1,0 +1,40 @@
+FROM python:3.11-slim
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# Install Chromium + deps for the Go scraper binary
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg ca-certificates \
+    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+    libcups2 libdrm2 libdbus-1-3 libxkbcommon0 \
+    libx11-6 libxcomposite1 libxdamage1 libxext6 \
+    libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
+    libcairo2 libasound2 libatspi2.0-0 \
+    chromium \
+    && ln -s /usr/bin/chromium /usr/bin/chromium-browser 2>/dev/null || true \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+
+WORKDIR /app
+
+# Install all Python dependencies (merged from all pyproject.toml files)
+RUN pip install --no-cache-dir \
+    fastapi>=0.115 "uvicorn[standard]" \
+    "python-jose[cryptography]>=3.3" "passlib[bcrypt]>=1.7" "bcrypt==4.0.1" \
+    "chromadb>=0.5" "sentence-transformers>=3.0" "openai>=1.0"
+
+# Copy all source code
+COPY api/ ./api/
+COPY services/ ./services/
+
+# Create data directories
+RUN mkdir -p data/raw data/cleaned data/chroma_db && \
+    ln -sf /app/services/geo-router/kodepos/data/kodepos.json /app/data/kodepos.json
+
+ENV GEO_ROUTER_URL=http://geo-router:3001
+
+EXPOSE 8080
+
+CMD ["python", "-m", "uvicorn", "api.src.main:app", "--host", "0.0.0.0", "--port", "8080"]

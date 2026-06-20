@@ -6,6 +6,7 @@ Returns the status of the three services the app depends on:
   - rag        (ChromaDB vector index — kos search)
 """
 
+import os
 import subprocess
 import sys
 import urllib.request
@@ -14,7 +15,7 @@ from pathlib import Path
 from fastapi import APIRouter
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-GEO_ROUTER_URL = "http://localhost:3001"
+GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
 
 router = APIRouter(tags=["system"])
 

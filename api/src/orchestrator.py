@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-GEO_ROUTER_URL = "http://localhost:3001"
+GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
 
 
 def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
