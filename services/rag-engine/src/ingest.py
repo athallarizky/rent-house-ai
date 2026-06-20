@@ -4,9 +4,8 @@ import json
 from pathlib import Path
 from typing import List, Dict, Any
 
-import chromadb
-
-from .config import CHROMA_PATH, COLLECTION_NAME
+from .config import COLLECTION_NAME
+from .db import get_client, reset_collection_cache
 from .model_cache import get_model
 
 
@@ -16,7 +15,7 @@ def load_docs(docs_path: Path) -> List[Dict[str, Any]]:
 
 
 def get_or_create_collection():
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    client = get_client()
     try:
         collection = client.get_collection(COLLECTION_NAME)
     except Exception:
@@ -24,6 +23,7 @@ def get_or_create_collection():
             name=COLLECTION_NAME,
             metadata={"hnsw:space": "cosine"},
         )
+        reset_collection_cache()
     return collection
 
 
@@ -53,10 +53,10 @@ def ingest(docs_path: Path, force: bool = False) -> Dict[str, Any]:
 
     if force:
         try:
-            client = chromadb.PersistentClient(path=CHROMA_PATH)
-            client.delete_collection(COLLECTION_NAME)
+            get_client().delete_collection(COLLECTION_NAME)
         except Exception:
             pass
+        reset_collection_cache()
         collection = get_or_create_collection()
 
     existing_ids = set()
