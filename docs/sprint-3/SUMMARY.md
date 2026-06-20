@@ -1,6 +1,6 @@
 # Sprint 3 Summary — Functionality + Improvements
 
-> **Status:** 🔵 In Progress | Created 2026-06-20
+> **Status:** ✅ Complete | Created 2026-06-20 | Updated 2026-06-20
 > **Handoff:** [`AGENTS.md`](./AGENTS.md)
 
 ---
@@ -30,7 +30,7 @@ Focus areas:
 | 6 — Cross-District Search | ✅ | Wire "Cari di SEMUA kecamatan" |
 | 7 — Persistent RAG Server | ✅ | Warm bge-m3 model (biggest perf win) |
 | 8 — Workflow Fixes | ⬜ | User-reported issues (waterfall) |
-| 9 — AI Chat Mode Toggle | ⬜ | Manual RAG/AI mode dropdown di input chat |
+| 9 — AI Chat Mode Toggle | ✅ | Manual RAG/AI mode dropdown di input chat |
 
 ---
 

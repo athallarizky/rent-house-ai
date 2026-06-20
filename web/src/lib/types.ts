@@ -45,8 +45,11 @@ export interface SearchRequest {
   top_k?: number;
   force_scrape?: boolean;
   stream?: boolean;
+  mode?: "rag" | "ai";
   chat_history?: Array<{ role: string; content: string }>;
 }
+
+export type ChatMode = "rag" | "ai";
 
 export interface SearchPipeline {
   area?: string;

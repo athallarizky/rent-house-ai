@@ -40,6 +40,7 @@ class SearchRequest(BaseModel):
     # (backward-compat / fallback when /area/load hasn't been called).
     ensure_pipeline: bool = False
     chat_history: Optional[List[dict]] = None
+    mode: str = "ai"  # "ai" = full LLM pipeline, "rag" = results only (no LLM)
 
 
 class AreaLoadRequest(BaseModel):
@@ -107,11 +108,19 @@ async def search(req: SearchRequest):
     if req.stream:
         formatted = _format_items(results)
         return StreamingResponse(
-            _stream_response(req.query, area, pipeline_status, formatted, results, req.chat_history),
+            _stream_response(req.query, area, pipeline_status, formatted, results, req.chat_history, req.mode),
             media_type="text/event-stream",
         )
 
     items = _format_items(results)
+
+    if req.mode == "rag":
+        return {
+            "success": True,
+            "query": req.query,
+            "pipeline": pipeline_status,
+            "results": items,
+        }
 
     return {
         "success": True,
@@ -143,7 +152,7 @@ def _format_items(results: List[dict]) -> List[dict]:
     return items
 
 
-async def _stream_response(query: str, area: str, pipeline: dict, items: List[dict], results: List[dict], chat_history: Optional[List[dict]] = None):
+async def _stream_response(query: str, area: str, pipeline: dict, items: List[dict], results: List[dict], chat_history: Optional[List[dict]] = None, mode: str = "ai"):
     """Emit SSE events: progress → results → token... → done.
 
     LLM tokens are produced by a sync subprocess generator and bridged to the
@@ -153,7 +162,11 @@ async def _stream_response(query: str, area: str, pipeline: dict, items: List[di
     yield _sse({"type": "progress", "stage": "search", "message": f"Mencari kos di {area}…"})
     if pipeline:
         yield _sse({"type": "pipeline", "pipeline": pipeline})
-    yield _sse({"type": "results", "results": items, "query": query})
+    yield _sse({"type": "results", "results": items, "query": query, "mode": mode})
+
+    if mode == "rag":
+        yield _sse({"type": "done"})
+        return
 
     loop = asyncio.get_event_loop()
     queue: "Queue[object]" = Queue()

@@ -1,22 +1,45 @@
 import { useState, useRef, useEffect } from "react";
-import { SendHorizontal, ShieldAlert } from "lucide-react";
+import { SendHorizontal, ShieldAlert, ChevronDown, Brain, Search } from "lucide-react";
 import { cn } from "../lib/utils";
 import { validateQuery } from "../lib/sanitize";
+import type { ChatMode } from "../lib/types";
 
 interface MessageInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  chatMode?: ChatMode;
+  onToggleMode?: (mode: ChatMode) => void;
 }
+
+const MODE_OPTIONS: { key: ChatMode; label: string; desc: string; Icon: typeof Brain }[] = [
+  { key: "ai", label: "AI", desc: "Ringkasan + rekomendasi LLM", Icon: Brain },
+  { key: "rag", label: "RAG", desc: "Hasil langsung tanpa LLM", Icon: Search },
+];
 
 export default function MessageInput({
   onSend,
   disabled = false,
   placeholder = 'cth: "kos di Cengkareng wifi kenceng parkir luas"',
+  chatMode,
+  onToggleMode,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [modeOpen, setModeOpen] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const modeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!modeOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (modeRef.current && !modeRef.current.contains(e.target as Node)) setModeOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [modeOpen]);
+
+  const activeMode = MODE_OPTIONS.find((o) => o.key === chatMode) || MODE_OPTIONS[1];
 
   const submit = () => {
     const trimmed = message.trim();
@@ -69,6 +92,52 @@ export default function MessageInput({
             )}
           />
         </div>
+        {onToggleMode && chatMode && (
+          <div className="relative" ref={modeRef}>
+            <button
+              type="button"
+              onClick={() => setModeOpen((v) => !v)}
+              disabled={disabled}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-2.5 py-2 text-xs font-medium transition-colors",
+                "hover:bg-accent disabled:opacity-50",
+                chatMode === "ai" ? "text-primary border-primary/30" : "text-muted-foreground"
+              )}
+              title={activeMode.desc}
+            >
+              <activeMode.Icon className="w-3.5 h-3.5" />
+              <span>{activeMode.label}</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+
+            {modeOpen && (
+              <div className="absolute right-0 bottom-full z-50 mb-1 w-44 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
+                {MODE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => {
+                      onToggleMode(opt.key);
+                      setModeOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors",
+                      chatMode === opt.key
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-accent"
+                    )}
+                  >
+                    <opt.Icon className="w-3.5 h-3.5 shrink-0" />
+                    <div>
+                      <div className="font-medium">{opt.label}</div>
+                      <div className="text-[10px] opacity-60">{opt.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <button
           type="button"
           onClick={submit}

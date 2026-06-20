@@ -100,18 +100,18 @@
 
 ---
 
-## Phase 9 — AI Chat Mode Toggle ⬜
+## Phase 9 — AI Chat Mode Toggle ✅
 
 > Dropdown mode selector di input chat: **RAG** (skip LLM, results only) vs **AI** (full: intent + summarize).
 > Manual toggle, explicit user control.
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 9.1  | Add `"rag" | "ai"` state in ChatInterface                 | Easy       | —           | ⬜     |
-| 9.2  | Add mode dropdown selector in MessageInput component      | Medium     | 9.1         | ⬜     |
-| 9.3  | RAG mode: skip `extractIntent()`, skip LLM summarize, show result count | Medium | 9.1 | ⬜ |
-| 9.4  | AI mode: full pipeline (intent → search → summarize)      | Easy       | 9.1         | ⬜     |
-| 9.5  | Persist mode preference in localStorage                   | Easy       | 9.1         | ⬜     |
+| 9.1  | Add `"rag" \| "ai"` state in ChatInterface                | Easy       | —           | ✅     |
+| 9.2  | Add mode dropdown selector in MessageInput component      | Medium     | 9.1         | ✅     |
+| 9.3  | RAG mode: skip `extractIntent()`, skip LLM summarize, show result count | Medium | 9.1 | ✅ |
+| 9.4  | AI mode: full pipeline (intent → search → summarize)      | Easy       | 9.1         | ✅     |
+| 9.5  | Persist mode preference in localStorage                   | Easy       | 9.1         | ✅     |
 
 ### AI Mode Toggle Design
 
