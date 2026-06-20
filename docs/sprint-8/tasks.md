@@ -1,8 +1,9 @@
 # Sprint 8 — In-Process RAG: Faster & Lighter
 
-> Status: ⬜ Pending | Created: 2026-06-20 | Revised: 2026-06-20
+> Status: ✅ Complete | Created: 2026-06-20
 > Branch: `feat/in-process-embedding`
-> Prerequisite: Sprint 6 (async pipeline) **and** Sprint 7 (pipeline dashboard) merged to `main`
+> Report: [`SUMMARY.md`](./SUMMARY.md) | Benchmark: [`baseline.md`](./baseline.md)
+> Prerequisite: Sprint 6 (async pipeline) + Sprint 7 (pipeline dashboard) merged to `main`
 
 Status legend: ⬜ pending | 🔵 in_progress | ✅ completed | ❌ blocked
 
