@@ -53,7 +53,6 @@ const KNOWN_AREAS = [
   "cengkareng",
   "jakarta barat",
   "jakarta selatan",
-  "jakarta timur",
   "jakarta pusat",
   "jakarta utara",
   "jakarta timur",
@@ -65,12 +64,25 @@ const KNOWN_AREAS = [
   "depok",
   "bogor",
   "semarang",
+  "serang",
+  "cilegon",
+  "cikarang",
+  "karawang",
+  "cibubur",
+  "bintaro",
+  "bsd",
 ];
 
 export function extractArea(query: string): string | null {
   const lower = query.toLowerCase();
   for (const a of KNOWN_AREAS) {
     if (lower.includes(a)) return a;
+  }
+  // Try "kota X", "kabupaten X" patterns
+  const kotaMatch = lower.match(/\b(?:kota|kabupaten)\s+(\w[\w\s]+\w)\b/);
+  if (kotaMatch) {
+    const name = kotaMatch[1].trim();
+    if (name.length >= 3 && !KNOWN_AREAS.includes(name)) return name;
   }
   return null;
 }
