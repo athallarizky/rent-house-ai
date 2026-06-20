@@ -47,7 +47,7 @@ from rag_engine.rank import rank  # noqa: E402
 from rag_engine.ingest import ingest  # noqa: E402
 from rag_engine.summarize import summarize, summarize_stream  # noqa: E402
 from rag_engine.model_cache import get_model  # noqa: E402
-from rag_engine.db import get_collection  # noqa: E402
+from rag_engine.db import get_collection, delete_area_from_index  # noqa: E402
 
 __all__ = [
     "search",
@@ -58,4 +58,5 @@ __all__ = [
     "summarize_stream",
     "get_model",
     "get_collection",
+    "delete_area_from_index",
 ]

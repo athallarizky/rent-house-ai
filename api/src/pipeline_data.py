@@ -1,4 +1,5 @@
 """GET /pipeline/data — per-area inventory across raw / cleaned / ChromaDB.
+POST /pipeline/{index,rebuild,rescrape,delete} — admin action triggers (Sprint 9).
 
 Scans the three pipeline outputs and fuses them into a single per-area view so
 the dashboard can show what's been scraped, processed, and indexed without SSH:
@@ -14,9 +15,16 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pydantic import BaseModel
 
 from .auth import require_admin
+from .orchestrator import (
+    resolve_area,
+    run_index_background,
+    run_rebuild_background,
+    run_rescrape_background,
+)
 from .pipeline_state import get_pipeline_state
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -174,4 +182,108 @@ async def get_pipeline_data(user: dict = Depends(require_admin)):
         "areas": area_list,
         "pipeline": get_pipeline_state().state(),
         "totals": totals,
+    }
+
+
+# ============================================================
+# Sprint 9 — Admin action triggers (Index / Rebuild / Rescrape / Delete)
+# All admin-only. The 3 background actions reuse the single pipeline slot
+# (start-or-queue). Delete is synchronous + instant. Never blocks (RCA-028).
+# ============================================================
+
+class ActionRequest(BaseModel):
+    area: str
+    wipe_raw: bool = False  # /delete only: True = also remove data/raw/<area>
+
+
+def _start_or_queue(area: str, runner_factory, background_tasks: BackgroundTasks) -> dict:
+    """Try to start a background action for `area`; queue behind the running one
+    if the single slot is occupied. Mirrors the Sprint-6 3-layer check."""
+    state = get_pipeline_state()
+    if state.running is not None:
+        state.queue(area)
+        return {
+            "success": False,
+            "pipeline_queued": True,
+            "message": f"Action untuk '{area}' antri di belakang '{state.running}'.",
+            "pipeline": state.state(),
+        }
+    if not state.start(area):
+        return {
+            "success": False,
+            "pipeline_blocked": True,
+            "message": "Pipeline slot sibuk, coba lagi sebentar.",
+            "pipeline": state.state(),
+        }
+    background_tasks.add_task(runner_factory, area)
+    return {
+        "success": True,
+        "pipeline_started": True,
+        "message": f"Action dimulai untuk '{area}'. Poll /pipeline/status.",
+        "pipeline": state.state(),
+    }
+
+
+def _postal_codes_for(area: str) -> list:
+    """Resolve postal codes for an area via the geo-router (needed for rescrape)."""
+    geo = resolve_area(area)
+    codes: list = []
+    for d in geo.get("districts", []):
+        codes.extend(d.get("postalCodes", []))
+    return codes
+
+
+@router.post("/index")
+async def trigger_index(req: ActionRequest, background_tasks: BackgroundTasks, user: dict = Depends(require_admin)):
+    """Process + index an already-scraped area (skip scrape). Admin only."""
+    return _start_or_queue(req.area, run_index_background, background_tasks)
+
+
+@router.post("/rebuild")
+async def trigger_rebuild(req: ActionRequest, background_tasks: BackgroundTasks, user: dict = Depends(require_admin)):
+    """Reprocess + reingest (fix data) without re-scraping. Admin only."""
+    return _start_or_queue(req.area, run_rebuild_background, background_tasks)
+
+
+@router.post("/rescrape")
+async def trigger_rescrape(req: ActionRequest, background_tasks: BackgroundTasks, user: dict = Depends(require_admin)):
+    """Full re-scrape → process → index. Admin only. Expensive (Google Maps)."""
+    postal_codes = _postal_codes_for(req.area)
+    if not postal_codes:
+        raise HTTPException(400, f"Tidak ada postal code untuk '{req.area}'.")
+    return _start_or_queue(req.area, lambda a: run_rescrape_background(a, postal_codes), background_tasks)
+
+
+@router.post("/delete")
+async def trigger_delete(req: ActionRequest, user: dict = Depends(require_admin)):
+    """Delete an area's data. Default: remove from index + cleaned docs (keep raw,
+    so Rebuild/Index still works). wipe_raw=true also removes data/raw/<area>.
+    Instant (synchronous). Admin only."""
+    from .rag_bridge import delete_area_from_index
+
+    removed = 0
+    try:
+        removed = delete_area_from_index(req.area)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(500, f"Gagal hapus index: {exc}")
+
+    docs_path = CLEANED_DIR / f"{req.area}_docs.json"
+    docs_deleted = docs_path.exists()
+    docs_path.unlink(missing_ok=True)
+
+    raw_deleted = False
+    if req.wipe_raw:
+        raw_dir = RAW_DIR / req.area
+        if raw_dir.exists():
+            import shutil
+            shutil.rmtree(raw_dir)
+            raw_deleted = True
+
+    return {
+        "success": True,
+        "removed_from_index": removed,
+        "docs_deleted": docs_deleted,
+        "raw_deleted": raw_deleted,
+        "message": f"'{req.area}' dihapus dari index ({removed} entries)."
+                   + (" Raw data juga dihapus." if raw_deleted else " Raw data dipertahankan."),
     }
