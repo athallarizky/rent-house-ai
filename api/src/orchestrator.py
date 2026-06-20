@@ -1,15 +1,23 @@
 """Pipeline orchestrator — coordinates geo-router, scraper, processor, and RAG engine."""
 
+import glob
 import json
+import os
 import subprocess
 import sys
 import urllib.request
 import urllib.parse
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 GEO_ROUTER_URL = "http://localhost:3001"
+
+# Import RAG engine directly for warm-model reuse (no subprocess per call).
+_RAG_DIR = str(ROOT / "services" / "rag-engine")
+if _RAG_DIR not in sys.path:
+    sys.path.insert(0, _RAG_DIR)
 
 
 def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -51,9 +59,6 @@ def resolve_area(query: str) -> Dict[str, Any]:
 def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stale_days: int = 30) -> Dict[str, Any]:
     cache_dir = ROOT / "data" / "raw" / area
 
-    import os
-    from datetime import datetime
-
     max_age = 0.0
     all_fresh = True
     for code in postal_codes:
@@ -68,7 +73,6 @@ def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stal
             all_fresh = False
 
     if not force and all_fresh:
-        import glob
         count = len(list(cache_dir.glob("*.jsonl")))
         return {"status": "cached", "files": count, "scrape_age_days": round(max_age, 1)}
 
@@ -90,7 +94,6 @@ def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stal
     if proc.returncode != 0:
         return {"status": "error", "message": proc.stderr[-300:]}
 
-    import glob
     count = len(list(cache_dir.glob("*.jsonl")))
     return {"status": "scraped", "files": count, "scrape_age_days": 0.0}
 
@@ -120,25 +123,17 @@ def ensure_indexed(area: str) -> Dict[str, Any]:
     if not docs_path.exists():
         return {"status": "error", "message": "No processed docs found"}
 
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json; from src.ingest import ingest; "
-         f"result = ingest('{docs_path}'); "
-         f"print(json.dumps(result))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=120,
-        capture_output=True,
-        text=True,
-    )
-
-    if proc.returncode != 0:
-        return {"status": "error", "message": proc.stderr[-300:]}
-
     try:
-        result = json.loads(proc.stdout.strip())
-        return {"status": "indexed", "new": result.get("indexed", 0), "skipped": result.get("skipped", 0)}
-    except Exception:
-        return {"status": "indexed", "new": 0, "skipped": 0}
+        from src.ingest import ingest
+
+        result = ingest(str(docs_path))
+        return {
+            "status": "indexed",
+            "new": result.get("indexed", 0),
+            "skipped": result.get("skipped", 0),
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)[-300:]}
 
 
 def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str]:
@@ -173,26 +168,21 @@ def search_and_rank(
 ) -> List[Dict[str, Any]]:
     kec_filter = _resolve_kecamatan(area, regency)
 
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json; "
-         f"from src.search import search; from src.rank import rank; "
-         f"results = search({json.dumps(query)}, kecamatan={json.dumps(kec_filter)}, top_k={max(top_k * 3, 30)}); "
-         f"ranked = rank(results); "
-         f"output = [{{'metadata': r['metadata'], 'score': r.get('score', 0), 'text': r.get('text', '')[:200]}} for r in ranked[:{top_k}]]; "
-         f"print(json.dumps(output))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=30,
-        capture_output=True,
-        text=True,
-    )
-
-    if proc.returncode != 0:
-        return []
-
     try:
-        return json.loads(proc.stdout.strip())
-    except json.JSONDecodeError:
+        from src.search import search
+        from src.rank import rank
+
+        results = search(query, kecamatan=kec_filter, top_k=max(top_k * 3, 30))
+        ranked = rank(results)
+        return [
+            {
+                "metadata": r["metadata"],
+                "score": r.get("score", 0),
+                "text": (r.get("text", "") or "")[:200],
+            }
+            for r in ranked[:top_k]
+        ]
+    except Exception:
         return []
 
 
@@ -425,20 +415,9 @@ def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, p
 
 
 def _list_kos_subprocess(kecamatan: str) -> List[Dict[str, Any]]:
-    """Call rag-engine list_kos(kecamatan) via subprocess (no semantic search)."""
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"import json; from src.search import list_kos; "
-         f"items = list_kos(kecamatan={json.dumps(kecamatan)}, limit=500); "
-         f"print(json.dumps(items))"],
-        cwd=str(ROOT / "services" / "rag-engine"),
-        timeout=60,
-        capture_output=True,
-        text=True,
-    )
-    if proc.returncode != 0:
-        return []
+    """Call rag-engine list_kos(kecamatan) directly (no semantic search)."""
     try:
-        return json.loads(proc.stdout.strip())
-    except json.JSONDecodeError:
+        from src.search import list_kos
+        return list_kos(kecamatan=kecamatan, limit=500)
+    except Exception:
         return []

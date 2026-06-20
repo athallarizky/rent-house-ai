@@ -88,15 +88,15 @@
 
 ---
 
-## Phase 7 — Persistent RAG Server (P0 #1) ⬜
+## Phase 7 — Persistent RAG Server (P0 #1) ✅
 
-> Make rag-engine a long-running service so bge-m3 loads once (~2.3 GB). Biggest perf win.
+> Make rag-engine use a warm bge-m3 model — load once per process instead of per request.
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 7.1  | Design: FastAPI in-process cache vs. separate service     | Medium     | —           | ⬜     |
-| 7.2  | Implement warm model cache in orchestrator                | Hard       | 7.1         | ⬜     |
-| 7.3  | Migrate subprocess calls to in-process / RPC              | Hard       | 7.2         | ⬜     |
+| 7.1  | Create `model_cache.py` — singleton bge-m3 instance       | Medium     | —           | ✅     |
+| 7.2  | Replace subprocess calls with direct imports in orchestrator | Hard    | 7.1         | ✅     |
+| 7.3  | Verify: search/ingest use warm model, no subprocess spam  | —          | 7.2         | ✅     |
 
 ---
 
