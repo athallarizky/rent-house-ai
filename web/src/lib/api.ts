@@ -161,6 +161,12 @@ export interface PoiResolveResult {
   province: string;
   district: string | null;
   districts: Array<{ name: string; postalCodes?: number[] }>;
+  // Province/regency drill-down (broad-region POI like "sekitar Papua Barat")
+  broad_region?: boolean;
+  region_type?: "province" | "regency";
+  region?: string;
+  regions?: string[];
+  message?: string;
 }
 
 export async function resolvePoi(query: string): Promise<PoiResolveResult | null> {
