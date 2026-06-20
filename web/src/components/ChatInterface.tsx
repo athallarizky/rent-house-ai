@@ -280,12 +280,11 @@ export default function ChatInterface() {
         {
           id: uuid(),
           role: "assistant",
-          content: `Maaf, terjadi kesalahan: ${msg}`,
+          content: `Maaf, terjadi kesalahan saat memproses **${text}**: ${msg}`,
           timestamp: new Date().toISOString(),
         },
       ]);
-      if (currentDistrict) await queryDataset(text, currentDistrict, { chatHistory });
-      else await loadDistrict(area, undefined, text);
+      setIsLoading(false);
     }
   }
 
