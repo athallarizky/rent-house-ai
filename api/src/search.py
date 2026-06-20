@@ -7,7 +7,7 @@ import json
 import re
 import threading
 from queue import Queue
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.responses import StreamingResponse
@@ -117,8 +117,25 @@ async def pipeline_status(user: dict = Depends(get_current_user)):
 
 @router.post("/search")
 async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
-    area = req.area or _extract_area(req.query)
+    area = req.area
+    resolved = None
     if not area:
+        resolved = _resolve_query(req.query)
+        area = resolved["name"] if resolved and resolved["kind"] == "area" else None
+    if not area:
+        # Broad region (province/regency)? Offer a drill-down list instead of a
+        # 400 / empty search (e.g. "kos di Lampung" -> list Lampung's regencies).
+        if resolved and resolved["kind"] == "region":
+            region = {k: v for k, v in resolved.items() if k != "kind"}
+            return {
+                "success": False,
+                "broad_region": True,
+                **region,
+                "message": (
+                    f"'{region['region']}' adalah area luas dengan "
+                    f"{len(region['regions'])} sub-area. Pilih salah satu untuk cari kos."
+                ),
+            }
         raise HTTPException(400, "Could not determine area. Provide 'area' field.")
 
     pipeline_status: Optional[dict] = None
@@ -349,28 +366,89 @@ _NON_AREA_WORDS = {
 }
 
 
-def _extract_area(query: str) -> Optional[str]:
-    # 1) fast keyword match against known areas (no network)
+# Province -> regencies/cities index, built lazily from the kodepos regency list.
+# Used to offer a drill-down when a query names a broad region (e.g. "Lampung")
+# instead of returning an empty search.
+_PROVINCE_INDEX: Optional[Dict[str, Dict[str, object]]] = None
+
+
+def _province_index() -> Dict[str, Dict[str, object]]:
+    global _PROVINCE_INDEX
+    if _PROVINCE_INDEX is None:
+        from .locations import _load_regencies
+        idx: Dict[str, Dict[str, object]] = {}
+        for r in _load_regencies():
+            prov = r.get("province", "")
+            if not prov:
+                continue
+            entry = idx.setdefault(prov.lower(), {"display": prov, "regencies": set()})
+            entry["regencies"].add(r.get("regency", ""))  # type: ignore[attr-defined]
+        _PROVINCE_INDEX = idx
+    return _PROVINCE_INDEX
+
+
+def _resolve_query(query: str) -> Optional[dict]:
+    """Resolve a query's place into a specific kecamatan OR a broad region.
+
+    Returns one of:
+      {"kind": "area",   "name": <kecamatan>}
+      {"kind": "region", "region_type": "province", "region": ..., "regions": [...]}
+      {"kind": "region", "region_type": "regency",  "region": ..., "province": ..., "regions": [...]}
+      None
+
+    Candidate phrases are tried LONGEST-first (contiguous spans of non-area
+    words) so multi-word regions like "Bandar Lampung" / "Jawa Barat" resolve
+    as a region instead of a spurious single district from a short unigram
+    like "bandar" or "barat".
+    """
     lower = query.lower()
+
+    # 1) fast keyword match against known areas (no network)
     for a in _KNOWN_AREAS:
         if a in lower:
-            return a
+            return {"kind": "area", "name": a}
 
-    # 2) fallback: strip non-area words, try geo-router on remaining candidates
-    #    (covers ~7k Indonesian kecamatan the hardcoded list can't, e.g. "tenjo")
+    # 2) candidate phrases from non-area words, longest contiguous span first
     tokens = [
         t for t in re.findall(r"[a-zA-Z]+", lower)
         if t not in _NON_AREA_WORDS and len(t) > 2
     ]
-    # try bigrams then unigrams, longest first (multi-word places like "tanjung priok")
-    candidates: list[str] = []
-    for i, tok in enumerate(tokens):
-        if i + 1 < len(tokens):
-            candidates.append(f"{tok} {tokens[i + 1]}")
-        candidates.append(tok)
-    candidates.sort(key=len, reverse=True)
-    for cand in candidates[:5]:  # cap geo-router calls
-        geo = resolve_area(cand)
-        if geo.get("type") == "AREA" and geo.get("districts"):
-            return geo["districts"][0].get("name") or cand
+    provs = _province_index()
+    seen: set[str] = set()
+    calls = 0
+    for span_len in range(len(tokens), 0, -1):
+        for start in range(0, len(tokens) - span_len + 1):
+            cand = " ".join(tokens[start:start + span_len])
+            if cand in seen:
+                continue
+            seen.add(cand)
+
+            # Province? -> list its regencies/cities
+            pe = provs.get(cand)
+            if pe:
+                return {
+                    "kind": "region",
+                    "region_type": "province",
+                    "region": pe["display"],
+                    "regions": sorted(r for r in pe["regencies"] if r),  # type: ignore[arg-type]
+                }
+
+            # Geo-router resolve (cap calls to bound latency)
+            if calls >= 8:
+                continue
+            calls += 1
+            geo = resolve_area(cand)
+            districts = geo.get("districts", [])
+            if geo.get("type") == "AREA":
+                if len(districts) == 1:
+                    return {"kind": "area", "name": districts[0].get("name") or cand}
+                if len(districts) > 1:
+                    return {
+                        "kind": "region",
+                        "region_type": "regency",
+                        "region": geo.get("regency") or cand,
+                        "province": geo.get("province", ""),
+                        "regions": [d.get("name") for d in districts if d.get("name")],
+                    }
+            # POI / no match: try the next shorter span
     return None
