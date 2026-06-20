@@ -15,6 +15,7 @@ import {
   listSavedSearches,
   saveSavedSearch,
   deleteSavedSearch,
+  deleteAllSavedSearches,
 } from "../lib/api";
 import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
 import ChatWindow from "./ChatWindow";
@@ -416,10 +417,15 @@ export default function ChatInterface() {
       .catch(() => {});
   };
 
-  // TODO(sprint berikutnya): implement clear-all (bulk delete di backend + refresh).
-  const [showClearAllNotice, setShowClearAllNotice] = useState(false);
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
   const handleClearAllSaved = () => {
-    setShowClearAllNotice(true);
+    setShowClearAllConfirm(true);
+  };
+  const confirmClearAll = () => {
+    deleteAllSavedSearches()
+      .then(() => listSavedSearches().then(setSavedSearches))
+      .catch(() => {})
+      .finally(() => setShowClearAllConfirm(false));
   };
 
   return (
@@ -589,15 +595,16 @@ export default function ChatInterface() {
         onClose={() => setPendingSwitch(null)}
       />
 
-      {/* Notice: clear-all history (stub — implementation next sprint) */}
+      {/* Confirm: clear-all search history */}
       <ConfirmModal
-        open={showClearAllNotice}
-        title="Hapus semua histori"
-        message="Fitur hapus semua histori pencarian akan diimplementasikan di sprint berikutnya."
-        confirmLabel="Mengerti"
-        cancelLabel={null}
-        onConfirm={() => setShowClearAllNotice(false)}
-        onClose={() => setShowClearAllNotice(false)}
+        open={showClearAllConfirm}
+        title="Hapus semua histori pencarian?"
+        message={`${savedSearches.length} pencarian tersimpan akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Hapus Semua"
+        cancelLabel="Batal"
+        variant="danger"
+        onConfirm={confirmClearAll}
+        onClose={() => setShowClearAllConfirm(false)}
       />
     </div>
   );

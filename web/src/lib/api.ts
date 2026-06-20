@@ -197,6 +197,26 @@ export async function deleteSavedSearch(id: string): Promise<void> {
   writeLocal(items);
 }
 
+export async function deleteAllSavedSearches(): Promise<number> {
+  if (SAVED_SEARCHES_API_ENABLED) {
+    try {
+      const resp = await fetch(`${API_URL}/searches`, {
+        method: "DELETE",
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        return data.deleted_count || 0;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  const items = readLocal();
+  writeLocal([]);
+  return items.length;
+}
+
 // === Settings ===
 
 export interface ProviderSettings {

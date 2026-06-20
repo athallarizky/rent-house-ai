@@ -95,3 +95,15 @@ async def delete_search(search_id: str):
     finally:
         conn.close()
     return {"ok": True, "deleted": search_id}
+
+
+@router.delete("")
+async def delete_all_searches():
+    conn = _conn()
+    try:
+        cur = conn.execute("DELETE FROM saved_searches")
+        conn.commit()
+        deleted = cur.rowcount
+    finally:
+        conn.close()
+    return {"ok": True, "deleted_count": deleted}
