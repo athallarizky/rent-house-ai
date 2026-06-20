@@ -1,5 +1,7 @@
 """Pipeline orchestrator — coordinates geo-router, scraper, processor, and RAG engine."""
 
+import asyncio
+import functools
 import glob
 import json
 import os
@@ -10,6 +12,8 @@ import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List
+
+from .pipeline_state import get_pipeline_state
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
@@ -137,6 +141,69 @@ def ensure_indexed(area: str) -> Dict[str, Any]:
         return {"status": "indexed", "new": result.get("indexed", 0), "skipped": result.get("skipped", 0)}
     except Exception:
         return {"status": "indexed", "new": 0, "skipped": 0}
+
+
+# ============================================================
+# Async background pipeline runner
+# ============================================================
+
+def is_area_cached(area: str) -> bool:
+    """Check if an area already has indexed data (docs + chroma).
+
+    Returns True if both the cleaned docs file exists AND ChromaDB has entries
+    for this area's kecamatan.
+    """
+    docs_path = ROOT / "data" / "cleaned" / f"{area}_docs.json"
+    if not docs_path.exists():
+        return False
+    # Quick check: docs file has content
+    try:
+        if docs_path.stat().st_size < 10:
+            return False
+    except OSError:
+        return False
+    return True
+
+
+async def run_pipeline_background(area: str, postal_codes: List[int], force: bool = False) -> None:
+    """Run scrape → process → index in background without blocking the event loop.
+
+    Each sync stage runs via asyncio.to_thread() so Uvicorn can serve other
+    requests concurrently. PipelineState is updated at each stage.
+    """
+    state = get_pipeline_state()
+    try:
+        # Stage 1: Scrape
+        state.status = "scraping"
+        state.progress = f"Scraping {len(postal_codes)} postal codes for {area}..."
+        scrape_result = await asyncio.to_thread(
+            functools.partial(ensure_scraped, area, postal_codes, force)
+        )
+        if scrape_result["status"] == "error":
+            state.progress = f"Scrape failed: {scrape_result.get('message', '')}"
+            return
+
+        # Stage 2: Process
+        state.status = "processing"
+        state.progress = "Processing scraped data..."
+        proc_result = await asyncio.to_thread(functools.partial(ensure_processed, area))
+        if proc_result["status"] == "error":
+            state.progress = f"Processing failed: {proc_result.get('message', '')}"
+            return
+
+        # Stage 3: Index
+        state.status = "indexing"
+        state.progress = f"Indexing {area} to ChromaDB..."
+        idx_result = await asyncio.to_thread(functools.partial(ensure_indexed, area))
+        if idx_result["status"] == "error":
+            state.progress = f"Indexing failed: {idx_result.get('message', '')}"
+            return
+
+        state.progress = f"Pipeline complete: {idx_result.get('new', 0)} new, {idx_result.get('skipped', 0)} skipped"
+    except Exception as exc:
+        state.progress = f"Pipeline error: {exc}"
+    finally:
+        state.finish()
 
 
 def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str]:
