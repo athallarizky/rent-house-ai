@@ -488,3 +488,107 @@ async def run_pipeline_background(area: str, postal_codes: List[int], force: boo
         state.progress = f"Pipeline error: {exc}"
     finally:
         state.finish()
+
+
+# ============================================================
+# Sprint 9 — Pipeline action runners (Index / Rebuild / Rescrape)
+# All async + non-blocking. Reuse the single pipeline slot (Sprint 6).
+# ============================================================
+
+async def run_index_background(area: str) -> None:
+    """Process + index an already-scraped area (skip scrape). Cheap remediation
+    for `scraped && !indexed` areas. Safe to run after RCA-029 (ensure_processed
+    now reprocesses empty docs files)."""
+    state = get_pipeline_state()
+    try:
+        state.status = "processing"
+        state.progress = f"Processing {area}..."
+        proc = await asyncio.to_thread(ensure_processed, area)
+        if proc["status"] == "error":
+            state.progress = f"Processing failed: {proc.get('message', '')}"
+            return
+        state.status = "indexing"
+        state.progress = f"Indexing {area}..."
+        idx = await asyncio.to_thread(ensure_indexed, area)
+        if idx["status"] == "error":
+            state.progress = f"Indexing failed: {idx.get('message', '')}"
+            return
+        state.progress = f"Done: {idx.get('new', 0)} new, {idx.get('skipped', 0)} skipped"
+    except Exception as exc:
+        state.progress = f"Pipeline error: {exc}"
+    finally:
+        state.finish()
+
+
+async def run_rebuild_background(area: str) -> None:
+    """Reprocess + reingest (per-area). The "fix data" tool: rebuild docs from
+    the existing raw data and re-embed them, WITHOUT re-scraping Google Maps.
+    Use after a data-processor change, RCA-020 (kecamatan), RCA-029 (empty docs).
+    Per-area delete (NOT global ingest force)."""
+    state = get_pipeline_state()
+    try:
+        docs_path = ROOT / "data" / "cleaned" / f"{area}_docs.json"
+
+        def _clear() -> int:
+            docs_path.unlink(missing_ok=True)  # force ensure_processed to reprocess
+            return _rag().delete_area_from_index(area)
+
+        state.status = "rebuilding"
+        state.progress = f"Clearing old index for {area}..."
+        removed = await asyncio.to_thread(_clear)
+
+        state.status = "processing"
+        state.progress = f"Re-processing {area} (removed {removed} old)..."
+        proc = await asyncio.to_thread(ensure_processed, area)
+        if proc["status"] == "error":
+            state.progress = f"Processing failed: {proc.get('message', '')}"
+            return
+
+        state.status = "indexing"
+        state.progress = f"Indexing {area}..."
+        idx = await asyncio.to_thread(ensure_indexed, area)
+        if idx["status"] == "error":
+            state.progress = f"Indexing failed: {idx.get('message', '')}"
+            return
+        state.progress = f"Done: rebuilt {idx.get('new', 0)} docs for {area}"
+    except Exception as exc:
+        state.progress = f"Pipeline error: {exc}"
+    finally:
+        state.finish()
+
+
+async def run_rescrape_background(area: str, postal_codes: List[int]) -> None:
+    """Full re-scrape → process → index. Per-area delete first (clean slate),
+    then a fresh Google Maps scrape. Expensive (rate-limit risk); admin-only and
+    rare."""
+    state = get_pipeline_state()
+    try:
+        state.status = "rebuilding"
+        state.progress = f"Clearing old data for {area}..."
+        await asyncio.to_thread(lambda: _rag().delete_area_from_index(area))
+
+        state.status = "scraping"
+        state.progress = f"Re-scraping {len(postal_codes)} postal codes for {area}..."
+        scrape = await asyncio.to_thread(ensure_scraped, area, postal_codes, True)
+        if scrape["status"] == "error":
+            state.progress = f"Scrape failed: {scrape.get('message', '')}"
+            return
+
+        state.status = "processing"
+        state.progress = f"Processing {area}..."
+        proc = await asyncio.to_thread(ensure_processed, area)
+        if proc["status"] == "error":
+            state.progress = f"Processing failed: {proc.get('message', '')}"
+            return
+
+        state.status = "indexing"
+        state.progress = f"Indexing {area}..."
+        idx = await asyncio.to_thread(ensure_indexed, area)
+        if idx["status"] == "error":
+            state.progress = f"Indexing failed: {idx.get('message', '')}"
+            return
+        state.progress = f"Done: re-scraped, {idx.get('new', 0)} new docs for {area}"
+    except Exception as exc:
+        state.progress = f"Pipeline error: {exc}"
+    finally:
+        state.finish()
