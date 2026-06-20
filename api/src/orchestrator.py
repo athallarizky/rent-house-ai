@@ -177,7 +177,7 @@ def search_and_rank(
          f"from src.search import search; from src.rank import rank; "
          f"results = search({json.dumps(query)}, kecamatan={json.dumps(kec_filter)}, top_k={max(top_k * 3, 30)}); "
          f"ranked = rank(results); "
-         f"output = [{{'metadata': r['metadata'], 'score': r.get('score', 0), 'text': r.get('text', '')[:200]}} for r in ranked[:{top_k}]]; "
+          f"output = [{{'metadata': r['metadata'], 'score': r.get('score', 0), 'text': r.get('text', '')[:1000]}} for r in ranked[:{top_k}]]; "
          f"print(json.dumps(output))"],
         cwd=str(ROOT / "services" / "rag-engine"),
         timeout=30,
