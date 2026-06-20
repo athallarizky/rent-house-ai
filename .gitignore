@@ -37,3 +37,6 @@ services/scraper/google-maps-scraper/gmaps-scraper
 # Docker
 model-cache/
 build/
+
+# Command Code local state
+.commandcode/

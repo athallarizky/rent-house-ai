@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { List, Map as MapIcon, SearchX, Sparkles } from "lucide-react";
+import { List, Map as MapIcon, SearchX, Sparkles, Clock, ArrowRight } from "lucide-react";
 import type { KosResult, RightPanelMode } from "../lib/types";
 import KosCard from "./KosCard";
 import KosDetail from "./KosDetail";
@@ -129,12 +129,35 @@ export default function KosCardList({
     return (
       <div className="h-full flex flex-col">
         {header}
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 text-muted-foreground">
-          <SearchX className="w-10 h-10 mb-3 opacity-40" />
-          <p className="text-sm font-medium">Belum ada kos</p>
-          <p className="text-xs mt-1">
-            Pilih district atau ubah filter untuk melihat kos.
-          </p>
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 text-muted-foreground gap-4">
+          <div className="flex flex-col items-center">
+            <SearchX className="w-10 h-10 mb-3 opacity-40" />
+            <p className="text-sm font-medium">Belum ada kos</p>
+            <p className="text-xs mt-1">
+              Pilih district atau ubah filter untuk melihat kos.
+            </p>
+          </div>
+
+          {/* Tips: fetching data baru butuh waktu lama */}
+          <div className="w-full max-w-sm rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-3 text-left">
+            <div className="flex items-start gap-2">
+              <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div className="text-xs leading-relaxed text-blue-900 dark:text-blue-200">
+                <p className="font-medium mb-0.5">Baru pertama kali cari di area ini?</p>
+                <p className="text-blue-700/90 dark:text-blue-300/80">
+                  Kalau datanya belum ada, sistem lagi ngumpulin kos dari Google Maps.
+                  Prosesnya jalan di background dan bisa lumayan lama (beberapa menit).
+                  Kamu bisa lihat progress-nya di halaman Pipeline.
+                </p>
+                <a
+                  href="/pipeline"
+                  className="inline-flex items-center gap-1 mt-2 font-medium text-blue-700 dark:text-blue-300 hover:underline"
+                >
+                  Cek status Pipeline <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
