@@ -35,7 +35,7 @@ def process_area(area: str) -> Dict[str, Any]:
     entries = [_extract_facilities(e) for e in entries]
     print(f"[{area}] Facilities extracted")
 
-    entries = dedup(entries, proximity_m=50)
+    entries = dedup(entries, proximity_m=10)
     print(f"[{area}] Deduplicated → {len(entries)} unique")
 
     docs = [build_document(e) for e in entries if e.get("place_id")]
