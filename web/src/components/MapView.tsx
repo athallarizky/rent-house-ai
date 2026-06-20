@@ -2,31 +2,28 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png?url";
-import markerIcon from "leaflet/dist/images/marker-icon.png?url";
-import markerShadow from "leaflet/dist/images/marker-shadow.png?url";
 import { Star } from "lucide-react";
 import type { KosResult } from "../lib/types";
 import { tagLabel } from "../lib/types";
 
-// Build an explicit icon instance from the bundled asset URLs. This is the
-// reliable fix for Leaflet's default marker rendering as a broken image under
-// bundlers (Vite) — we pass `icon={...}` to each <Marker> instead of relying on
-// L.Icon.Default.mergeOptions.
-function useKosIcon() {
-  return useMemo(
-    () =>
-      L.icon({
-        iconUrl: markerIcon,
-        iconRetinaUrl: markerIcon2x,
-        shadowUrl: markerShadow,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41],
-      }),
-    []
-  );
+const RED = "#ef4444";
+const GREY = "#94a3b8";
+
+/** Custom SVG teardrop pin as a Leaflet divIcon. Color distinguishes
+ *  relevant/recommended kos (red) from the rest (grey). */
+function makePinIcon(color: string, selected: boolean = false) {
+  const w = selected ? 28 : 22;
+  const h = Math.round(w * 1.33);
+  const ring = selected
+    ? `<circle cx="12" cy="12" r="9" fill="none" stroke="#3b82f6" stroke-width="3" opacity="0.8"/>`
+    : "";
+  const html = `<svg width="${w}" height="${h}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+    <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z"
+          fill="${color}" stroke="white" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="4.5" fill="white"/>
+    ${ring}
+  </svg>`;
+  return L.divIcon({ html, className: "", iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h + 4] });
 }
 
 interface MapViewProps {
@@ -34,6 +31,7 @@ interface MapViewProps {
   selected?: KosResult | null;
   onMarkerClick?: (kos: KosResult) => void;
   center?: [number, number];
+  relevantIds?: Set<string>;
 }
 
 /** Keep the map sized to its container (handles mount + panel resize/toggle). */
@@ -66,12 +64,19 @@ export default function MapView({
   selected,
   onMarkerClick,
   center,
+  relevantIds,
 }: MapViewProps) {
   const valid = markers.filter(
     (m) => typeof m.lat === "number" && typeof m.lon === "number"
   );
 
-  const kosIcon = useKosIcon();
+  // Pre-build the 3 icon variants (relevant=red, non-relevant=grey, selected=red+ring).
+  const icons = useMemo(() => ({
+    relevant: makePinIcon(RED, false),
+    relevantSel: makePinIcon(RED, true),
+    normal: makePinIcon(GREY, false),
+    normalSel: makePinIcon(GREY, true),
+  }), []);
 
   const defaultCenter: [number, number] =
     center ||
@@ -90,11 +95,17 @@ export default function MapView({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       />
       <Recenter center={selected ? [selected.lat, selected.lon] : center} />
-      {valid.map((m) => (
+      {valid.map((m) => {
+        const isRelevant = !relevantIds || relevantIds.has(m.place_id);
+        const isSelected = selected?.place_id === m.place_id;
+        const icon = isRelevant
+          ? (isSelected ? icons.relevantSel : icons.relevant)
+          : (isSelected ? icons.normalSel : icons.normal);
+        return (
         <Marker
           key={m.place_id || m.name}
           position={[m.lat, m.lon]}
-          icon={kosIcon}
+          icon={icon}
           eventHandlers={{ click: () => onMarkerClick?.(m) }}
         >
           <Popup>
@@ -117,7 +128,8 @@ export default function MapView({
             </div>
           </Popup>
         </Marker>
-      ))}
+        );
+      })}
     </MapContainer>
   );
 }

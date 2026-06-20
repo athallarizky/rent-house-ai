@@ -190,6 +190,7 @@ export default function KosCardList({
             markers={results}
             selected={selectedKos}
             onMarkerClick={(k) => onSelectKos(k)}
+            relevantIds={relevantIds}
           />
         </div>
       )}
