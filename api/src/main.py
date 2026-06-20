@@ -9,6 +9,7 @@ from .settings import router as settings_router
 from .searches import router as searches_router
 from .system import router as system_router
 from .intent import router as intent_router
+from .poi import router as poi_router
 
 app = FastAPI(
     title="Kos Search API",
@@ -29,6 +30,7 @@ app.include_router(settings_router)
 app.include_router(searches_router)
 app.include_router(system_router)
 app.include_router(intent_router)
+app.include_router(poi_router)
 
 
 @app.get("/health")

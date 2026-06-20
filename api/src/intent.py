@@ -24,6 +24,7 @@ class IntentRequest(BaseModel):
 
 class IntentResponse(BaseModel):
     area: Optional[str] = None
+    poi: Optional[str] = None
     tags: List[str] = []
     gender: Optional[str] = None
     budget_min: Optional[int] = None

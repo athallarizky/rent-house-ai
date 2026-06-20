@@ -128,6 +128,7 @@ export async function loadArea(
 
 export interface IntentResult {
   area: string | null;
+  poi: string | null;
   tags: string[];
   gender: string | null;
   budget_min: number | null;
@@ -146,7 +147,32 @@ export async function extractIntent(query: string): Promise<IntentResult> {
   } catch {
     // fall through to empty
   }
-  return { area: null, tags: [], gender: null, budget_min: null, budget_max: null, keywords: [] };
+  return { area: null, poi: null, tags: [], gender: null, budget_min: null, budget_max: null, keywords: [] };
+}
+
+// === POI Resolution ===
+
+export interface PoiResolveResult {
+  lat: number;
+  lon: number;
+  display_name: string;
+  regency: string;
+  province: string;
+  districts: Array<{ name: string; postalCodes?: number[] }>;
+}
+
+export async function resolvePoi(query: string): Promise<PoiResolveResult | null> {
+  try {
+    const resp = await fetch(`${API_URL}/poi/resolve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    if (resp.ok) return resp.json();
+  } catch {
+    // fall through
+  }
+  return null;
 }
 
 // === Saved Searches ===
