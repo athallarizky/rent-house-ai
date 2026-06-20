@@ -143,7 +143,8 @@ Dropdown options:
 
 | ID   | Issue                                                     | Difficulty | RCA? | Status |
 |------|-----------------------------------------------------------|------------|------|--------|
-| 8.1  | RCA-009: RAG imports shadowed by `api/src/` package        | Medium     | ✅ RCA-009 | ✅     |
+| 8.1  | RCA-009: RAG imports shadowed by `api/src/` package (reverted to subprocess) | Medium | ✅ RCA-009 | ✅     |
+| 8.2  | RCA-010: RAG mode chat body kosong — format as markdown list | Low      | ✅ RCA-010 | ✅     |
 
 ---
 
