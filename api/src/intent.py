@@ -9,8 +9,9 @@ import sys
 from pathlib import Path
 from typing import Optional, Any, Dict, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from .auth import get_current_user
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 RAG_DIR = ROOT / "services" / "rag-engine"
@@ -33,7 +34,7 @@ class IntentResponse(BaseModel):
 
 
 @router.post("", response_model=IntentResponse)
-async def extract_intent(req: IntentRequest):
+async def extract_intent(req: IntentRequest, user: dict = Depends(get_current_user)):
     intent = _extract_intent_subprocess(req.query)
     return IntentResponse(**intent)
 

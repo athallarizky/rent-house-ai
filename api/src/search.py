@@ -8,9 +8,10 @@ import threading
 from queue import Queue
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from .auth import get_current_user
 
 from .orchestrator import (
     resolve_area,
@@ -50,7 +51,7 @@ class AreaLoadRequest(BaseModel):
 
 
 @router.post("/area/load")
-async def area_load(req: AreaLoadRequest):
+async def area_load(req: AreaLoadRequest, user: dict = Depends(get_current_user)):
     """Load the full kos dataset for a district + sibling districts (switcher)."""
     result = load_area(req.district, req.regency, load_all=req.load_all)
     if not result.get("success"):
@@ -59,7 +60,7 @@ async def area_load(req: AreaLoadRequest):
 
 
 @router.post("/search")
-async def search(req: SearchRequest):
+async def search(req: SearchRequest, user: dict = Depends(get_current_user)):
     area = req.area or _extract_area(req.query)
     if not area:
         raise HTTPException(400, "Could not determine area. Provide 'area' field.")
