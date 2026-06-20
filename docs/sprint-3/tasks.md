@@ -64,15 +64,15 @@
 
 ---
 
-## Phase 5 — Follow-up Chat Context (P0 #2) ⬜
+## Phase 5 — Follow-up Chat Context (P0 #2) ✅
 
 > Pass recent chat history as context to `summarize` so follow-up queries refine previous answers.
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 5.1  | Collect prior assistant response in `queryDataset()`       | Easy       | —           | ⬜     |
-| 5.2  | Pass chat history to backend `/search` request            | Medium     | 5.1         | ⬜     |
-| 5.3  | Include history in `summarize()` prompt                   | Easy       | 5.2         | ⬜     |
+| 5.1  | Collect prior assistant response in `queryDataset()`       | Easy       | —           | ✅     |
+| 5.2  | Pass chat history to backend `/search` request            | Medium     | 5.1         | ✅     |
+| 5.3  | Include history in `summarize()` prompt                   | Easy       | 5.2         | ✅     |
 
 ---
 

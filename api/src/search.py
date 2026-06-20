@@ -39,6 +39,7 @@ class SearchRequest(BaseModel):
     # district. Set ensure_pipeline=true to run scrape/process/index inline
     # (backward-compat / fallback when /area/load hasn't been called).
     ensure_pipeline: bool = False
+    chat_history: Optional[List[dict]] = None
 
 
 class AreaLoadRequest(BaseModel):
@@ -105,7 +106,7 @@ async def search(req: SearchRequest):
     if req.stream:
         formatted = _format_items(results)
         return StreamingResponse(
-            _stream_response(req.query, area, pipeline_status, formatted, results),
+            _stream_response(req.query, area, pipeline_status, formatted, results, req.chat_history),
             media_type="text/event-stream",
         )
 
@@ -116,7 +117,7 @@ async def search(req: SearchRequest):
         "query": req.query,
         "pipeline": pipeline_status,
         "results": items,
-        "summary": format_results(results, req.query),
+        "summary": format_results(results, req.query, req.chat_history),
     }
 
 
@@ -141,7 +142,7 @@ def _format_items(results: List[dict]) -> List[dict]:
     return items
 
 
-async def _stream_response(query: str, area: str, pipeline: dict, items: List[dict], results: List[dict]):
+async def _stream_response(query: str, area: str, pipeline: dict, items: List[dict], results: List[dict], chat_history: Optional[List[dict]] = None):
     """Emit SSE events: progress → results → token... → done.
 
     LLM tokens are produced by a sync subprocess generator and bridged to the
@@ -159,7 +160,7 @@ async def _stream_response(query: str, area: str, pipeline: dict, items: List[di
 
     def producer():
         try:
-            for token in format_results_stream(results, query):
+            for token in format_results_stream(results, query, chat_history):
                 queue.put(token)
         except Exception as exc:  # noqa: BLE001 — surfaced to client
             queue.put(exc)
