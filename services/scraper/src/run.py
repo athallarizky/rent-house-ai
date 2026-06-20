@@ -24,7 +24,7 @@ SCRAPER_BIN = (
 
 @dataclass
 class ScraperConfig:
-    depth: int = 1
+    depth: int = 2
     concurrency: int = 1
     lang: str = "id"
     json_output: bool = True

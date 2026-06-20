@@ -78,7 +78,7 @@ def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stal
     proc = subprocess.run(
         [sys.executable, "-c",
          f"from src.run import scrape_area, ScraperConfig; "
-         f"config = ScraperConfig(depth=1, concurrency=1, lang='id'); "
+         f"config = ScraperConfig(depth=2, concurrency=1, lang='id'); "
          f"scrape_area('{area}', [{codes_arg}], config=config, {flags})"],
         cwd=str(scraper_dir),
         timeout=600,
