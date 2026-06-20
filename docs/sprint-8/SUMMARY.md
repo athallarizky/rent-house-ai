@@ -30,7 +30,7 @@ outcomes:
 **E2E fixes found during testing** (not in original plan): kecamatan-enrichment
 fallback, region drill-down, POI province handling, saved-search tolerance.
 
-## 3. Incidents / RCAs (7 root-cause analyses)
+## 3. Incidents / RCAs (11 root-cause analyses)
 
 All in [`rca/`](./rca/). Notable:
 
@@ -50,6 +50,24 @@ All in [`rca/`](./rca/). Notable:
   `regency=""` on province match) → province drill-down fallback.
 - **RCA-024** save-search 422 — `SavedSearch.area` was required; broad-region
   searches have no area. Made optional.
+
+Post-report E2E testing found 4 more (all in `rca/`):
+
+- **RCA-025** broad-region drill-down message didn't appear — `/search` returned
+  JSON for `stream:true`; frontend SSE reader dropped it. Emit SSE `region` event.
+- **RCA-026** "Tidak ada kos di **undefined**" + refresh 400 — frontend's weak
+  area regex + unguarded undefined district. Fixed label + guard + `/search/resolve`
+  (frontend defers to backend resolution).
+- **RCA-027** POI → spurious "DKI Jakarta" drill-down + chip loop —
+  `pipeline_started/queued` checked at wrong nesting level during busy pipeline.
+- **RCA-028** `load_all=true` blocked the entire API — leftover sync multi-district
+  scrape + single worker (Sprint 8 pin). load_all now loads cached-only.
+
+**Key enhancements (not RCAs):** province drill-down via 38-province iteration +
+aliases (`feat(search): province drill-down`), `/search/resolve` endpoint (Opsi A
+— backend single source of truth for area resolution), POI radius search wired
+end-to-end (5km default; rag-engine filter+rank was already there, just not
+plumbed).
 
 ## 4. Key Architecture Decisions
 
