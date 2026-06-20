@@ -802,18 +802,16 @@ export default function ChatInterface() {
           >
             <PanelLeft className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4 text-primary" />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold leading-tight truncate">Kos AI</h2>
-              <div className="flex items-center gap-1">
-                <AreaSwitcher
-                  disabled={datasetLoading || isLoading}
-                  onSelectArea={handleSelectArea}
-                />
-              </div>
+            <div className="min-w-0 flex items-center gap-2 flex-1">
+              <AreaSwitcher
+                disabled={datasetLoading || isLoading}
+                onSelectArea={handleSelectArea}
+              />
+              <span className="text-muted-foreground/40 shrink-0">·</span>
               <DistrictSwitcher
                 regency={currentRegency}
                 currentDistrict={currentDistrict}
@@ -822,10 +820,10 @@ export default function ChatInterface() {
                 disabled={datasetLoading || isLoading}
               />
               {scrapePipeline?.scrape_age_days !== undefined && scrapePipeline.scrape_age_days > 0 && (
-                <span className="text-[10px] text-muted-foreground/70 ml-1">
-                  Data {scrapePipeline.scrape_age_days >= 1
-                    ? `${Math.round(scrapePipeline.scrape_age_days)} hari lalu`
-                    : "baru saja"}
+                <span className="text-[10px] text-muted-foreground/50 shrink-0 select-none">
+                  {scrapePipeline.scrape_age_days >= 1
+                    ? `${Math.round(scrapePipeline.scrape_age_days)}hr`
+                    : "baru"}
                 </span>
               )}
             </div>
