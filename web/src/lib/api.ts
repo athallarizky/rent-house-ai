@@ -436,6 +436,37 @@ export async function getPipelineStatus(): Promise<PipelineStatus> {
   return resp.json();
 }
 
+// === Query Resolution (backend single-source-of-truth) ===
+
+export interface ResolveSearchArea {
+  kind: "area";
+  name: string;
+}
+export interface ResolveSearchRegion {
+  kind: "region";
+  region_type: "province" | "regency";
+  region: string;
+  province?: string;
+  regions: string[];
+}
+export type ResolveSearchResult = ResolveSearchArea | ResolveSearchRegion | { kind: "none" };
+
+/**
+ * Resolve a natural-language query to a specific area or a broad-region
+ * drill-down via the backend `_resolve_query` (handles ~38 provinces,
+ * abbreviations, kabupaten, arbitrary kecamatan). Used by the frontend when
+ * its lightweight extractArea regex misses.
+ */
+export async function resolveSearchQuery(query: string): Promise<ResolveSearchResult> {
+  const resp = await fetch(`${API_URL}/search/resolve`, {
+    method: "POST",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  if (!resp.ok) return { kind: "none" };
+  return resp.json();
+}
+
 // === Pipeline Data (per-area inventory) ===
 
 export interface PipelineArea {

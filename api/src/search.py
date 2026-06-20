@@ -54,6 +54,29 @@ class AreaLoadRequest(BaseModel):
     load_all: bool = False
 
 
+class ResolveSearchRequest(BaseModel):
+    query: str
+
+
+@router.post("/search/resolve")
+async def resolve_search_query(req: ResolveSearchRequest):
+    """Resolve a natural-language query to a specific area OR a broad-region
+    drill-down. Single backend source of truth (the same `_resolve_query` used
+    by `/search`) — the frontend calls this when its lightweight extractArea
+    heuristic misses (e.g. arbitrary kecamatan like 'cipondoh', provinces, or
+    abbreviations like 'jabar'). No auth, consistent with /locations/resolve.
+
+    Returns:
+      {"kind": "area",   "name": <kecamatan>}
+      {"kind": "region", "region_type": "province"|"regency", "region": ..., "regions": [...]}
+      {"kind": "none"}
+    """
+    resolved = _resolve_query(req.query)
+    if not resolved:
+        return {"kind": "none"}
+    return resolved
+
+
 @router.post("/area/load")
 async def area_load(req: AreaLoadRequest, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     """Load the full kos dataset for a district + sibling districts (switcher).

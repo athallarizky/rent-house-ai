@@ -32,6 +32,7 @@ import {
   deleteAllSavedSearches,
   extractIntent,
   resolvePoi,
+  resolveSearchQuery,
 } from "../lib/api";
 import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
 import { getAuth, logout } from "../lib/auth";
@@ -390,7 +391,39 @@ export default function ChatInterface() {
     let area = intentArea || areaHint;
     if (!area) {
       const regexArea = extractArea(text);
-      area = regexArea || currentDistrict || DEFAULT_AREA;
+      if (regexArea) {
+        area = regexArea;
+      } else {
+        // extractArea (21-area regex) missed — defer to the backend resolver,
+        // which knows all 38 provinces, abbreviations, kabupaten, and arbitrary
+        // kecamatan. If it returns a specific area we proceed to load (which
+        // auto-scrapes if uncached); if a broad region, render drill-down chips.
+        try {
+          const backendResolved = await resolveSearchQuery(text);
+          if (backendResolved.kind === "area") {
+            area = backendResolved.name;
+          } else if (backendResolved.kind === "region") {
+            const regionList = backendResolved.regions || [];
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: uuid(),
+                role: "assistant" as const,
+                content: `'${backendResolved.region}' adalah area luas dengan ${regionList.length} sub-area. Pilih salah satu untuk cari kos:`,
+                timestamp: new Date().toISOString(),
+                isPicker: true,
+                districts: regionList.map((name: string) => ({ name, postalCodes: [] })),
+              },
+            ]);
+            setPendingArea({ query: text, regency: backendResolved.region });
+            setIsLoading(false);
+            return;
+          }
+        } catch {
+          // network/resolve failure — fall through to current-district fallback
+        }
+      }
+      if (!area) area = currentDistrict || DEFAULT_AREA;
     }
 
     try {
