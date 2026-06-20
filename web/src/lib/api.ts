@@ -123,6 +123,31 @@ export async function loadArea(
   return resp.json();
 }
 
+// === Intent Extraction ===
+
+export interface IntentResult {
+  area: string | null;
+  tags: string[];
+  gender: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  keywords: string[];
+}
+
+export async function extractIntent(query: string): Promise<IntentResult> {
+  try {
+    const resp = await fetch(`${API_URL}/intent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    if (resp.ok) return resp.json();
+  } catch {
+    // fall through to empty
+  }
+  return { area: null, tags: [], gender: null, budget_min: null, budget_max: null, keywords: [] };
+}
+
 // === Saved Searches ===
 // Phase 5 wires the SQLite-backed `/searches` endpoint. The HTTP path is now
 // enabled; localStorage remains as a fallback if the backend is unreachable.

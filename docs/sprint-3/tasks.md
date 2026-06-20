@@ -37,17 +37,17 @@
 
 ---
 
-## Phase 3 — Query Understanding (Future Enhancement #1) ⬜
+## Phase 3 — Query Understanding (Future Enhancement #1) ✅
 
 > LLM-powered intent extraction: parse natural language → structured params BEFORE embedding.
 > Replaces hardcoded `extractArea()` + regex tag detection.
 
 | ID   | Task                                                      | Difficulty | Dependencies | Status |
 |------|-----------------------------------------------------------|------------|-------------|--------|
-| 3.1  | Design intent extraction prompt + response schema         | Medium     | —           | ⬜     |
-| 3.2  | Implement `extract_intent()` in RAG engine or API layer   | Medium     | 3.1         | ⬜     |
-| 3.3  | Replace `extractArea()` usage with LLM intent in frontend  | Medium     | 3.2         | ⬜     |
-| 3.4  | Wire extracted tags/gender into search filter params      | Medium     | 3.2         | ⬜     |
+| 3.1  | Design intent extraction prompt + response schema         | Medium     | —           | ✅     |
+| 3.2  | Implement `extract_intent()` in RAG engine + `POST /intent` API | Medium | 3.1    | ✅     |
+| 3.3  | Replace `extractArea()` usage with LLM intent in frontend  | Medium     | 3.2         | ✅     |
+| 3.4  | Wire extracted tags/gender into search filter params      | Medium     | 3.2         | ✅     |
 
 ---
 
