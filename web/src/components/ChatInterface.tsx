@@ -596,6 +596,7 @@ export default function ChatInterface() {
   };
 
   const handleNewSearch = () => {
+    if (isLoading || datasetLoading) return;
     setMessages([]);
     setDataset([]);
     setRelevantIds(new Set());
@@ -654,6 +655,7 @@ export default function ChatInterface() {
               onNew={handleNewSearch}
               onDelete={handleDeleteSaved}
               onClearAll={handleClearAllSaved}
+              disabled={isLoading || datasetLoading}
             />
           </div>
           <div className="md:hidden fixed inset-0 z-40 flex">
@@ -671,6 +673,7 @@ export default function ChatInterface() {
                 }}
                 onDelete={handleDeleteSaved}
                 onClearAll={handleClearAllSaved}
+                disabled={isLoading || datasetLoading}
               />
             </div>
             <div className="flex-1 bg-black/30" onClick={() => setShowLeft(false)} />
