@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 from .parse import parse_jsonl_dir, extract_review_texts, get_postal_code
 from .normalize import normalize_phone, normalize_address, normalize_name
 from .enrich import enrich
-from .extract import detect_tags, detect_gender, detect_is_24h
+from .extract import detect_tags, detect_gender, detect_is_24h, detect_price
 from .dedup import dedup
 from .build_doc import build_document
 from .validate import validate_all
@@ -106,6 +106,10 @@ def _extract_facilities(entry: Dict[str, Any]) -> Dict[str, Any]:
     entry["tags"] = detect_tags(all_text, title_text)
     entry["gender"] = detect_gender(all_text, title_text)
     entry["is_24h"] = detect_is_24h(all_text, title_text)
+
+    price = detect_price(all_text, title_text)
+    entry["price_min"] = price["min"] if price else None
+    entry["price_max"] = price["max"] if price else None
 
     return entry
 

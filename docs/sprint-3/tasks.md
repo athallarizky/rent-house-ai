@@ -100,6 +100,43 @@
 
 ---
 
+## Phase 9 — AI Chat Mode Toggle ⬜
+
+> Dropdown mode selector di input chat: **RAG** (skip LLM, results only) vs **AI** (full: intent + summarize).
+> Manual toggle, explicit user control.
+
+| ID   | Task                                                      | Difficulty | Dependencies | Status |
+|------|-----------------------------------------------------------|------------|-------------|--------|
+| 9.1  | Add `"rag" | "ai"` state in ChatInterface                 | Easy       | —           | ⬜     |
+| 9.2  | Add mode dropdown selector in MessageInput component      | Medium     | 9.1         | ⬜     |
+| 9.3  | RAG mode: skip `extractIntent()`, skip LLM summarize, show result count | Medium | 9.1 | ⬜ |
+| 9.4  | AI mode: full pipeline (intent → search → summarize)      | Easy       | 9.1         | ⬜     |
+| 9.5  | Persist mode preference in localStorage                   | Easy       | 9.1         | ⬜     |
+
+### AI Mode Toggle Design
+
+```
+┌──────────────────────────────────────────────────┐
+│  [FilterChips: wifi(3)  ac(5)  ...]              │
+├──────────────────────────────────────────────────┤
+│  [textarea                                  ▼]   │
+│                                   [RAG] [Send]   │
+└──────────────────────────────────────────────────┘
+
+Dropdown options:
+  • RAG  — pencarian biasa, hasil langsung (tanpa LLM)
+  • AI   — ringkasan + rekomendasi (pakai LLM)
+```
+
+### Behavior
+
+| Mode | Intent Extraction | LLM Summarize | Chat Message | Latency |
+|------|------------------|--------------|--------------|---------|
+| RAG  | Skip             | Skip         | "Menampilkan X kos di {area} yang relevan" | ~300ms |
+| AI   | Yes              | Yes (stream) | LLM markdown summary + recommendations     | ~2-3s  |
+
+---
+
 ## Phase 8 — Workflow Fixes (User-Reported) ⬜
 
 > Waterfall: user identifies issues → report → investigate → fix. Each issue gets its own sub-task + RCA if non-trivial.
@@ -147,6 +184,7 @@ Phase 5 (Follow-up Chat)  ─── independent, small scope
 Phase 6 (Cross-District)  ─── independent, medium scope
 Phase 7 (Persistent RAG)  ─── independent, largest scope
 Phase 8 (Workflow Fixes)  ─── waterfall, interleaved
+Phase 9 (AI Chat Toggle)  ─── independent, medium scope
 ```
 
 ---
@@ -155,15 +193,16 @@ Phase 8 (Workflow Fixes)  ─── waterfall, interleaved
 
 | Phase                          | Tasks | Est. Hours | Status |
 |--------------------------------|-------|-----------|--------|
-| 1 — Delete Chat History        | 4     | 1h        | 🔵     |
-| 2 — Scheduled Re-Scrape        | 3     | 2h        | ⬜     |
-| 3 — Query Understanding        | 4     | 4h        | ⬜     |
+| 1 — Delete Chat History        | 4     | 1h        | ✅     |
+| 2 — Scheduled Re-Scrape        | 3     | 2h        | ✅     |
+| 3 — Query Understanding        | 4     | 4h        | ✅     |
 | 4 — Price Range Detection      | 4     | 3h        | ⬜     |
 | 5 — Follow-up Chat Context     | 3     | 3h        | ⬜     |
 | 6 — Cross-District Search      | 3     | 4h        | ⬜     |
 | 7 — Persistent RAG Server      | 3     | 6h        | ⬜     |
 | 8 — Workflow Fixes             | TBD   | TBD       | ⬜     |
-| **Total**                      | **24+** | **~23h+** | **🔵** |
+| 9 — AI Chat Mode Toggle        | 5     | 3h        | ⬜     |
+| **Total**                      | **29+** | **~26h+** | **🔵** |
 
 > **Ref:** `docs/sprint-3/AGENTS.md` — full Sprint 3 scope + conventions
 > **Ref:** `docs/ideas/future-enhancements.md` — source for Phases 2, 3, 4

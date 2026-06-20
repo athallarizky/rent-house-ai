@@ -10,6 +10,7 @@ interface FilterChipsProps {
   onToggle: (key: string) => void;
   onReset?: () => void;
   activeCount?: number;
+  budgetCounts?: Record<string, number>;
 }
 
 const FILTER_TAGS = ["wifi", "ac", "parkir", "dapur", "kamar_mandi_dalam"];
@@ -19,12 +20,20 @@ const GENDER_OPTIONS: { key: Filters["gender"]; label: string }[] = [
   { key: "campur", label: "Campur" },
 ];
 
+const BUDGET_OPTIONS = [
+  { key: "<500rb", label: "< 500rb" },
+  { key: "500rb-1jt", label: "500rb-1jt" },
+  { key: "1jt-2jt", label: "1jt-2jt" },
+  { key: ">2jt", label: "> 2jt" },
+];
+
 export default function FilterChips({
   results,
   filters,
   onToggle,
   onReset,
   activeCount = 0,
+  budgetCounts,
 }: FilterChipsProps) {
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -110,6 +119,34 @@ export default function FilterChips({
             </button>
           );
         })}
+
+        {budgetCounts && (
+          <>
+            <span className="w-px self-stretch bg-border mx-1" />
+            {BUDGET_OPTIONS.map((opt) => {
+              const active = filters.budget === opt.key;
+              const count = budgetCounts[opt.key] || 0;
+              if (count === 0 && !active) return null;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => onToggle(`budget:${opt.key}`)}
+                  disabled={count === 0}
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-30",
+                    active
+                      ? "bg-emerald-600 text-white"
+                      : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  )}
+                >
+                  {opt.label}
+                  <span className="ml-1 opacity-60">{count}</span>
+                </button>
+              );
+            })}
+          </>
+        )}
       </div>
     </div>
   );

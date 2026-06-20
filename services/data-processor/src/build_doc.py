@@ -18,6 +18,8 @@ def build_document(entry: Dict[str, Any], max_reviews: int = 20) -> Dict[str, An
     phone = entry.get("phone") or ""
     website = entry.get("website") or ""
     maps_url = entry.get("maps_url") or ""
+    price_min = entry.get("price_min")
+    price_max = entry.get("price_max")
 
     reviews = entry.get("reviews", [])
     usable = _select_reviews(reviews, max_reviews)
@@ -39,6 +41,11 @@ def build_document(entry: Dict[str, Any], max_reviews: int = 20) -> Dict[str, An
         parts.append(f"Tipe asrama: {gender}")
     if is_24h:
         parts.append("Akses: 24 jam")
+    if price_min and price_max:
+        if price_min == price_max:
+            parts.append(f"Harga: Rp{price_min:,}")
+        else:
+            parts.append(f"Harga: Rp{price_min:,} - Rp{price_max:,}")
 
     if usable:
         parts.append("Review tamu:")
@@ -67,6 +74,8 @@ def build_document(entry: Dict[str, Any], max_reviews: int = 20) -> Dict[str, An
             "phone": phone,
             "website": website,
             "maps_url": maps_url,
+            "price_min": price_min or 0,
+            "price_max": price_max or 0,
         },
     }
 

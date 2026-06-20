@@ -40,6 +40,7 @@ const EMPTY_FILTERS: Filters = {
   dapur: false,
   kamar_mandi_dalam: false,
   gender: null,
+  budget: null,
 };
 
 function activeFilterCount(filters: Filters): number {
@@ -48,6 +49,7 @@ function activeFilterCount(filters: Filters): number {
     if (filters[key]) n++;
   }
   if (filters.gender) n++;
+  if (filters.budget) n++;
   return n;
 }
 
@@ -115,9 +117,31 @@ export default function ChatInterface() {
         return false;
       if (filters.gender && (r.gender || "").toLowerCase() !== filters.gender)
         return false;
+      if (filters.budget) {
+        const budgetMax = r.price_max;
+        if (budgetMax == null) return false;
+        const maxPrice = budgetMax;
+        if (filters.budget === "<500rb" && maxPrice >= 500_000) return false;
+        if (filters.budget === "500rb-1jt" && (maxPrice < 500_000 || maxPrice >= 1_000_000)) return false;
+        if (filters.budget === "1jt-2jt" && (maxPrice < 1_000_000 || maxPrice >= 2_000_000)) return false;
+        if (filters.budget === ">2jt" && maxPrice < 2_000_000) return false;
+      }
       return true;
     });
   }, [dataset, filters]);
+
+  const budgetCounts = useMemo(() => {
+    const counts: Record<string, number> = { "<500rb": 0, "500rb-1jt": 0, "1jt-2jt": 0, ">2jt": 0 };
+    for (const r of dataset) {
+      const pm = r.price_max;
+      if (pm == null) continue;
+      if (pm < 500_000) counts["<500rb"]++;
+      else if (pm < 1_000_000) counts["500rb-1jt"]++;
+      else if (pm < 2_000_000) counts["1jt-2jt"]++;
+      else counts[">2jt"]++;
+    }
+    return counts;
+  }, [dataset]);
 
   const handleToggleFilter = (key: string) => {
     setFilters((prev) => {
@@ -126,6 +150,11 @@ export default function ChatInterface() {
           ...prev,
           gender: prev.gender === key ? null : (key as Filters["gender"]),
         };
+      }
+      if (key === "budget") return prev; // budget handled via specific keys
+      if (key.startsWith("budget:")) {
+        const val = key.slice(7);
+        return { ...prev, budget: prev.budget === val ? null : val };
       }
       return { ...prev, [key]: !prev[key as keyof Filters] };
     });
@@ -571,6 +600,7 @@ export default function ChatInterface() {
           onToggle={handleToggleFilter}
           onReset={resetFilters}
           activeCount={activeFilterCount(filters)}
+          budgetCounts={budgetCounts}
         />
 
         <MessageInput
