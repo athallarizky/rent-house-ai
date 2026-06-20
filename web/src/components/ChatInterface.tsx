@@ -228,7 +228,9 @@ export default function ChatInterface() {
     }
 
     // POI-based search: geocode the POI → find regency → auto-load or show picker
-    if (intentPoi && !intentArea) {
+    // Skip if regex already found a known area (e.g., "Kos di sekitar Jakarta Barat")
+    const regexArea = extractArea(text);
+    if (intentPoi && !intentArea && !regexArea) {
       try {
         const poiResult = await resolvePoi(intentPoi);
         if (poiResult && poiResult.districts.length > 0) {
