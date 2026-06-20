@@ -1,0 +1,22 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import PipelineDashboard from '../components/PipelineDashboard';
+import AuthGuard from '../components/AuthGuard';
+---
+
+<DashboardLayout title="Pipeline - Kos AI" active="pipeline">
+  <div class="overflow-y-auto thin-scroll">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Pipeline</h1>
+        <p class="text-sm text-muted-foreground mt-1">
+          Status data yang sudah di-scrape, di-process, dan di-index per area.
+        </p>
+      </div>
+
+      <AuthGuard client:load adminOnly>
+        <PipelineDashboard client:load />
+      </AuthGuard>
+    </div>
+  </div>
+</DashboardLayout>

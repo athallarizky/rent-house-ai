@@ -416,7 +416,7 @@ export async function getServicesHealth(): Promise<ServicesHealth> {
  */
 export interface PipelineStatus {
   running: string | null;
-  status: "idle" | "scraping" | "processing" | "indexing";
+  status: "idle" | "scraping" | "processing" | "indexing" | "completed";
   queued: string | null;
   progress: string | null;
   elapsed_seconds: number | null;
@@ -427,6 +427,46 @@ export async function getPipelineStatus(): Promise<PipelineStatus> {
     headers: getAuthHeaders(),
   });
   if (!resp.ok) throw new Error(`Status check failed (${resp.status})`);
+  return resp.json();
+}
+
+// === Pipeline Data (per-area inventory) ===
+
+export interface PipelineArea {
+  area: string;
+  scraped: boolean;
+  processed: boolean;
+  indexed: boolean;
+  postal_codes: number;
+  scraped_count: number;
+  docs_count: number | null;
+  indexed_count: number;
+  scrape_date: number | null;
+}
+
+export interface PipelineTotals {
+  areas: number;
+  scraped: number;
+  processed: number;
+  indexed: number;
+  total_kos: number;
+}
+
+export interface PipelineDataResponse {
+  areas: PipelineArea[];
+  pipeline: PipelineStatus;
+  totals: PipelineTotals;
+}
+
+/**
+ * Per-area pipeline inventory: what's been scraped / processed / indexed.
+ * Admin-only endpoint (see api/src/pipeline_data.py).
+ */
+export async function getPipelineData(): Promise<PipelineDataResponse> {
+  const resp = await fetch(`${API_URL}/pipeline/data`, {
+    headers: getAuthHeaders(),
+  });
+  if (!resp.ok) throw new Error(`getPipelineData failed (${resp.status})`);
   return resp.json();
 }
 
