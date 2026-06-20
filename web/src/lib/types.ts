@@ -98,6 +98,7 @@ export interface AreaLoadResponse {
   siblings: District[];
   dataset: KosResult[];
   pipeline?: SearchPipeline;
+  failed_districts?: string[] | null;
   error?: string;
 }
 
