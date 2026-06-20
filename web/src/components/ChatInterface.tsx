@@ -713,13 +713,19 @@ export default function ChatInterface() {
             const scoreMap = new Map(
               relItems.map((r) => [r.place_id, r.score || 0])
             );
-            setDataset((prev) =>
-              prev.map((k) =>
+            setDataset((prev) => {
+              if (prev.length === 0) {
+                // No loaded district (e.g. POI without district → queryDataset
+                // called directly). Populate the panel/map from search results
+                // so the kos list + map pins show them.
+                return relItems;
+              }
+              return prev.map((k) =>
                 scoreMap.has(k.place_id)
                   ? { ...k, score: scoreMap.get(k.place_id) || 0 }
                   : { ...k, score: 0 }
-              )
-            );
+              );
+            });
           }
         } else if (t === "token") {
           collected += event.token as string;
