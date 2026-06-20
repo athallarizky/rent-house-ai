@@ -289,30 +289,48 @@ export default function ChatInterface() {
       intentPoi = text;
     }
 
-    // POI-based search: geocode the POI → find regency → auto-load or show picker
-    // Skip if regex already found a known area (e.g., "Kos di sekitar Jakarta Barat")
+    // POI-based search: geocode the POI → find regency → auto-load or show picker.
+    // Note: we no longer block on !regexArea — a POI name can contain a known
+    // area keyword (e.g. "Mall Tangerang City" contains "tangerang"). Let the
+    // geocoder decide; if it finds a specific point, POI wins.
     const regexArea = extractArea(text);
-    if (intentPoi && !intentArea && !regexArea) {
+    if (intentPoi && !intentArea) {
       try {
         const poiResult = await resolvePoi(intentPoi);
         if (poiResult && poiResult.districts.length > 0) {
-          const districtName = poiResult.district || poiResult.districts[0]?.name;
+          const hasDistrict = !!poiResult.district;
           const locationLabel = poiResult.display_name?.split(",")[0]?.trim() || intentPoi;
+          const regencyLabel = poiResult.regency || poiResult.province || "";
 
           setMessages((prev) => [
             ...prev,
             {
               id: uuid(),
               role: "assistant",
-              content: `📍 **${locationLabel}** di ${districtName || ""}, ${poiResult.regency || poiResult.province}. Mencari kos dalam radius 5km dari lokasi ini…`,
+              content: `📍 **${locationLabel}**${hasDistrict ? ` di ${poiResult.district}` : ""}, ${regencyLabel}. Mencari kos dalam radius 5km dari lokasi ini…`,
               timestamp: new Date().toISOString(),
             },
           ]);
 
-          if (districtName) {
-            // Auto-load the specific district containing the POI, scoped to a
-            // 5 km radius around the landmark (filter + proximity ranking).
-            void loadDistrict(districtName, poiResult.regency || poiResult.province, text, false, {
+          if (hasDistrict) {
+            // Nominatim resolved a specific kecamatan → load that district,
+            // scoped to a 5km radius (filter + proximity ranking).
+            void loadDistrict(poiResult.district!, regencyLabel, text, false, {
+              user_lat: poiResult.lat,
+              user_lon: poiResult.lon,
+              radius_km: 5,
+              geoLabel: locationLabel,
+            });
+            return;
+          }
+
+          // No kecamatan from Nominatim (e.g. "Mall Tangerang City" → lat/lon
+          // found but district empty). Search ALL indexed kos within 5km of the
+          // point directly — no district filter needed. The backend
+          // search_and_rank with area=undefined + geo searches across all
+          // kecamatan, radius-filtered + proximity-ranked.
+          if (poiResult.lat && poiResult.lon) {
+            void queryDataset(text, undefined, {
               user_lat: poiResult.lat,
               user_lon: poiResult.lon,
               radius_km: 5,
