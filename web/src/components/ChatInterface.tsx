@@ -101,7 +101,7 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [pendingArea, setPendingArea] =
-    useState<{ query: string; regency: string } | null>(null);
+    useState<{ query: string; regency: string; user_lat?: number; user_lon?: number; radius_km?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // UI state
@@ -310,8 +310,13 @@ export default function ChatInterface() {
           ]);
 
           if (districtName) {
-            // Auto-load the specific district containing the POI
-            void loadDistrict(districtName, poiResult.regency || poiResult.province, text);
+            // Auto-load the specific district containing the POI, scoped to a
+            // 5 km radius around the landmark (filter + proximity ranking).
+            void loadDistrict(districtName, poiResult.regency || poiResult.province, text, false, {
+              user_lat: poiResult.lat,
+              user_lon: poiResult.lon,
+              radius_km: 5,
+            });
             return;
           }
 
@@ -513,7 +518,8 @@ export default function ChatInterface() {
     district: string,
     regency?: string,
     initialQuery?: string,
-    loadAll = false
+    loadAll = false,
+    geo?: { user_lat?: number; user_lon?: number; radius_km?: number }
   ) {
     // Guard: never hit the API with an empty/undefined district. On refresh the
     // URL may carry ?area=undefined (stringified null), and other callers may
@@ -543,7 +549,7 @@ export default function ChatInterface() {
         setCurrentRegency(regency || null);
         setPipelineActive(true);
         setDatasetLoading(false);
-        setPendingArea({ query: initialQuery || `kos di ${district}`, regency: regency || district });
+        setPendingArea({ query: initialQuery || `kos di ${district}`, regency: regency || district, user_lat: geo?.user_lat, user_lon: geo?.user_lon, radius_km: geo?.radius_km });
         const pipe = (res as { pipeline?: { running?: string | null } }).pipeline;
         const queueMsg = resFlags.pipeline_queued && pipe?.running && pipe.running !== district
           ? `📋 Area **${district}** sedang antri di belakang **${pipe.running}**. Akan dimuat otomatis setelah pipeline selesai.`
@@ -586,6 +592,9 @@ export default function ChatInterface() {
       await queryDataset(initialQ, res.district, {
         saveSearch: !!explicit,
         regency: res.regency,
+        user_lat: geo?.user_lat,
+        user_lon: geo?.user_lon,
+        radius_km: geo?.radius_km,
       });
     } catch (e) {
       console.error("loadDistrict failed", e);
@@ -600,7 +609,14 @@ export default function ChatInterface() {
   async function queryDataset(
     query: string,
     district: string | undefined,
-    opts: { saveSearch?: boolean; regency?: string | null; chatHistory?: Array<{ role: string; content: string }> } = {}
+    opts: {
+      saveSearch?: boolean;
+      regency?: string | null;
+      chatHistory?: Array<{ role: string; content: string }>;
+      user_lat?: number;
+      user_lon?: number;
+      radius_km?: number;
+    } = {}
   ) {
     const saveSearch = opts.saveSearch !== false;
     // district may be undefined when the frontend couldn't extract an area
@@ -644,6 +660,9 @@ export default function ChatInterface() {
         top_k: 10,
         chat_history: opts.chatHistory,
         mode: chatMode,
+        user_lat: opts.user_lat,
+        user_lon: opts.user_lon,
+        radius_km: opts.radius_km,
       })) {
         const t = event.type as string;
         if (t === "region") {
@@ -1074,7 +1093,11 @@ export default function ChatInterface() {
             setPipelineActive(false);
             // Auto-retrigger search if pipeline just completed and user is waiting
             if (currentDistrict && pendingArea) {
-              void loadDistrict(currentDistrict, currentRegency ?? undefined, pendingArea.query, true);
+              void loadDistrict(currentDistrict, currentRegency ?? undefined, pendingArea.query, true, {
+                user_lat: pendingArea.user_lat,
+                user_lon: pendingArea.user_lon,
+                radius_km: pendingArea.radius_km,
+              });
             }
           }}
         />

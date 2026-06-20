@@ -208,13 +208,26 @@ def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str
 
 
 def search_and_rank(
-    query: str, area: str, top_k: int = 5, regency: Optional[str] = None
+    query: str,
+    area: str,
+    top_k: int = 5,
+    regency: Optional[str] = None,
+    user_lat: Optional[float] = None,
+    user_lon: Optional[float] = None,
+    radius_km: Optional[float] = None,
 ) -> List[Dict[str, Any]]:
     kec_filter = _resolve_kecamatan(area, regency)
     try:
         rag = _rag()
-        results = rag.search(query_text=query, kecamatan=kec_filter, top_k=max(top_k * 3, 30))
-        ranked = rag.rank(results)
+        results = rag.search(
+            query_text=query,
+            kecamatan=kec_filter,
+            top_k=max(top_k * 3, 30),
+            user_lat=user_lat,
+            user_lon=user_lon,
+            radius_km=radius_km,
+        )
+        ranked = rag.rank(results, user_lat=user_lat, user_lon=user_lon)
     except Exception:
         return []
     return [
