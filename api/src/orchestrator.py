@@ -14,29 +14,6 @@ from typing import Optional, Dict, Any, List
 ROOT = Path(__file__).resolve().parent.parent.parent
 GEO_ROUTER_URL = "http://localhost:3001"
 
-# Import RAG engine directly for warm-model reuse (no subprocess per call).
-# uvicorn adds api/ to sys.path, which has its own src/ package that shadows
-# rag-engine/src/. We import here at module level before api/src/ is fully
-# loaded, and fall back gracefully if unavailable (development without deps).
-_RAG_DIR = str(ROOT / "services" / "rag-engine")
-_RAG_AVAILABLE = False
-_rag_search = None
-_rag_rank = None
-_rag_ingest = None
-_rag_list_kos = None
-
-try:
-    if _RAG_DIR not in sys.path:
-        sys.path.insert(0, _RAG_DIR)
-
-    from src.search import search as _rag_search, list_kos as _rag_list_kos
-    from src.rank import rank as _rag_rank
-    from src.ingest import ingest as _rag_ingest
-
-    _RAG_AVAILABLE = True
-except Exception:
-    pass
-
 
 def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Shape raw {metadata, text} from the RAG engine into the API KosResult item."""
@@ -137,21 +114,29 @@ def ensure_processed(area: str) -> Dict[str, Any]:
 
 
 def ensure_indexed(area: str) -> Dict[str, Any]:
-    if not _RAG_AVAILABLE:
-        return {"status": "error", "message": "RAG engine not available"}
     docs_path = ROOT / "data" / "cleaned" / f"{area}_docs.json"
     if not docs_path.exists():
         return {"status": "error", "message": "No processed docs found"}
 
+    proc = subprocess.run(
+        [sys.executable, "-c",
+         f"import json; from src.ingest import ingest; "
+         f"result = ingest('{docs_path}'); "
+         f"print(json.dumps(result))"],
+        cwd=str(ROOT / "services" / "rag-engine"),
+        timeout=120,
+        capture_output=True,
+        text=True,
+    )
+
+    if proc.returncode != 0:
+        return {"status": "error", "message": proc.stderr[-300:]}
+
     try:
-        result = _rag_ingest(str(docs_path))
-        return {
-            "status": "indexed",
-            "new": result.get("indexed", 0),
-            "skipped": result.get("skipped", 0),
-        }
-    except Exception as e:
-        return {"status": "error", "message": str(e)[-300:]}
+        result = json.loads(proc.stdout.strip())
+        return {"status": "indexed", "new": result.get("indexed", 0), "skipped": result.get("skipped", 0)}
+    except Exception:
+        return {"status": "indexed", "new": 0, "skipped": 0}
 
 
 def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str]:
@@ -184,22 +169,28 @@ def _resolve_kecamatan(area: str, regency: Optional[str] = None) -> Optional[str
 def search_and_rank(
     query: str, area: str, top_k: int = 5, regency: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    if not _RAG_AVAILABLE:
-        return []
     kec_filter = _resolve_kecamatan(area, regency)
 
+    proc = subprocess.run(
+        [sys.executable, "-c",
+         f"import json; "
+         f"from src.search import search; from src.rank import rank; "
+         f"results = search({json.dumps(query)}, kecamatan={json.dumps(kec_filter)}, top_k={max(top_k * 3, 30)}); "
+         f"ranked = rank(results); "
+         f"output = [{{'metadata': r['metadata'], 'score': r.get('score', 0), 'text': r.get('text', '')[:200]}} for r in ranked[:{top_k}]]; "
+         f"print(json.dumps(output))"],
+        cwd=str(ROOT / "services" / "rag-engine"),
+        timeout=30,
+        capture_output=True,
+        text=True,
+    )
+
+    if proc.returncode != 0:
+        return []
+
     try:
-        results = _rag_search(query, kecamatan=kec_filter, top_k=max(top_k * 3, 30))
-        ranked = _rag_rank(results)
-        return [
-            {
-                "metadata": r["metadata"],
-                "score": r.get("score", 0),
-                "text": (r.get("text", "") or "")[:200],
-            }
-            for r in ranked[:top_k]
-        ]
-    except Exception:
+        return json.loads(proc.stdout.strip())
+    except json.JSONDecodeError:
         return []
 
 
@@ -432,10 +423,20 @@ def _load_all_districts(regency_districts: List[Dict[str, Any]], regency: str, p
 
 
 def _list_kos_subprocess(kecamatan: str) -> List[Dict[str, Any]]:
-    """Call rag-engine list_kos(kecamatan) directly (no semantic search)."""
-    if not _RAG_AVAILABLE:
+    """Call rag-engine list_kos(kecamatan) via subprocess (no semantic search)."""
+    proc = subprocess.run(
+        [sys.executable, "-c",
+         f"import json; from src.search import list_kos; "
+         f"items = list_kos(kecamatan={json.dumps(kecamatan)}, limit=500); "
+         f"print(json.dumps(items))"],
+        cwd=str(ROOT / "services" / "rag-engine"),
+        timeout=60,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
         return []
     try:
-        return _rag_list_kos(kecamatan=kecamatan, limit=500)
-    except Exception:
+        return json.loads(proc.stdout.strip())
+    except json.JSONDecodeError:
         return []
