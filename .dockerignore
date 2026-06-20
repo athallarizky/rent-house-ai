@@ -1,0 +1,30 @@
+# Pre-built binaries (built inside Docker now)
+services/scraper/google-maps-scraper/gmaps-scraper
+
+# Data files (mounted as volume)
+data/
+
+# Git
+.git
+.gitignore
+
+# Node
+node_modules/
+
+# Env files (use .env.docker)
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+docs/
