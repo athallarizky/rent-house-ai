@@ -290,6 +290,31 @@ export default function ChatInterface() {
     try {
       const resolved = await resolveLocation(area);
       const districts = resolved?.data?.districts || [];
+      const matchedAs = resolved?.data?.matchedAs || area;
+
+      // Guard against geo-router false matches (e.g., "Bali" → "Cibaliung")
+      const areaLower = area.toLowerCase();
+      const matchedLower = matchedAs.toLowerCase();
+      const isBadMatch = (
+        districts.length === 1 &&
+        districts[0]?.name &&
+        matchedLower !== areaLower &&
+        !matchedLower.includes(areaLower) &&
+        !areaLower.includes(matchedLower) &&
+        areaLower.length <= 6
+      );
+      if (isBadMatch) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuid(),
+            role: "assistant",
+            content: `Tidak dapat menemukan area **"${area}"**. "${matchedAs}" tidak cocok. Coba gunakan nama kota/kecamatan yang lebih spesifik, atau pilih area dari daftar.`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        return;
+      }
 
       // Regency → kecamatan picker
       if (resolved?.success && districts.length > 1) {

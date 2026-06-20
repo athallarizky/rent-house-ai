@@ -30,7 +30,8 @@ wifi, ac, parkir, dapur, kamar_mandi_dalam, laundry, tv, kasur, lemari, listrik,
 Area detection:
 - "Cengkareng", "Jakarta Barat", "Bandung", "Surabaya", "Yogyakarta", "Tangerang", "Bekasi", "Depok", "Bogor", "Semarang", etc.
 - Returns the area name if a specific district/regency/city is mentioned.
-- IMPORTANT: If the query mentions a landmark/POI (stasiun, mall, terminal, universitas, etc.), return area=null AND set the "poi" field to the landmark name. Example: "kos sekitar stasiun poris" → area: null, poi: "stasiun poris". "dekat UI" → area: null, poi: "Universitas Indonesia".
+- IMPORTANT: If the query mentions a province only (e.g., "Bali", "Jawa Barat", "Jawa Timur"), return the provincial capital city instead. Example: "kos di Bali" → area: "Denpasar". "kos di Jawa Barat" → area: "Bandung".
+- IMPORTANT: If the query mentions a landmark/POI (stasiun, mall, terminal, universitas, etc.), return area=null AND set the "poi" field to the landmark name. Example: "kos sekitar stasiun poris" → area: null, poi: "stasiun poris".
 - Returns null for both if no specific area can be determined.
 
 Gender detection:
