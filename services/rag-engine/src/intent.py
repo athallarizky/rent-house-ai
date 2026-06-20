@@ -16,6 +16,7 @@ Extract structured search parameters from the user's natural-language query.
 Return ONLY valid JSON (no markdown, no explanation):
 {
   "area": "<city/district/regency from query, or null>",
+  "poi": "<the POI/landmark name (stasiun, mall, terminal, universitas, etc.), or null>",
   "tags": ["<facility tags from query>"],
   "gender": "putri" | "putra" | "campur" | null,
   "budget_min": "<number in rupiah or null>",
@@ -29,8 +30,8 @@ wifi, ac, parkir, dapur, kamar_mandi_dalam, laundry, tv, kasur, lemari, listrik,
 Area detection:
 - "Cengkareng", "Jakarta Barat", "Bandung", "Surabaya", "Yogyakarta", "Tangerang", "Bekasi", "Depok", "Bogor", "Semarang", etc.
 - Returns the area name if a specific district/regency/city is mentioned.
-- IMPORTANT: If the query mentions a landmark/POI (stasiun, mall, terminal, universitas, etc.), return the CITY or REGENCY that the landmark is in — NOT the raw landmark name. Example: "sekitar stasiun poris" → area: "Tangerang" (Poris station is in Tangerang). "dekat UI" → area: "Depok". "dekat stasiun gambir" → area: "Jakarta Pusat".
-- Returns null if no specific area can be determined.
+- IMPORTANT: If the query mentions a landmark/POI (stasiun, mall, terminal, universitas, etc.), return area=null AND set the "poi" field to the landmark name. Example: "kos sekitar stasiun poris" → area: null, poi: "stasiun poris". "dekat UI" → area: null, poi: "Universitas Indonesia".
+- Returns null for both if no specific area can be determined.
 
 Gender detection:
 - "cewek/perempuan/putri/wanita/cewe" → putri
@@ -81,6 +82,7 @@ def extract_intent(query: str) -> Dict[str, Any]:
 
         return {
             "area": parsed.get("area"),
+            "poi": parsed.get("poi"),
             "tags": [t.lower() for t in (parsed.get("tags") or [])],
             "gender": parsed.get("gender"),
             "budget_min": parsed.get("budget_min"),
@@ -93,7 +95,7 @@ def extract_intent(query: str) -> Dict[str, Any]:
 
 
 def _empty_result() -> Dict[str, Any]:
-    return {"area": None, "tags": [], "gender": None, "budget_min": None, "budget_max": None, "keywords": []}
+    return {"area": None, "poi": None, "tags": [], "gender": None, "budget_min": None, "budget_max": None, "keywords": []}
 
 
 if __name__ == "__main__":

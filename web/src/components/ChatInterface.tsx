@@ -19,6 +19,7 @@ import {
   deleteSavedSearch,
   deleteAllSavedSearches,
   extractIntent,
+  resolvePoi,
 } from "../lib/api";
 import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
 import ChatWindow from "./ChatWindow";
@@ -199,20 +200,49 @@ export default function ChatInterface() {
     }
     chatHistory.push({ role: "user", content: text });
 
-    // Extract intent via LLM (area, tags, gender, keywords).
+    // Extract intent via LLM (area, tags, gender, keywords, poi).
     // In RAG mode: only extract area when no district is loaded (need location).
     // In AI mode: always extract full intent.
     let intentArea: string | null = null;
+    let intentPoi: string | null = null;
     let intentTags: string[] = [];
     let intentGender: string | null = null;
     if (chatMode === "ai" || !currentDistrict) {
       try {
         const intent = await extractIntent(text);
         intentArea = intent.area;
+        intentPoi = intent.poi;
         intentTags = intent.tags || [];
         intentGender = intent.gender || null;
       } catch {
         // LLM intent unavailable — area extraction below handles it
+      }
+    }
+
+    // POI-based search: geocode the POI → find regency → show picker
+    if (intentPoi && !intentArea) {
+      try {
+        const poiResult = await resolvePoi(intentPoi);
+        if (poiResult && poiResult.districts.length > 0) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: uuid(),
+              role: "assistant",
+              content: `📍 **${poiResult.display_name || intentPoi}** di ${poiResult.regency || poiResult.province}. Mencari kos di sekitar lokasi ini. ${poiResult.districts.length > 1 ? `${poiResult.regency} memiliki ${poiResult.districts.length} kecamatan. Pilih salah satu:` : ""}`,
+              timestamp: new Date().toISOString(),
+              isPicker: true,
+              districts: poiResult.districts.map((d: District) => ({
+                name: d.name,
+                postalCodes: d.postalCodes,
+              })),
+            },
+          ]);
+          setPendingArea({ query: text, regency: poiResult.regency || poiResult.province });
+          return;
+        }
+      } catch {
+        // Geocoding failed — fall through to area resolution
       }
     }
     // Only pre-fill filters in AI mode
