@@ -39,6 +39,11 @@ class SearchRequest(BaseModel):
     gender: Optional[str] = None
     top_k: int = 8
     force_scrape: bool = False
+    # POI radius search: when set, results are filtered to within radius_km of
+    # (user_lat, user_lon) and ranked by proximity. Used by the POI flow.
+    user_lat: Optional[float] = None
+    user_lon: Optional[float] = None
+    radius_km: Optional[float] = None
     stream: bool = False
     # Rev-001: by default /search is a lightweight refine over an already-indexed
     # district. Set ensure_pipeline=true to run scrape/process/index inline
@@ -181,7 +186,7 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
         # Layer 1: Cache hit — skip pipeline entirely
         if is_area_cached(area):
             # Area already indexed — search directly
-            results = search_and_rank(req.query, area, req.top_k, regency=req.regency)
+            results = search_and_rank(req.query, area, req.top_k, regency=req.regency, user_lat=req.user_lat, user_lon=req.user_lon, radius_km=req.radius_km)
             items = _format_items(results)
             if req.stream:
                 return StreamingResponse(
@@ -255,7 +260,7 @@ async def search(req: SearchRequest, background_tasks: BackgroundTasks, user: di
         }
 
     # No pipeline — lightweight search (existing behavior)
-    results = search_and_rank(req.query, area, req.top_k, regency=req.regency)
+    results = search_and_rank(req.query, area, req.top_k, regency=req.regency, user_lat=req.user_lat, user_lon=req.user_lon, radius_km=req.radius_km)
 
     if req.stream:
         formatted = _format_items(results)

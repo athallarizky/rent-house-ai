@@ -47,6 +47,10 @@ export interface SearchRequest {
   stream?: boolean;
   mode?: "rag" | "ai";
   chat_history?: Array<{ role: string; content: string }>;
+  // POI radius search (when set, results filtered+ranked by proximity)
+  user_lat?: number;
+  user_lon?: number;
+  radius_km?: number;
 }
 
 export type ChatMode = "rag" | "ai";
