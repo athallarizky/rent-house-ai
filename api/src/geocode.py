@@ -33,25 +33,33 @@ def geocode(query: str) -> Optional[Dict[str, Any]]:
     if result:
         return result
 
-    # Second attempt: recursively strip known prefixes from the query
-    # "Kos di sekitar mall One Belpark" → "One Belpark"
-    stripped = query
-    prefixes = [
-        "kos di sekitar ", "kos sekitar ", "kosan di sekitar ", "kosan sekitar ",
-        "cari kos di ", "cari kosan di ", "di sekitar ", "di dekat ",
-        "mall ", "stasiun ", "terminal ", "bandara ", "universitas ", "kampus ",
-        "pasar ", "alun-alun ", "taman ",
-    ]
-    changed = True
-    while changed:
-        changed = False
-        for prefix in prefixes:
-            if stripped.lower().startswith(prefix):
-                stripped = stripped[len(prefix):].strip()
-                changed = True
-                break
+    # Second attempt: strip known prefix/suffix patterns from the query
+    # "Kos disekitaran mall One Belpark" → "One Belpark"
+    import re
 
-    if stripped != query and stripped:
+    stripped = query
+    # Remove common Indonesian kos query wrappers (including fused forms like "disekitaran")
+    wrappers = [
+        r"\bkos\s+(?:di\s*)?sekitar(?:an|in)?\s+",
+        r"\bkosan\s+(?:di\s*)?sekitar(?:an|in)?\s+",
+        r"\bcari\s+kos(?:an)?\s+(?:di\s+)?",
+        r"\b(?:di\s*)?sekitar(?:an|in)?\s+",
+        r"\b(?:di\s*)?dekat\s+",
+        r"\bdisekitar(?:an|in)?\s+",
+        r"\bdidekat\s+",
+    ]
+    for pattern in wrappers:
+        m = re.match(pattern, stripped, re.IGNORECASE)
+        if m:
+            stripped = stripped[m.end():].strip()
+            break  # only strip the first matching wrapper
+
+    # Strip POI type prefixes from the remaining text
+    # "mall One Belpark" → "One Belpark"
+    poi_prefixes = r"\b(?:mall|stasiun|terminal|bandara|universitas|kampus|pasar|alun[-\s]?alun|taman)\s+"
+    stripped = re.sub(r"^" + poi_prefixes, "", stripped, count=1, flags=re.IGNORECASE).strip()
+
+    if stripped and stripped != query and len(stripped) >= 3:
         result = _geocode_query(stripped)
         if result:
             return result
