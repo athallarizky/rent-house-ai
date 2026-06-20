@@ -7,6 +7,7 @@ import type {
   RightPanelMode,
   SavedSearch,
   District,
+  SearchPipeline,
 } from "../lib/types";
 import {
   resolveLocation,
@@ -56,6 +57,7 @@ export default function ChatInterface() {
   const [currentDistrict, setCurrentDistrict] = useState<string | null>(null);
   const [currentRegency, setCurrentRegency] = useState<string | null>(null);
   const [siblingDistricts, setSiblingDistricts] = useState<District[]>([]);
+  const [scrapePipeline, setScrapePipeline] = useState<SearchPipeline | null>(null);
   const [datasetLoading, setDatasetLoading] = useState(false);
   const [relevantOnly, setRelevantOnly] = useState(false);
 
@@ -223,6 +225,7 @@ export default function ChatInterface() {
       setCurrentDistrict(res.district);
       setCurrentRegency(res.regency || null);
       setSiblingDistricts(res.siblings || []);
+      setScrapePipeline(res.pipeline || null);
 
       const params = new URLSearchParams(window.location.search);
       params.set("area", res.district);
@@ -496,6 +499,13 @@ export default function ChatInterface() {
                 onSwitch={onSwitchDistrict}
                 disabled={datasetLoading || isLoading}
               />
+              {scrapePipeline?.scrape_age_days !== undefined && scrapePipeline.scrape_age_days > 0 && (
+                <span className="text-[10px] text-muted-foreground/70 ml-1">
+                  Data {scrapePipeline.scrape_age_days >= 1
+                    ? `${Math.round(scrapePipeline.scrape_age_days)} hari lalu`
+                    : "baru saja"}
+                </span>
+              )}
             </div>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
