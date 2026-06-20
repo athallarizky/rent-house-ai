@@ -11,6 +11,7 @@ interface SavedSearchesProps {
   onNew: () => void;
   onDelete: (id: string) => void;
   onClearAll?: () => void;
+  disabled?: boolean;
 }
 
 export default function SavedSearches({
@@ -20,6 +21,7 @@ export default function SavedSearches({
   onNew,
   onDelete,
   onClearAll,
+  disabled = false,
 }: SavedSearchesProps) {
   const [pendingDelete, setPendingDelete] = useState<SavedSearch | null>(null);
 
@@ -39,7 +41,8 @@ export default function SavedSearches({
         <button
           type="button"
           onClick={onNew}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          disabled={disabled}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Pencarian Baru
