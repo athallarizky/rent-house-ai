@@ -29,7 +29,7 @@ def process_area(area: str) -> Dict[str, Any]:
     entries = [_normalize_entry(e) for e in entries]
     print(f"[{area}] Normalized")
 
-    entries = [enrich(e) for e in entries]
+    entries = [enrich(e, area) for e in entries]
     print(f"[{area}] Enriched with kodepos")
 
     entries = [_extract_facilities(e) for e in entries]

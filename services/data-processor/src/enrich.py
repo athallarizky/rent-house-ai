@@ -22,7 +22,7 @@ def _load_kodepos():
                 _postal_lookup[code] = entry
 
 
-def enrich(entry: Dict[str, Any]) -> Dict[str, Any]:
+def enrich(entry: Dict[str, Any], area: Optional[str] = None) -> Dict[str, Any]:
     _load_kodepos()
 
     pc = entry.get("postal_code", "")
@@ -34,7 +34,11 @@ def enrich(entry: Dict[str, Any]) -> Dict[str, Any]:
         entry["province"] = kd["province"]
     else:
         entry.setdefault("kelurahan", "")
-        entry.setdefault("kecamatan", "")
+        # Scraped kos frequently lack a usable postal_code, so the kodepos lookup
+        # misses and kecamatan would be empty — making the doc unsearchable by
+        # area. Fall back to the scrape area name (process_area always passes it)
+        # so docs are at least retrievable under the area they were scraped for.
+        entry["kecamatan"] = area or entry.get("kecamatan") or ""
         entry.setdefault("regency", "")
         entry.setdefault("province", "")
 
