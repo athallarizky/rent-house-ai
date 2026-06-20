@@ -72,6 +72,7 @@ pipeline slot** (single runner + 1 queue, Sprint 6) — **never synchronous**
 | 2.2 | `PipelineDashboard`: per-row action buttons, **contextual** (Process&Index only when scraped&&!indexed; Re-index when indexed; Re-scrape always) | `web/src/components/PipelineDashboard.tsx` | Medium | 0.75h | ⬜ |
 | 2.3 | **Confirm modal** for Re-scrape (expensive) + disable all actions while a pipeline is running (single slot) | `web/src/components/PipelineDashboard.tsx` + `ConfirmModal.tsx` | Easy | 0.25h | ⬜ |
 | 2.4 | Wire to existing 5s auto-refresh: action → pipeline.running non-null → polling resumes → status updates live | `web/src/components/PipelineDashboard.tsx` | Trivial | 0.1h | ⬜ |
+| 2.5 | **Status-badge tooltips** — hover ✅ per stage menampilkan count: scraped→`scraped_count`, processed→`docs_count`, indexed→`indexed_count`. Native `title` atau tooltip component. Hanya saat badge on (true). | `web/src/components/PipelineDashboard.tsx` (`StatusBadge`) | Easy | 0.25h | ⬜ |
 
 ### Phase 3 — Validation
 
@@ -153,6 +154,32 @@ Re-scrape hits Google Maps (expensive, rate-limit risk). Wrap in the existing
 `ConfirmModal`: *"Re-scrape {area}? Ini akan menghapus data lama dan ambil ulang
 dari Google Maps (butuh beberapa menit). Lanjutkan?"*
 
+### T2.5 — Status-badge tooltips
+
+Setiap badge ✅ di tabel menampilkan count saat di-hover, jadi admin tau
+"berapa banyak data" per stage tanpa lihat kolom terpisah:
+
+```tsx
+function StatusBadge({ on, count, label }: { on: boolean; count?: number; label: string }) {
+  const title = on && count != null ? `${label}: ${count.toLocaleString("id-ID")}` : label;
+  return (
+    <span title={title} className="...">
+      {on ? <CheckCircle2 ... /> : "✗"}
+    </span>
+  );
+}
+// pemakaian:
+<StatusBadge on={area.scraped} count={area.scraped_count} label="Scraped" />
+<StatusBadge on={area.processed} count={area.docs_count ?? undefined} label="Processed" />
+<StatusBadge on={area.indexed} count={area.indexed_count} label="Indexed" />
+```
+
+Native `title` cukup (cepat, accessible, mobile-touch fallback OK). Kalau mau
+lebih fancy, pakai tooltip component (Radix/shadcn) — tapi native dulu, sejalan
+dgn "keep it simple" dashboard. Hanya tampil count saat badge on; saat off tetap
+"✗" tanpa angka (ga ada artinya).
+
+
 ---
 
 ## Risks & Mitigations
@@ -191,9 +218,9 @@ this sprint only adds the action layer on top.
 | Phase | Tasks | Est |
 |-------|-------|-----|
 | 1 — Backend (endpoints + runners) | 6 | 2.0h |
-| 2 — Frontend (buttons + modal) | 4 | 1.35h |
+| 2 — Frontend (buttons + modal + tooltips) | 5 | 1.6h |
 | 3 — Validation | 5 | 1.15h |
-| **Total** | **15** | **~4.5h** |
+| **Total** | **16** | **~4.75h** |
 
 The biggest single risk is T1.2 (per-area re-index without nuking the collection)
 — prioritize & verify that first.
