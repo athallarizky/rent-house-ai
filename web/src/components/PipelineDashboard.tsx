@@ -33,6 +33,22 @@ type ConfirmState =
   | { kind: "delete"; area: string }
   | null;
 
+/** Lightweight CSS tooltip — works on hover (instant, no browser delay) and,
+ *  unlike native `title`, on disabled buttons too (the wrapper is not disabled). */
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <span className="relative inline-flex group/tab cursor-help">
+      {children}
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded-md bg-zinc-900 dark:bg-zinc-100 px-2 py-1 text-[10px] font-medium text-white dark:text-zinc-900 opacity-0 scale-95 group-hover/tab:opacity-100 group-hover/tab:scale-100 transition duration-150 z-50 shadow-md"
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
 /** Detect likely-broken / action-needed data and suggest the right action. */
 function warnFor(area: PipelineArea): { msg: string; action: string } | null {
   if (area.scraped && !area.processed)
@@ -294,12 +310,9 @@ function AreaRow({ area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaR
           <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span>{area.area}</span>
           {warn && (
-            <span
-              title={warn.msg.replace(/\*\*/g, "")}
-              className="inline-flex items-center text-amber-500 cursor-help"
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-            </span>
+            <Tooltip label={warn.msg.replace(/\*\*/g, "")}>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+            </Tooltip>
           )}
         </div>
       </td>
@@ -335,15 +348,15 @@ function AreaRow({ area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaR
 }
 
 function StatusBadge({ on, count, label }: { on: boolean; count?: number; label: string }) {
-  const title = on && count != null ? `${label}: ${count.toLocaleString("id-ID")}` : label;
-  return on ? (
-    <span title={title} className="inline-flex items-center justify-center text-green-600 cursor-help">
-      <CheckCircle2 className="w-4 h-4" />
-    </span>
-  ) : (
-    <span title={title} className="inline-flex items-center justify-center text-muted-foreground/40">
-      ✗
-    </span>
+  const text = on && count != null ? `${label}: ${count.toLocaleString("id-ID")}` : label;
+  return (
+    <Tooltip label={text}>
+      {on ? (
+        <CheckCircle2 className="w-4 h-4 text-green-600" />
+      ) : (
+        <span className="inline-flex items-center justify-center text-muted-foreground/40">✗</span>
+      )}
+    </Tooltip>
   );
 }
 
@@ -357,21 +370,24 @@ interface ActionBtnProps {
 }
 
 function ActionBtn({ icon: Icon, label, title, disabled, danger, onClick }: ActionBtnProps) {
+  // Tooltip wraps the (possibly disabled) button — works on hover even when
+  // the button itself is disabled (native `title` would not fire on Chrome).
   return (
-    <button
-      type="button"
-      title={disabled ? "Pipeline aktif — tunggu selesai" : title}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-        danger
-          ? "border-red-300 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
-          : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
-      )}
-    >
-      <Icon className="w-3 h-3" />
-      <span className="hidden sm:inline">{label}</span>
-    </button>
+    <Tooltip label={disabled ? "Pipeline aktif — tunggu selesai" : title}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onClick}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
+          danger
+            ? "border-red-300 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
+            : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+        )}
+      >
+        <Icon className="w-3 h-3" />
+        <span className="hidden sm:inline">{label}</span>
+      </button>
+    </Tooltip>
   );
 }
