@@ -385,9 +385,27 @@ export default function ChatInterface() {
           collected += event.token as string;
           setStreamingContent(collected);
         } else if (t === "done") {
-          // RAG mode: backend doesn't send tokens, show result count
-          if (chatMode === "rag") {
-            collected = `Menampilkan ${relItems.length} kos di ${district} yang relevan dengan "${query}".`;
+          if (chatMode === "rag" && relItems.length > 0) {
+            const lines = [
+              `Menampilkan **${relItems.length} kos** di ${district} yang relevan dengan *"${query}"*:`,
+              "",
+            ];
+            for (let i = 0; i < Math.min(relItems.length, 10); i++) {
+              const r = relItems[i];
+              const stars = typeof r.rating === "number" ? r.rating.toFixed(1) : r.rating;
+              const tags = (r.tags || []).slice(0, 4).join(", ");
+              const pmn = r.price_min;
+              const pmx = r.price_max;
+              const price = (pmn != null && pmx != null)
+                ? pmn === pmx
+                  ? `Rp${(pmn / 1_000_000).toFixed(1)}jt`
+                  : `Rp${(pmn / 1_000_000).toFixed(1)}-${(pmx / 1_000_000).toFixed(1)}jt`
+                : "";
+              lines.push(`${i + 1}. **${r.name}** — ${stars}★ ${price ? "· " + price : ""}${tags ? " — " + tags : ""}`);
+            }
+            collected = lines.join("\n");
+          } else if (chatMode === "rag") {
+            collected = `Tidak ada kos di ${district} yang cocok dengan *"${query}"*. Coba ubah filter atau kata kunci.`;
           }
         }
       }
