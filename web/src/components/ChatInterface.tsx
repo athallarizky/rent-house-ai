@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanelLeft, PanelRight, Bot, AlertCircle, LogOut } from "lucide-react";
+import {
+  PanelLeft,
+  PanelRight,
+  Bot,
+  AlertCircle,
+  LogOut,
+  Home,
+  Settings,
+  User,
+  Monitor,
+  Moon,
+  Sun,
+} from "lucide-react";
 import type {
   ChatMode,
   Filters,
@@ -23,15 +35,21 @@ import {
 } from "../lib/api";
 import { extractArea, uuid, cn, friendlyError } from "../lib/utils";
 import { getAuth, logout } from "../lib/auth";
+import { getStoredTheme, storeTheme, applyTheme, type Theme } from "../lib/theme";
 import ChatWindow from "./ChatWindow";
 import MessageInput from "./MessageInput";
 import FilterChips from "./FilterChips";
 import KosCardList from "./KosCardList";
 import SavedSearches from "./SavedSearches";
 import DistrictSwitcher from "./DistrictSwitcher";
-import ThemeToggle from "./ThemeToggle";
 import MobileNav from "./MobileNav";
 import ConfirmModal from "./ConfirmModal";
+
+const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Terang", icon: Sun },
+  { value: "dark", label: "Gelap", icon: Moon },
+  { value: "system", label: "Sistem", icon: Monitor },
+];
 
 const GENDER_KEYS = ["putra", "putri", "campur"];
 const DEFAULT_AREA = "Cengkareng";
@@ -108,6 +126,31 @@ export default function ChatInterface() {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("kos-ai.chat-mode", mode);
     }
+  };
+
+  // Settings menu
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [activeTheme, setActiveTheme] = useState<Theme>(() => getStoredTheme());
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [showMenu]);
+
+  const handleTheme = (t: Theme) => {
+    setActiveTheme(t);
+    storeTheme(t);
+    applyTheme(t);
+  };
+
+  const handleLogout = () => {
+    setShowMenu(false);
+    logout();
   };
 
   const bootstrapped = useRef(false);
@@ -743,6 +786,14 @@ export default function ChatInterface() {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2.5">
           <MobileNav currentPath="/search" />
+          <a
+            href="/"
+            className="hidden md:flex p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
+            aria-label="Beranda"
+            title="Beranda"
+          >
+            <Home className="w-4 h-4" />
+          </a>
           <button
             type="button"
             onClick={() => setShowLeft((v) => !v)}
@@ -777,23 +828,86 @@ export default function ChatInterface() {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
-            <ThemeToggle compact />
-            {authUser && (
-              <>
-                <span className="hidden sm:inline text-xs text-muted-foreground truncate max-w-[120px]">
-                  {authUser.email}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => logout()}
-                  className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
-                  aria-label="Keluar"
-                  title="Keluar"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </>
-            )}
+            {/* Settings menu */}
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setShowMenu((v) => !v)}
+                className={cn(
+                  "p-1.5 rounded-md hover:bg-accent transition-colors",
+                  showMenu ? "bg-accent text-foreground" : "text-muted-foreground"
+                )}
+                aria-label="Menu pengaturan"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+
+              {showMenu && (
+                <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
+                  {/* User info */}
+                  {authUser && (
+                    <div className="px-3 py-2.5 border-b border-border">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{authUser.email}</p>
+                          <p className="text-[11px] text-muted-foreground capitalize">{authUser.role}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Theme toggle */}
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-[11px] text-muted-foreground mb-1.5">Tema</p>
+                    <div className="flex gap-1">
+                      {THEME_OPTIONS.map((opt) => {
+                        const Icon = opt.icon;
+                        const isActive = activeTheme === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => { handleTheme(opt.value); }}
+                            className={cn(
+                              "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] transition-colors",
+                              isActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-accent"
+                            )}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Settings link (admin only) */}
+                  {authUser?.role === "admin" && (
+                    <a
+                      href="/settings"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Pengaturan
+                    </a>
+                  )}
+
+                  {/* Logout */}
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Keluar
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => setShowRight((v) => !v)}
