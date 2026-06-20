@@ -786,14 +786,6 @@ export default function ChatInterface() {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2.5">
           <MobileNav currentPath="/search" />
-          <a
-            href="/"
-            className="hidden md:flex p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
-            aria-label="Beranda"
-            title="Beranda"
-          >
-            <Home className="w-4 h-4" />
-          </a>
           <button
             type="button"
             onClick={() => setShowLeft((v) => !v)}
@@ -828,6 +820,14 @@ export default function ChatInterface() {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
+            <a
+              href="/"
+              className="hidden md:flex p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
+              aria-label="Beranda"
+              title="Beranda"
+            >
+              <Home className="w-4 h-4" />
+            </a>
             {/* Settings menu */}
             <div className="relative" ref={menuRef}>
               <button
