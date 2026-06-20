@@ -49,3 +49,16 @@ def get_user_by_email(email: str) -> Optional[dict]:
         return dict(row) if row else None
     finally:
         conn.close()
+
+
+def update_password(email: str, password_hash: str) -> bool:
+    conn = _conn()
+    try:
+        conn.execute(
+            "UPDATE users SET password_hash = ? WHERE email = ?",
+            (password_hash, email),
+        )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
