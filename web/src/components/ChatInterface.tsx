@@ -279,13 +279,12 @@ export default function ChatInterface() {
       });
     }
 
-    // LLM-extracted area wins over areaHint, falls back to hardcoded regex
-    // If no area found AND no district loaded, try the raw query as area
-    let area =
-      intentArea || areaHint || currentDistrict;
+    // LLM-extracted area wins over areaHint.
+    // If neither, check query text via regex before falling back to current district.
+    let area = intentArea || areaHint;
     if (!area) {
       const regexArea = extractArea(text);
-      area = regexArea || DEFAULT_AREA;
+      area = regexArea || currentDistrict || DEFAULT_AREA;
     }
 
     try {
