@@ -545,3 +545,58 @@ export const deleteArea = (area: string, wipe_raw = false) =>
   pipelineAction("delete", area, { wipe_raw });
 
 export { API_URL };
+
+// === User Management (admin-only) ===
+
+export interface User {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
+export async function listUsers(): Promise<User[]> {
+  const resp = await fetch(`${API_URL}/users`, { headers: getAuthHeaders() });
+  if (!resp.ok) throw new Error(`listUsers failed (${resp.status})`);
+  const data = await resp.json();
+  return data.users || [];
+}
+
+export async function createUser(email: string, password: string, role: string): Promise<User> {
+  const resp = await fetch(`${API_URL}/users`, {
+    method: "POST",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, role }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.detail || `createUser failed (${resp.status})`);
+  }
+  const data = await resp.json();
+  return data.user;
+}
+
+export async function updateUser(userId: string, patch: { email?: string; role?: string; password?: string }): Promise<User> {
+  const resp = await fetch(`${API_URL}/users/${userId}`, {
+    method: "PUT",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.detail || `updateUser failed (${resp.status})`);
+  }
+  const data = await resp.json();
+  return data.user;
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  const resp = await fetch(`${API_URL}/users/${userId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.detail || `deleteUser failed (${resp.status})`);
+  }
+}

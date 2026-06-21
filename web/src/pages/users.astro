@@ -1,0 +1,15 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import UserManager from '../components/UserManager';
+import AuthGuard from '../components/AuthGuard';
+---
+
+<DashboardLayout title="Manajemen User - Kos AI" active="users">
+  <div class="overflow-y-auto thin-scroll">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <AuthGuard client:load adminOnly>
+        <UserManager client:load />
+      </AuthGuard>
+    </div>
+  </div>
+</DashboardLayout>

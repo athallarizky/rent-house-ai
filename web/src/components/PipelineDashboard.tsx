@@ -22,6 +22,7 @@ import {
   type PipelineDataResponse,
   type PipelineArea,
 } from "../lib/api";
+import { getAuth } from "../lib/auth";
 import ConfirmModal from "./ConfirmModal";
 import { cn } from "../lib/utils";
 
@@ -86,6 +87,7 @@ export default function PipelineDashboard() {
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isAdmin = getAuth().user?.role === "admin";
 
   const fetchData = useCallback(async (silent = false) => {
     if (!silent) setRefreshing(true);
@@ -247,13 +249,13 @@ export default function PipelineDashboard() {
                 <th className="font-medium px-3 py-2.5 text-center">P</th>
                 <th className="font-medium px-3 py-2.5 text-center">I</th>
                 <th className="font-medium px-4 py-2.5 text-right">Kos</th>
-                <th className="font-medium px-3 py-2.5 text-right">Aksi</th>
+                {isAdmin && <th className="font-medium px-3 py-2.5 text-right">Aksi</th>}
               </tr>
             </thead>
             <tbody>
               {areas.length === 0 && !error && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={isAdmin ? 7 : 6} className="px-4 py-10 text-center text-muted-foreground">
                     Belum ada area. Jalankan pipeline dari halaman pencarian.
                   </td>
                 </tr>
@@ -264,6 +266,7 @@ export default function PipelineDashboard() {
                   number={i + 1}
                   area={area}
                   busy={pipelineRunning}
+                  isAdmin={isAdmin}
                   onIndex={(a) => runAction(indexArea, a)}
                   onRebuild={(a) => runAction(rebuildArea, a)}
                   onRescrape={(a) => setConfirm({ kind: "rescrape", area: a })}
@@ -304,13 +307,14 @@ interface AreaRowProps {
   number: number;
   area: PipelineArea;
   busy: boolean;
+  isAdmin: boolean;
   onIndex: (area: string) => void;
   onRebuild: (area: string) => void;
   onRescrape: (area: string) => void;
   onDelete: (area: string) => void;
 }
 
-function AreaRow({ number, area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaRowProps) {
+function AreaRow({ number, area, busy, isAdmin, onIndex, onRebuild, onRescrape, onDelete }: AreaRowProps) {
   const count = area.indexed_count || area.docs_count || area.scraped_count || 0;
   const isRawFallback =
     area.indexed_count === 0 && area.docs_count == null && area.scraped_count > 0;
@@ -348,6 +352,7 @@ function AreaRow({ number, area, busy, onIndex, onRebuild, onRescrape, onDelete 
         {count > 0 ? count.toLocaleString("id-ID") : "—"}
       </td>
       <td className="px-3 py-2.5">
+        {isAdmin ? (
         <div className="flex items-center justify-end gap-1">
           {area.scraped && !area.indexed && (
             <ActionBtn icon={Zap} label="Index" title="Index: process + index raw" disabled={busy} onClick={() => onIndex(area.area)} />
@@ -358,6 +363,9 @@ function AreaRow({ number, area, busy, onIndex, onRebuild, onRescrape, onDelete 
           <ActionBtn icon={Globe} label="Rescrape" title="Rescrape: full refresh from Google Maps" disabled={busy} onClick={() => onRescrape(area.area)} />
           <ActionBtn icon={Trash2} label="Delete" title="Delete: remove from index (keep raw)" disabled={busy} danger onClick={() => onDelete(area.area)} />
         </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">view only</span>
+        )}
       </td>
     </tr>
   );

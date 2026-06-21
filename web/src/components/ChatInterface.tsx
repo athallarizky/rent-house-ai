@@ -1036,7 +1036,7 @@ export default function ChatInterface() {
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
+                <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
                   {/* User info */}
                   {authUser && (
                     <div className="px-3 py-2.5 border-b border-border">
@@ -1063,7 +1063,7 @@ export default function ChatInterface() {
                             type="button"
                             onClick={() => { handleTheme(opt.value); }}
                             className={cn(
-                              "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] transition-colors",
+                              "flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] transition-colors w-full",
                               isActive
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "text-muted-foreground hover:bg-accent"

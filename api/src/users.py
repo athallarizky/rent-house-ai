@@ -62,3 +62,75 @@ def update_password(email: str, password_hash: str) -> bool:
         return True
     finally:
         conn.close()
+
+
+def list_users() -> list[dict]:
+    conn = _conn()
+    try:
+        rows = conn.execute("SELECT id, email, role, created_at FROM users ORDER BY created_at").fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_user_by_id(user_id: str) -> Optional[dict]:
+    conn = _conn()
+    try:
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def create_user(email: str, password_hash: str, role: str = "user") -> Optional[dict]:
+    import uuid
+    from datetime import datetime
+
+    conn = _conn()
+    try:
+        user_id = str(uuid.uuid4())
+        created = datetime.utcnow().isoformat()
+        conn.execute(
+            "INSERT INTO users VALUES (?, ?, ?, ?, ?)",
+            (user_id, email, password_hash, role, created),
+        )
+        conn.commit()
+        return {"id": user_id, "email": email, "role": role, "created_at": created}
+    except sqlite3.IntegrityError:
+        return None
+    finally:
+        conn.close()
+
+
+def update_user(user_id: str, email: Optional[str] = None, role: Optional[str] = None, password_hash: Optional[str] = None) -> Optional[dict]:
+    conn = _conn()
+    try:
+        sets = []
+        params = []
+        if email is not None:
+            sets.append("email = ?")
+            params.append(email)
+        if role is not None:
+            sets.append("role = ?")
+            params.append(role)
+        if password_hash is not None:
+            sets.append("password_hash = ?")
+            params.append(password_hash)
+        if not sets:
+            return get_user_by_id(user_id)
+        params.append(user_id)
+        conn.execute(f"UPDATE users SET {', '.join(sets)} WHERE id = ?", params)
+        conn.commit()
+        return get_user_by_id(user_id)
+    finally:
+        conn.close()
+
+
+def delete_user(user_id: str) -> bool:
+    conn = _conn()
+    try:
+        cur = conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()

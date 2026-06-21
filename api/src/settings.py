@@ -65,7 +65,14 @@ def _write(s: Settings) -> None:
 @router.get("")
 async def get_settings(user: dict = Depends(get_current_user)):
     s = _read()
-    # Don't echo the full key back to the client — return a masked hint.
+    if user.get("role") != "admin":
+        return {
+            "provider": s.provider,
+            "model": s.model,
+            "base_url": s.base_url,
+            "api_key_set": bool(s.api_key),
+            "api_key_hint": "",
+        }
     masked = ""
     if s.api_key:
         masked = s.api_key[:4] + "…" + s.api_key[-4:] if len(s.api_key) > 8 else "••••"
@@ -114,7 +121,7 @@ async def test_settings(req: SettingsTestRequest, user: dict = Depends(require_a
 
 
 @router.post("/models")
-async def list_models(req: ModelsRequest):
+async def list_models(req: ModelsRequest, user: dict = Depends(require_admin)):
     """Fetch the list of available model ids from Z.AI (proxied server-side).
 
     Used by the settings form to populate the model input dynamically so the
