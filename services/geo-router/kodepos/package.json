@@ -6,8 +6,8 @@
   "scripts": {
     "build": "npx tsc -p tsconfig.json",
     "postbuild": "copyfiles data/* dist/",
-    "start": "node ./dist/bin/app.js",
-    "dev": "nodemon",
+    "start": "node api.js && node ./dist/bin/app.js",
+    "dev": "node api.js && nodemon",
     "postinstall": "npm run build",
     "format": "prettier . \"!data/kodepos.json\" --write",
     "commit": "git-cz"

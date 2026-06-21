@@ -20,15 +20,12 @@ data/auth.db
 data/kodepos.json
 
 # Environment
-.env
-.env.local
 
 # OS
 .DS_Store
 Thumbs.db
 
 # IDE
-.vscode/
 .idea/
 
 # Go binary
@@ -40,3 +37,4 @@ build/
 
 # Command Code local state
 .commandcode/
+config.bat
