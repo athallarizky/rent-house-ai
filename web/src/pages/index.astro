@@ -3,12 +3,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 import SearchBar from '../components/SearchBar';
 import AreaChips from '../components/AreaChips';
 import StatsCards from '../components/StatsCards';
+import AuthGuard from '../components/AuthGuard';
 
 const url = new URL(Astro.request.url);
 const initialQuery = url.searchParams.get('q') || '';
 ---
 
 <DashboardLayout title="Kos AI — Cari kos dengan bahasa sehari-hari" active="home">
+  <AuthGuard client:load>
   <div class="overflow-y-auto thin-scroll">
     <div class="max-w-5xl mx-auto px-6 py-10 md:py-16">
 
@@ -87,4 +89,5 @@ const initialQuery = url.searchParams.get('q') || '';
 
     </div>
   </div>
+  </AuthGuard>
 </DashboardLayout>

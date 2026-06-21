@@ -155,17 +155,6 @@ export default function ProviderSettings() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="max-w-2xl">
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-          <ShieldAlert className="w-4 h-4 shrink-0" />
-          Hanya admin yang dapat mengubah pengaturan LLM.
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-2xl space-y-6">
       {error && (
@@ -175,7 +164,8 @@ export default function ProviderSettings() {
         </div>
       )}
 
-      {/* LLM Provider */}
+      {/* LLM Provider — admin only */}
+      {isAdmin && (
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Bot className="w-5 h-5 text-primary" />
@@ -310,6 +300,7 @@ export default function ProviderSettings() {
           </div>
         )}
       </section>
+      )}
 
       {/* Preferences — theme */}
       <section className="rounded-xl border border-border bg-card p-5">
@@ -328,7 +319,8 @@ export default function ProviderSettings() {
         </div>
       </section>
 
-      {/* Ubah Password */}
+      {/* Ubah Password — admin only */}
+      {isAdmin && (
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Lock className="w-5 h-5 text-primary" />
@@ -375,6 +367,7 @@ export default function ProviderSettings() {
           </button>
         </div>
       </section>
+      )}
 
       {/* Server status */}
       <ServerStatus />
