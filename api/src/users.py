@@ -102,11 +102,11 @@ def create_user(email: str, password_hash: str, role: str = "user") -> Optional[
         conn.close()
 
 
-def update_user(user_id: str, email: str | None = None, role: str | None = None, password_hash: str | None = None) -> Optional[dict]:
+def update_user(user_id: str, email: Optional[str] = None, role: Optional[str] = None, password_hash: Optional[str] = None) -> Optional[dict]:
     conn = _conn()
     try:
-        sets: list[str] = []
-        params: list = []
+        sets = []
+        params = []
         if email is not None:
             sets.append("email = ?")
             params.append(email)
