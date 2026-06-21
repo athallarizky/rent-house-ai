@@ -1,0 +1,13 @@
+{
+  "label": "smoke_test",
+  "api_url": "http://localhost:4001",
+  "timestamp": "2026-06-21T11:50:11.189947",
+  "poll_interval_s": 1.5,
+  "sample_count": 1,
+  "initial": {
+    "chroma_mb": 3.504,
+    "indexed_areas": 14,
+    "indexed_docs_total": 247
+  },
+  "events": []
+}

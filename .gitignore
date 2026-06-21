@@ -1,28 +1,3 @@
-# Dependencies
-node_modules/
-__pycache__/
-*.pyc
-.venv/
-
-# Build artifacts
-dist/
-*.egg-info/
-
-# Runtime data (scraper output, databases, cache)
-data/raw/
-data/cleaned/
-data/chroma_db/
-data/settings.json
-data/search_history.db
-data/auth.db
-
-# Symlink target
-data/kodepos.json
-
-# Environment
-.env
-.env.local
-
 # OS
 .DS_Store
 Thumbs.db
@@ -31,22 +6,24 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Go binary
+# Environment (jangan commit secret!)
+.env
+.env.local
+.env.saas
+
+# Go build artifacts
 services/scraper/google-maps-scraper/gmaps-scraper
+services/scraper/google-maps-scraper/bin/
+*.exe
+
+# Python (kalau ada script utility)
+__pycache__/
+*.pyc
+.venv/
 
 # Docker
 model-cache/
 build/
 
-# Command Code local state
+# Local state
 .commandcode/
-
-# Sprint 10 POC (standalone scripts tracked; runtime artifacts below gitignored)
-poc/.venv/
-poc/_chroma/
-poc/_backups/
-poc/_e2e_logs/
-poc/_results/
-
-# Sprint 10/11 — local Docker port-mapping override (POC vs baseline side-by-side)
-docker-compose.override.yml

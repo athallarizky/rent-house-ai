@@ -1,0 +1,88 @@
+# Production-ish compose untuk EC2 (terpisah dari dev compose).
+# 3 service: postgres (db) + serve (API/admin) + worker (Chromium).
+# Lihat panduan lengkap: docs/deploy-scraper-to-ec2.md
+#
+# Prasyarat:
+#   1. File .env.saas di folder ini (POSTGRES_PASSWORD, DATABASE_URL, ENCRYPTION_KEY, CONCURRENCY)
+#   2. ENCRYPTION_KEY wajib di-generate: openssl rand -hex 32
+#
+# Jalankan:
+#   docker compose -f docker-compose.ec2.yaml build
+#   docker compose -f docker-compose.ec2.yaml up -d
+#
+# Lihat log:
+#   docker compose -f docker-compose.ec2.yaml logs -f
+
+name: gmaps-saas
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: gmaps-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: gmaps_pro
+    volumes:
+      # Postgres 18+ uses /var/lib/postgresql (parent) with major-version subdirs.
+      # Older mounts at /var/lib/postgresql/data are rejected on 18+.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - saas-net
+    # ⚠️ JANGAN expose port 5432 ke host. Akses hanya internal.
+
+  serve:
+    build:
+      context: .
+      dockerfile: Dockerfile.saas
+    image: gmapssaas:local
+    container_name: gmaps-serve
+    restart: unless-stopped
+    command: ["serve"]
+    env_file: .env.saas
+    environment:
+      ADDR: ":8080"
+      DATABASE_URL: ${DATABASE_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    ports:
+      - "8080:8080"   # kalau pakai nginx/caddy di depan, ubah ke "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saas-net
+
+  worker:
+    image: gmapssaas:local
+    container_name: gmaps-worker
+    restart: unless-stopped
+    command: ["worker"]
+    env_file: .env.saas
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      CONCURRENCY: ${CONCURRENCY:-1}
+      MAX_JOBS_PER_CYCLE: ${MAX_JOBS_PER_CYCLE:-100}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      serve:
+        condition: service_started
+    # Chromium butuh shared memory besar, kalau tidak crash random
+    shm_size: 2g
+    networks:
+      - saas-net
+    # ⚠️ JANGAN expose port apa pun. Worker cuma butuh akses ke postgres.
+
+volumes:
+  pgdata:
+
+networks:
+  saas-net:
+    driver: bridge

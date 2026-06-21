@@ -1,0 +1,1275 @@
+[
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000001",
+    "name": "Kost Makmur",
+    "address": "",
+    "kelurahan": "Kayu Putih",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13210",
+    "lat": -6.205117399161207,
+    "lon": 106.95665576011807,
+    "rating": 4.9,
+    "review_count": 62,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000002",
+    "name": "Kost Jaya",
+    "address": "",
+    "kelurahan": "Kayu Putih",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13210",
+    "lat": -6.20218673999746,
+    "lon": 106.95602094507582,
+    "rating": 3.9,
+    "review_count": 39,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir",
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000003",
+    "name": "Kost Asri",
+    "address": "",
+    "kelurahan": "Kayu Putih",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13210",
+    "lat": -6.19545794102765,
+    "lon": 106.95293360949302,
+    "rating": 5.0,
+    "review_count": 19,
+    "tags": [
+      "wifi"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000004",
+    "name": "Kost Mulia",
+    "address": "",
+    "kelurahan": "Kayu Putih",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13210",
+    "lat": -6.204644155238433,
+    "lon": 106.95116963648204,
+    "rating": 4.8,
+    "review_count": 54,
+    "tags": [
+      "kamar_mandi_dalam",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000005",
+    "name": "Kost Bahagia",
+    "address": "",
+    "kelurahan": "Kayu Putih",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13210",
+    "lat": -6.199552049145486,
+    "lon": 106.95595488931419,
+    "rating": 3.9,
+    "review_count": 23,
+    "tags": [
+      "wifi"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000006",
+    "name": "Kost Sejahtera",
+    "address": "",
+    "kelurahan": "Rawamangun",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13220",
+    "lat": -6.191455424500384,
+    "lon": 106.9543120373168,
+    "rating": 4.9,
+    "review_count": 100,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000007",
+    "name": "Kost Indah",
+    "address": "",
+    "kelurahan": "Rawamangun",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13220",
+    "lat": -6.200995017629087,
+    "lon": 106.9549023271911,
+    "rating": 4.2,
+    "review_count": 122,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000008",
+    "name": "Kost Permai",
+    "address": "",
+    "kelurahan": "Rawamangun",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13220",
+    "lat": -6.191857181408695,
+    "lon": 106.94803969069321,
+    "rating": 4.4,
+    "review_count": 18,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000009",
+    "name": "Kost Raya",
+    "address": "",
+    "kelurahan": "Rawamangun",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13220",
+    "lat": -6.193094092674527,
+    "lon": 106.9568873975421,
+    "rating": 4.5,
+    "review_count": 124,
+    "tags": [
+      "kamar_mandi_dalam",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000010",
+    "name": "Kost Utama",
+    "address": "",
+    "kelurahan": "Rawamangun",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13220",
+    "lat": -6.1937169558905065,
+    "lon": 106.94621338855194,
+    "rating": 4.6,
+    "review_count": 122,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir",
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000011",
+    "name": "Kost Mas",
+    "address": "",
+    "kelurahan": "Pisangan Timur",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13230",
+    "lat": -6.199890717809193,
+    "lon": 106.95721839086966,
+    "rating": 4.4,
+    "review_count": 63,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000012",
+    "name": "Kost Putri",
+    "address": "",
+    "kelurahan": "Pisangan Timur",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13230",
+    "lat": -6.205388373975997,
+    "lon": 106.95398374801898,
+    "rating": 4.5,
+    "review_count": 43,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000013",
+    "name": "Kost Satria",
+    "address": "",
+    "kelurahan": "Pisangan Timur",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13230",
+    "lat": -6.189316143456035,
+    "lon": 106.96415462407928,
+    "rating": 4.0,
+    "review_count": 53,
+    "tags": [
+      "wifi",
+      "kamar_mandi_dalam",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000014",
+    "name": "Kost Griya",
+    "address": "",
+    "kelurahan": "Pisangan Timur",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13230",
+    "lat": -6.197300745393173,
+    "lon": 106.95678247007464,
+    "rating": 4.1,
+    "review_count": 9,
+    "tags": [],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000015",
+    "name": "Kost Lestari",
+    "address": "",
+    "kelurahan": "Pisangan Timur",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13230",
+    "lat": -6.195673175525872,
+    "lon": 106.9640619585105,
+    "rating": 4.6,
+    "review_count": 139,
+    "tags": [
+      "ac",
+      "kamar_mandi_dalam",
+      "dapur",
+      "laundry",
+      "kasur",
+      "lemari"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000016",
+    "name": "Kost Mandiri",
+    "address": "",
+    "kelurahan": "Cipinang",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13240",
+    "lat": -6.1990386073888875,
+    "lon": 106.95288240031951,
+    "rating": 4.4,
+    "review_count": 110,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000017",
+    "name": "Kost Cahaya",
+    "address": "",
+    "kelurahan": "Cipinang",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13240",
+    "lat": -6.203753936244558,
+    "lon": 106.95180107304465,
+    "rating": 3.9,
+    "review_count": 8,
+    "tags": [],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000018",
+    "name": "Kost Fajar",
+    "address": "",
+    "kelurahan": "Cipinang",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13240",
+    "lat": -6.206489982266677,
+    "lon": 106.96248664754748,
+    "rating": 4.5,
+    "review_count": 46,
+    "tags": [
+      "kamar_mandi_dalam",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000019",
+    "name": "Kost Suria",
+    "address": "",
+    "kelurahan": "Cipinang",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13240",
+    "lat": -6.190021261470307,
+    "lon": 106.9648620544341,
+    "rating": 4.4,
+    "review_count": 131,
+    "tags": [
+      "wifi",
+      "ac",
+      "kamar_mandi_dalam",
+      "parkir",
+      "kasur",
+      "lemari"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000020",
+    "name": "Kost Duta",
+    "address": "",
+    "kelurahan": "Cipinang",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13240",
+    "lat": -6.2017048621656565,
+    "lon": 106.96157710756243,
+    "rating": 4.0,
+    "review_count": 13,
+    "tags": [
+      "wifi",
+      "ac",
+      "kamar_mandi_dalam",
+      "parkir",
+      "kasur",
+      "lemari"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang ac dingin parkir luas",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000021",
+    "name": "Kost Cipta",
+    "address": "",
+    "kelurahan": "Jatinegara Kaum",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13250",
+    "lat": -6.196136551482358,
+    "lon": 106.94554084982845,
+    "rating": 4.4,
+    "review_count": 31,
+    "tags": [],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000022",
+    "name": "Kost Alam",
+    "address": "",
+    "kelurahan": "Jatinegara Kaum",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13250",
+    "lat": -6.196168657544396,
+    "lon": 106.95505394046451,
+    "rating": 4.6,
+    "review_count": 57,
+    "tags": [],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000023",
+    "name": "Kost Bumi",
+    "address": "",
+    "kelurahan": "Jatinegara Kaum",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13250",
+    "lat": -6.19664722551513,
+    "lon": 106.95211125086709,
+    "rating": 3.8,
+    "review_count": 15,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000024",
+    "name": "Kost Harapan",
+    "address": "",
+    "kelurahan": "Jatinegara Kaum",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13250",
+    "lat": -6.198055446444665,
+    "lon": 106.96374042402552,
+    "rating": 5.0,
+    "review_count": 101,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000025",
+    "name": "Kost Taman",
+    "address": "",
+    "kelurahan": "Jatinegara Kaum",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13250",
+    "lat": -6.203065876731614,
+    "lon": 106.94908746726553,
+    "rating": 4.5,
+    "review_count": 8,
+    "tags": [],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000026",
+    "name": "Kost Surya",
+    "address": "",
+    "kelurahan": "Pulo Gadung",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13260",
+    "lat": -6.188804457248966,
+    "lon": 106.96064605768196,
+    "rating": 4.7,
+    "review_count": 130,
+    "tags": [
+      "wifi"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000027",
+    "name": "Kost Bintang",
+    "address": "",
+    "kelurahan": "Pulo Gadung",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13260",
+    "lat": -6.190983528622066,
+    "lon": 106.96443314577964,
+    "rating": 4.3,
+    "review_count": 110,
+    "tags": [
+      "ac",
+      "kamar_mandi_dalam",
+      "dapur",
+      "laundry",
+      "kasur",
+      "lemari"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kamar mandi dalam kasur lemari murah",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000028",
+    "name": "Kost Mega",
+    "address": "",
+    "kelurahan": "Pulo Gadung",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13260",
+    "lat": -6.206449022985823,
+    "lon": 106.95681624604833,
+    "rating": 4.4,
+    "review_count": 45,
+    "tags": [
+      "wifi"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000029",
+    "name": "Kost Anggun",
+    "address": "",
+    "kelurahan": "Pulo Gadung",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13260",
+    "lat": -6.206572066513562,
+    "lon": 106.96098714023394,
+    "rating": 4.7,
+    "review_count": 34,
+    "tags": [
+      "wifi"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi stabil pemilik ramai recommended",
+        "rating": 4,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 5,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "harga di bawah 1 juta putri aman",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJpulgadung000000000000000000000000000030",
+    "name": "Kost Sentosa",
+    "address": "",
+    "kelurahan": "Pulo Gadung",
+    "kecamatan": "Pulogadung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13260",
+    "lat": -6.201963303772691,
+    "lon": 106.9508593330534,
+    "rating": 4.1,
+    "review_count": 91,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": null,
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin dapur bersih laundry",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      },
+      {
+        "text": "kos putri bersih deket stasiun",
+        "rating": 3,
+        "date": "",
+        "author": "",
+        "language": ""
+      }
+    ]
+  }
+]
