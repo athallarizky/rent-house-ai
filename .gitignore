@@ -43,12 +43,8 @@ build/
 # Command Code local state
 .commandcode/
 
-# Sprint 10 POC (standalone scripts tracked; runtime artifacts below gitignored)
-poc/.venv/
-poc/_chroma/
-poc/_backups/
-poc/_e2e_logs/
-poc/_results/
+# Sprint 10 POC — not shipped on release/standalone (kept on main / app/e5-small-embedding)
+poc/
 
 # Sprint 10/11 — local Docker port-mapping override (POC vs baseline side-by-side)
 docker-compose.override.yml
