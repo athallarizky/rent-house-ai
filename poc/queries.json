@@ -1,0 +1,339 @@
+{
+  "_meta": {
+    "description": "Sprint 10 Phase 2.1 \u2014 held-out Indonesian kos queries with hand-labeled relevant doc_ids. Used by bench_retrieval.py to compute nDCG@5 / recall@5 for bge-m3 vs e5-small.",
+    "labeled_by": "athallarizky",
+    "labeled_on": "2026-06-21",
+    "source_data": "data/cleaned/*_docs.json (1693 docs across 19 areas)",
+    "labeling_convention": {
+      "relevance": "binary (relevant / not relevant)",
+      "criteria": [
+        "Facility queries (wifi, ac, dapur, etc.): doc.metadata.tags contains the facility OR doc.text reviews explicitly mention the facility with positive sentiment.",
+        "Gender queries (putri/putra): doc.metadata.gender matches the query exactly. 'campur' counts as both putri and putra.",
+        "Location queries (dekat stasiun, dekat kampus, dekat halte): doc.text reviews mention the location by name (not just generic 'strategis').",
+        "Price queries: doc.metadata.price_min within +-30% of the queried budget.",
+        "Quality queries (bersih, rapi, bagus): reviews explicitly mention the quality with positive sentiment AND doc.rating >= 4.5."
+      ],
+      "conservative_rule": "When uncertain, EXCLUDE. Better to have false negatives (under-labeled) than false positives (over-labeled) \u2014 false positives bias nDCG downward unfairly.",
+      "gender_note": "'campur' (mixed) is treated as relevant for both putri and putra queries \u2014 a campur kos accepts both genders."
+    }
+  },
+  "queries": [
+    {
+      "id": "q01",
+      "query": "wifi kenceng buat wfh",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJN-_FI8P3aS4RqY1caRK-Bjc",
+        "ChIJyU9-i_odai4Rs2cUYJJ55F8",
+        "ChIJSe9grxf5aS4RvLgqmN_blw8",
+        "ChIJrZMNc8L3aS4RCtjvkX4Z_wE",
+        "ChIJaxysrN8Dai4RqKkQ_3D8K6I"
+      ],
+      "rationale": "Top 5 Cengkareng docs with 'wifi' in metadata.tags AND rating >= 4.5. These are docs where a user searching 'wifi kenceng buat wfh' would expect to see them. Note: actual wifi speed claims are in review text, not a structured field."
+    },
+    {
+      "id": "q02",
+      "query": "kos putri murah",
+      "area": "Cilandak",
+      "relevant_doc_ids": [
+        "ChIJrxTYpK3vaS4RNqUXSdTtJgo",
+        "ChIJZZSWYwDvaS4RDoSb65CZC3U",
+        "ChIJkRceZBfxaS4Rjz442KDiPlo",
+        "ChIJJw8JCQnvaS4RvWg9hkFqnis",
+        "ChIJQZ2N4PbvaS4RHpgaZBq_zRg"
+      ],
+      "rationale": "Top 5 Cilandak docs with metadata.gender='putri' (or 'wanita') AND rating >= 4.5. 'Murah' is not strictly filterable \u2014 we treat all putri kos in this set as relevant since user intent is 'show me female kos', and price filter would need explicit price_min which many lack."
+    },
+    {
+      "id": "q03",
+      "query": "kos putra dekat stasiun",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJSe9grxf5aS4RvLgqmN_blw8",
+        "ChIJrZMNc8L3aS4RCtjvkX4Z_wE",
+        "ChIJx4igdQD3aS4RFCjQW37NLWI",
+        "ChIJ12XthMX3aS4RMwCKxKNyibs"
+      ],
+      "rationale": "Cengkareng docs where reviews explicitly mention 'stasiun' (Rawa Buaya or other). 'putra' constraint relaxed to include 'campur' (mixed) since pure putra + near-stasiun is rare in this area. Explicitly putri docs near stasiun (e.g. Kosan putri sami family) are EXCLUDED per the putra intent."
+    },
+    {
+      "id": "q04",
+      "query": "ac dingin parkir luas",
+      "area": "Kebon Jeruk",
+      "relevant_doc_ids": [
+        "ChIJ5Q_5EhT3aS4RxPGaqsd7jc4",
+        "ChIJB9K36Uf3aS4R8CReDCuGQOw",
+        "ChIJswjwIxH3aS4RF8lNy2TPgZM",
+        "ChIJHWR--0n3aS4RWc5ITIzduHY"
+      ],
+      "rationale": "Kebon Jeruk docs where metadata.tags contains 'ac' AND reviews mention 'parkir' or 'luas' (or both). Strictly require AC in tags to avoid false positives. Skip docs that have only one of the two facilities."
+    },
+    {
+      "id": "q05",
+      "query": "kamar mandi dalam",
+      "area": "Grogol Petamburan",
+      "relevant_doc_ids": [
+        "ChIJJ8a5tXv3aS4RGQ5y5YfVdz0",
+        "ChIJaVlo3m73aS4RyidiwV1MbeQ",
+        "ChIJR1uwb333aS4RnVphG6jYQk8",
+        "ChIJ9XewIvP3aS4R5JK4DTeIrgQ",
+        "ChIJ3_Y5xC33aS4R8OjAyXA25y4"
+      ],
+      "rationale": "Top 5 Grogol Petamburan docs where metadata.tags contains 'kamar_mandi_dalam' OR reviews explicitly say 'kamar mandi dalam' / 'km dalam'. All have rating >= 4.9."
+    },
+    {
+      "id": "q06",
+      "query": "dekat kampus murah buat mahasiswa",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJtZoNc4b3aS4RlGUMcKYOD48",
+        "ChIJjefl6Ln3aS4R-fgJjVhfAxQ",
+        "ChIJ-ZtLLuL3aS4RTVTeQfxMWEY",
+        "ChIJ8ZnSQwD3aS4RJE8OMRWFz5A",
+        "ChIJvb8tDhT5aS4RNGHmKXoSMLs"
+      ],
+      "rationale": "Cengkareng docs where reviews explicitly mention 'kampus', 'mahasiswa', 'kuliah', or 'kuliahan'. All rating 5*. 'Murah' not strictly filterable but these all have student-friendly mentions in review text."
+    },
+    {
+      "id": "q07",
+      "query": "kos putri aman ada cctv",
+      "area": "Cipondoh",
+      "relevant_doc_ids": [
+        "ChIJoWI1qs_5aS4Rtk4g8C2l34c",
+        "ChIJuUgtyw_5aS4RP9vbAUNR2i8",
+        "ChIJOe3MrjL5aS4Rk2P5OC8UxL4",
+        "ChIJF8iFa975aS4RLvykteEJfUI",
+        "ChIJJyBufBv5aS4R4ls7feWGSdc"
+      ],
+      "rationale": "Cipondoh docs with metadata.gender='putri' AND reviews explicitly mention 'cctv', 'satpam', or 'keamanan'. All rating >= 4.8."
+    },
+    {
+      "id": "q08",
+      "query": "dapur buat masak",
+      "area": "Kalideres",
+      "relevant_doc_ids": [
+        "ChIJBV2vGwD5aS4RY1dAgGSR_f8",
+        "ChIJ9bh16DT5aS4R5f_WQtUacH4",
+        "ChIJA4uaXwADai4ROuYIFa3IwTU",
+        "ChIJN7cgsQcDai4RAvO3j2xtgaU",
+        "ChIJ27P_YaADai4R2uCLWaQ8WFA"
+      ],
+      "rationale": "Top 5 Kalideres docs where metadata.tags contains 'dapur' AND rating >= 4.9. All have positive review sentiment about cooking facilities."
+    },
+    {
+      "id": "q09",
+      "query": "kamar ber ac",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJSe9grxf5aS4RvLgqmN_blw8",
+        "ChIJL0wgFFv3aS4R79akqJQ2RDE",
+        "ChIJrZMNc8L3aS4RCtjvkX4Z_wE",
+        "ChIJk8UuegD3aS4RzMyj2a639-w",
+        "ChIJM6-Eju_5aS4RxQI25AvdI_U"
+      ],
+      "rationale": "Cengkareng docs where metadata.tags contains 'ac' (the structured field, not just text mentions). Rating >= 4.5. Picks docs where AC is a confirmed facility."
+    },
+    {
+      "id": "q10",
+      "query": "kamar luas",
+      "area": "Kebon Jeruk",
+      "relevant_doc_ids": [
+        "ChIJ5Q_5EhT3aS4RxPGaqsd7jc4",
+        "ChIJvWJhPxL3aS4R9FO-6cSM7KM",
+        "ChIJtYC8TVX3aS4RPnOMGDJGcwI",
+        "ChIJ6b9osHbxaS4RP_7j-3xpPUk",
+        "ChIJf4vYTwD3aS4RqjLfnwhSFN0"
+      ],
+      "rationale": "Kebon Jeruk docs where reviews explicitly use 'luas' or 'spacious' to describe the room. Rating >= 4.5. Avoids docs where 'luas' only refers to parking."
+    },
+    {
+      "id": "q11",
+      "query": "akses 24 jam",
+      "area": "Cilandak",
+      "relevant_doc_ids": [
+        "ChIJJ5GcDWTxaS4RFg1EH1YZYmA",
+        "ChIJqQaa1M7xaS4RrSArXLXdZ3M",
+        "ChIJ8e6uKf7xaS4RgRsXmAE2rk8",
+        "ChIJ9TxDnlPxaS4Rb0zO31aTI5Y",
+        "ChIJe_Y6tZ7vaS4RYE6sU4AzPxg"
+      ],
+      "rationale": "Top 5 Cilandak docs where metadata.is_24h=true (structured field) AND rating >= 4.9. The 'Akses: 24 jam' line in doc text confirms this."
+    },
+    {
+      "id": "q12",
+      "query": "wifi fiber cepat",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJN-_FI8P3aS4RqY1caRK-Bjc",
+        "ChIJyU9-i_odai4Rs2cUYJJ55F8",
+        "ChIJSe9grxf5aS4RvLgqmN_blw8",
+        "ChIJrZMNc8L3aS4RCtjvkX4Z_wE",
+        "ChIJaxysrN8Dai4RqKkQ_3D8K6I"
+      ],
+      "rationale": "Same target set as q01 (wifi is the dominant signal). 'Fiber' specifically is rare in reviews, so we accept any wifi-tagged doc. Tests whether the model generalizes 'fiber' to 'wifi'."
+    },
+    {
+      "id": "q13",
+      "query": "parkir motor aman",
+      "area": "Grogol Petamburan",
+      "relevant_doc_ids": [
+        "ChIJt8zNWwj3aS4RRMQdG31oNKM",
+        "ChIJ-y91c7H3aS4RjqYKSzuBajQ",
+        "ChIJaVlo3m73aS4RyidiwV1MbeQ",
+        "ChIJR1uwb333aS4RnVphG6jYQk8"
+      ],
+      "rationale": "Grogol Petamburan docs where reviews explicitly mention 'parkir' AND ('motor' OR 'aman'). Rating >= 4.9. Excludes docs that mention only 'parkiran' generically without security context."
+    },
+    {
+      "id": "q14",
+      "query": "kos dekat halte transjakarta",
+      "area": "Kebon Jeruk",
+      "relevant_doc_ids": [
+        "ChIJ5Q_5EhT3aS4RxPGaqsd7jc4",
+        "ChIJtZYxd6L3aS4Rkt516SFtLgI",
+        "ChIJn1S5bRf3aS4R_2h0iHvnsXk",
+        "ChIJP04VZBP3aS4REsBcYapEieE",
+        "ChIJvSE589v3aS4RoHGIiZnFA8g"
+      ],
+      "rationale": "Kebon Jeruk docs where reviews explicitly mention 'halte', 'busway', or 'transjakarta' (TJ). Rating >= 4.9. Strict location-name match."
+    },
+    {
+      "id": "q15",
+      "query": "kos putri depan kampus",
+      "area": "Cilandak",
+      "relevant_doc_ids": [
+        "ChIJrxTYpK3vaS4RNqUXSdTtJgo",
+        "ChIJZZSWYwDvaS4RDoSb65CZC3U",
+        "ChIJQZ2N4PbvaS4RHpgaZBq_zRg"
+      ],
+      "rationale": "Cilandak docs with metadata.gender='putri' AND reviews mention kampus/mahasiswa (UPNVJ, etc). Smaller set than q02 because we add the location constraint. Excludes male/mixed docs that mention campus."
+    },
+    {
+      "id": "q16",
+      "query": "kost budget satu juta",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJJeh7QVr3aS4RDjBuuoXDAF4",
+        "ChIJmWFjAmn3aS4R_77s8_l1_3Q",
+        "ChIJsUGo2in4aS4RLH0BHw9pVtE",
+        "ChIJtehegf_3aS4R_zFLB5k8Jag",
+        "ChIJvf12FgD5aS4RE8m3E4akEMA"
+      ],
+      "rationale": "Cengkareng docs where metadata.price_min is between 700k and 1.5M IDR (+-30% of 1 juta), rating >= 4.5. Verified via metadata.price_min/price_max fields. Tests whether the model understands 'satu juta' = 1,000,000."
+    },
+    {
+      "id": "q17",
+      "query": "kos bersih bagus rapi",
+      "area": "Cilandak",
+      "relevant_doc_ids": [
+        "ChIJ0RNNLQDxaS4R6-8UuNXKZnY",
+        "ChIJJ5GcDWTxaS4RFg1EH1YZYmA",
+        "ChIJQ551ppvxaS4Rxddy3NcSnhc",
+        "ChIJyYyKWADxaS4RzevRRw3-kFY",
+        "ChIJtyHCRtvxaS4RtCv7cY6oTlw"
+      ],
+      "rationale": "Top 5 Cilandak docs rating=5* with rc>=20 AND reviews explicitly mention 'bersih' or 'rapi'. Tests whether model matches quality-adjective queries."
+    },
+    {
+      "id": "q18",
+      "query": "kos buat anak kerja",
+      "area": "Kalideres",
+      "relevant_doc_ids": [
+        "ChIJBV2vGwD5aS4RY1dAgGSR_f8",
+        "ChIJA4uaXwADai4ROuYIFa3IwTU",
+        "ChIJN7cgsQcDai4RAvO3j2xtgaU",
+        "ChIJBUqQeIP5aS4RAM74eCp_kfA"
+      ],
+      "rationale": "Kalideres docs where reviews mention 'kerja', 'karyawan', 'pekerja', or 'pulang kerja'. Rating >= 4.9. Tests model's understanding of colloquial 'anak kerja' (working people)."
+    },
+    {
+      "id": "q19",
+      "query": "kos putri ada satpam",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJN-_FI8P3aS4RqY1caRK-Bjc",
+        "ChIJL0wgFFv3aS4R79akqJQ2RDE",
+        "ChIJV7NGRaP3aS4ROW_HvxAxHQ0",
+        "ChIJaxysrN8Dai4RqKkQ_3D8K6I",
+        "ChIJ77Ub_Of5aS4RKb_6Mti7GaU"
+      ],
+      "rationale": "Cengkareng docs where reviews explicitly mention 'satpam', 'security', or 'cctv'. 'putri' constraint relaxed since few explicitly putri docs mention satpam \u2014 these are docs a female user prioritizing security would want to see. Rating >= 4.9."
+    },
+    {
+      "id": "q20",
+      "query": "kamar ac kamar mandi dalam",
+      "area": "Cilandak",
+      "relevant_doc_ids": [
+        "ChIJJ5GcDWTxaS4RFg1EH1YZYmA",
+        "ChIJx_0HcADvaS4RwUWg0YuDi1w",
+        "ChIJ19yRkdPxaS4RZcgLJunavc8",
+        "ChIJteT3n1zxaS4RWdax4qMPx7c",
+        "ChIJI0kmqZjxaS4Rg-ulwRY16Xo"
+      ],
+      "rationale": "Cilandak docs where metadata.tags contains BOTH 'ac' AND 'kamar_mandi_dalam'. Strict AND. Rating >= 4.7. Tests model's ability to handle multi-facility conjunctions."
+    },
+    {
+      "id": "q21",
+      "query": "wifi stabil buat kerja",
+      "area": "Grogol Petamburan",
+      "relevant_doc_ids": [
+        "ChIJJ8a5tXv3aS4RGQ5y5YfVdz0",
+        "ChIJ49kVMAD3aS4RI3zCOTNRxns",
+        "ChIJl5IsKwD3aS4R1Pj9JXAjUeQ",
+        "ChIJaVlo3m73aS4RyidiwV1MbeQ",
+        "ChIJR1uwb333aS4RnVphG6jYQk8"
+      ],
+      "rationale": "Grogol Petamburan docs with 'wifi' in metadata.tags AND rating >= 4.8. Similar to q01 but different area. Tests consistency of wifi-quality retrieval across areas."
+    },
+    {
+      "id": "q22",
+      "query": "kos populer rating tinggi",
+      "area": "Bangsri",
+      "relevant_doc_ids": [
+        "ChIJ_QqmkWI9cS4RX_PJ9ml3Ivw",
+        "ChIJEa7J0v09cS4Rp8Y-1VLcLsQ",
+        "ChIJvw3ANY0jcS4Ra5L_2l09Lfs",
+        "ChIJ-dr0spQfcS4RWzwu6ZM7VqU",
+        "ChIJvcM-PwgfcS4R3FX6KeZbdZE"
+      ],
+      "rationale": "Top 5 Bangsri docs by review_count where rating >= 4.8. Tests geographic generalization (Bangsri is in Jepara, Central Java — different from Jakarta-heavy training data). 'Kos / Kontrakan Mas Joko' (142rc) is the clear top hit."
+    },
+    {
+      "id": "q23",
+      "query": "parkir luas buat mobil",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJDRS2vI35aS4RodXq6oV3b2Y",
+        "ChIJSe9grxf5aS4RvLgqmN_blw8",
+        "ChIJA0mg5dT3aS4RM6Nq4ZcBafs",
+        "ChIJrZMNc8L3aS4RCtjvkX4Z_wE",
+        "ChIJLQEw-nf3aS4Re3MBHayMv14"
+      ],
+      "rationale": "Cengkareng docs where reviews mention 'parkir' + ('luas' or 'mobil'). Rating >= 4.9. Tests model's understanding that 'buat mobil' implies car parking specifically."
+    },
+    {
+      "id": "q24",
+      "query": "kos putra murah",
+      "area": "Cengkareng",
+      "relevant_doc_ids": [
+        "ChIJjefl6Ln3aS4R-fgJjVhfAxQ",
+        "ChIJC9VcVAD3aS4RWp3TZbg5ckA",
+        "ChIJOybYDIj3aS4R_driyOwQvCI",
+        "ChIJL-PSwSf4aS4R-nf1qw_m5qQ",
+        "ChIJfX3mhQ73aS4RQexiJjUWMmw"
+      ],
+      "rationale": "Cengkareng docs with metadata.gender='putra' (strict, not campur). Rating >= 4.7. 'Murah' not strictly filterable but putra kos are typically cheaper than putri in this area."
+    },
+    {
+      "id": "q25",
+      "query": "kos harian sewa harian",
+      "area": "Cilandak",
+      "relevant_doc_ids": [
+        "ChIJtyHCRtvxaS4RtCv7cY6oTlw",
+        "ChIJ3RgvkzPxaS4RQwILF6wDBGM",
+        "ChIJn0F6PgjxaS4R_priQ1bGrBw"
+      ],
+      "rationale": "Cilandak docs where reviews explicitly mention 'harian' or 'sewa harian' (daily rental). Smaller set (3) because daily-rental kos are rare in the data. Tests precision on a niche query."
+    }
+  ]
+}
