@@ -9,16 +9,21 @@ echo "========================================="
 echo "  Kos AI — Starting..."
 echo "========================================="
 
-# Pre-download the embedding model (first run: ~2.3GB download)
+# Pre-download the embedding model (first run: large download).
+# Sprint 10/11 POC: read model from $EMBED_MODEL env (default bge-m3) so the
+# same script works for both the bge-m3 baseline run and the e5-small POC run.
+# Revert before merging (Sprint 10 only).
+EMBED_MODEL="${EMBED_MODEL:-BAAI/bge-m3}"
 echo ""
-echo "[1/2] Checking embedding model..."
+echo "[1/2] Checking embedding model ($EMBED_MODEL)..."
 python -c "
-import sys, time
+import os, sys, time
 start = time.time()
-print('  Loading sentence-transformers (bge-m3)...', flush=True)
+model_name = os.environ.get('EMBED_MODEL', 'BAAI/bge-m3')
+print(f'  Loading sentence-transformers ({model_name})...', flush=True)
 from sentence_transformers import SentenceTransformer
-print('  Downloading model (first run may take 2-5 min)...', flush=True)
-model = SentenceTransformer('BAAI/bge-m3')
+print(f'  Downloading model (first run may take a while)...', flush=True)
+model = SentenceTransformer(model_name)
 elapsed = time.time() - start
 print(f'  Model ready ({elapsed:.0f}s)', flush=True)
 " && echo "  ✓ Embedding model ready" || echo "  ⚠ Model setup failed, will retry on first search"
