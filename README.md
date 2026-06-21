@@ -59,6 +59,7 @@ http://localhost:4000
 | Login | http://localhost:4000/login |
 | Search | http://localhost:4000/search |
 | Settings (admin only) | http://localhost:4000/settings |
+| User management (admin only) | http://localhost:4000/users |
 | Pipeline dashboard (admin only) | http://localhost:4000/pipeline |
 
 ---
