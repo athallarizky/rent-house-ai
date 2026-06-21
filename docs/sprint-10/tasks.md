@@ -312,8 +312,9 @@ The Sprint-7 pipeline dashboard is the observation tool for re-ingest progress
 > *To be completed after POC. Record: chosen model, measured quality delta,
 > measured resource delta, truncation verdict, and go/no-go with rationale.*
 
-- **Quality delta (nDCG@5 e5-small vs bge-m3):** _TBD_
-- **Resource delta (RSS / load time / encode latency):** _TBD_
-- **Truncation verdict (% docs cut, chars lost):** _TBD_
-- **Recommendation:** _keep bge-m3 / move to e5-small / move to e5-base_
-- **Rationale:** _TBD_
+- **Quality delta (nDCG@5 e5-small vs bge-m3):** **−0.0192 (−3.4 %)** — 0.5712 → 0.5520. Recall@5: −5.3 % (0.1298 → 0.1229). Per-query uneven (e5 wins q04 +0.34, q10 +0.32, q16 +0.21; loses q11 −0.47, q09 −0.34).
+- **Resource delta (standalone — Phase 1):** 11 × faster warm encode (8.69 s → 0.79 s for 50 docs), 479 MiB lower peak RSS (1 255 → 776 MiB). Cold-load regression 11 → 22.5 s (startup-only via model_cache singleton).
+- **Resource delta (E2E Docker — Phase 5):** 12 × faster indexing (232.9 s → 19.2 s for 233 docs), 65 % lower peak indexing RAM (3.30 → 1.15 GiB), 3-4 × faster warm search (193 → 56 ms), 7.6 × faster cold search (510 → 67 ms), 29 % smaller ChromaDB (4.5 → 3.2 MiB for 233 docs).
+- **Truncation verdict (% docs cut, chars lost):** **9.63 % truncated** (163 of 1 693). Mean 963 chars lost per affected doc, concentrated in trailing (lowest-rated) reviews. Phase 3.2 chunking **not needed** — Phase 2's −3.4 % nDCG already includes this effect end-to-end.
+- **Recommendation:** **MOVE TO e5-small** (GO).
+- **Rationale:** Quality gap is bounded and even (−3 to −5 %). Resource wins are decisive and production-shaped (Phase 5 ran the actual Docker stack, not just standalone scripts). Enables smaller VPS SKUs (1.15 GiB peak fits in 2 GiB VM vs bge-m3's 3.3 GiB needing 4+ GiB). Prefix wiring is localized (one new helper + two call-site edits). Truncation is manageable and recoverable via chunking if ever observed in production. Full report: `docs/sprint-10/reports/decision.md`. Sprint 11 draft: `docs/sprint-11/tasks.md`.
