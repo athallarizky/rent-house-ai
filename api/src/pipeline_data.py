@@ -18,7 +18,7 @@ from typing import Any, Dict, Optional, Tuple
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
-from .auth import require_admin
+from .auth import require_admin, get_current_user
 from .orchestrator import (
     resolve_area,
     run_index_background,
@@ -128,7 +128,7 @@ def _get_indexed_counts() -> Dict[str, int]:
 
 
 @router.get("/data")
-async def get_pipeline_data(user: dict = Depends(require_admin)):
+async def get_pipeline_data(user: dict = Depends(get_current_user)):
     """Scan raw/cleaned/ChromaDB and return the per-area pipeline inventory."""
     areas: Dict[str, Dict[str, Any]] = {}
 
