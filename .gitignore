@@ -20,9 +20,6 @@ data/auth.db
 data/kodepos.json
 
 # Environment
-.env
-.env.local
-.env.production
 .env.docker.prod
 
 # OS
@@ -30,7 +27,6 @@ data/kodepos.json
 Thumbs.db
 
 # IDE
-.vscode/
 .idea/
 
 # Go binary
@@ -48,3 +44,4 @@ poc/
 
 # Sprint 10/11 — local Docker port-mapping override (POC vs baseline side-by-side)
 docker-compose.override.yml
+config.bat
