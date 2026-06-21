@@ -18,7 +18,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile.api.prod
     container_name: kos-api
     ports:
       - "4001:8080"
@@ -27,6 +27,7 @@ services:
       - model-cache:/root/.cache/huggingface
     env_file:
       - .env.docker
+      - .env.local
     restart: unless-stopped
     depends_on:
       geo-router:
