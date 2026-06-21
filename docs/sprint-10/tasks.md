@@ -1,11 +1,21 @@
 # Sprint 10 — Embedding Refactor POC: `multilingual-e5-small`
 
-> Status: ⬜ Pending | Created: 2026-06-20
-> Branch: `feat/e5-small-poc`
-> Based on: `feat/in-process-embedding` (Sprint 8)
-> Type: **Research / POC — no production code changes this sprint**
+> Status: 🔵 in_progress | Created: 2026-06-20 | Started: 2026-06-21
+> Branch: `feat/e5-small-poc` (recreated off `main` @ `ab20cff`)
+> Based on: `main` (Sprint 8 in-process + Sprint 9 dashboard actions landed)
+> Type: **Research / POC — standalone benchmark + E2E validation**
 
 Status legend: ⬜ pending | 🔵 in_progress | ✅ completed | ❌ blocked
+
+---
+
+> ⚠️ **Scope expansion (2026-06-21).** Original plan was standalone scripts
+> only. Stakeholder ask: validate end-to-end via the UI (scrape → process →
+> index → search) and produce a paper-style resource report. **Phase 5 (E2E
+> Docker validation) added.** This requires one temporary edit to
+> `scripts/docker-startup.sh` (Phase 5 only, on this branch only, reverted
+> before merge consideration). All other production files remain untouched.
+> Original "Out of Scope" wording preserved below for traceability.
 
 ---
 
@@ -13,18 +23,27 @@ Status legend: ⬜ pending | 🔵 in_progress | ✅ completed | ❌ blocked
 
 Validate replacing the current embedding model **`BAAI/bge-m3`** with
 **`intfloat/multilingual-e5-small`** as a lighter, faster alternative. This
-sprint is **POC + benchmark only** — the production swap (if the POC says go) is
-a follow-up sprint. The deliverable is a decision report, not merged code.
+sprint delivers a **decision report** backed by two layers of evidence:
+
+1. **Standalone benchmark** (Phases 1–3) — isolated model comparison on local
+   `torch`: quality, latency, RAM, truncation.
+2. **E2E validation** (Phase 5) — full Docker stack run twice (bge-m3 then
+   e5-small), real pipeline triggered via UI, paper-style resource comparison.
+
+The production swap (if the POC says go) is a follow-up **Sprint 11**. The
+deliverable here is the decision report, not merged production code.
 
 Primary motivation: cut the model footprint from **~2.3 GB → ~449 MB** (~5×
 smaller) and reduce CPU inference cost, which directly helps Sprint 8's
 "in-process embedding" goal of running the model resident in the FastAPI process.
 
-> ⚠️ **Scope guard:** every task below is a POC measurement or standalone script.
-> Nothing in `services/rag-engine/src/`, `api/src/`, `docker-compose.yml`, or
-> `scripts/docker-startup.sh` is modified for production this sprint. The actual
-> refactor lives in a follow-up "Sprint 11 — E5 migration" *after* the go/no-go
-> decision in Phase 4.
+> ⚠️ **Scope guard (relaxed 2026-06-21):** Phases 1–3 are pure POC scripts.
+> Phase 5 makes one temporary edit to `scripts/docker-startup.sh` on this
+> branch (reverted before merge). Nothing in `services/rag-engine/src/`,
+> `api/src/`, `services/data-processor/src/`, `services/scraper/`, `web/src/`,
+> `docker-compose.yml`, or `Dockerfile.*` is modified this sprint. The actual
+> refactor lives in **Sprint 11 — E5 migration**, after the go/no-go decision
+> in Phase 6.
 
 ---
 
@@ -160,12 +179,33 @@ expected to outperform e5-small on raw quality — especially on long documents.
 | 3.1 | For every doc in `data/cleaned/*_docs.json`, tokenize with the e5-small tokenizer and report: % of docs fully under 512 tokens, mean/median tokens, and how many characters of review text are lost on the over-long ones | `poc/truncation_report.py` | 0.75h | ⬜ |
 | 3.2 | If loss is material (>25% of docs truncated), prototype one chunking strategy (e.g. one passage per review) and re-measure retrieval from 2.2 to see if chunking recovers the gap | `poc/chunk_probe.py` | 1.0h | ⬜ |
 
-### Phase 4 — Decision Report
+### Phase 4 — Standalone Decision Gate
 
 | ID | Task | Est | Status |
 |----|------|-----|--------|
-| 4.1 | Write decision report here (§ Decision below): go/no-go on e5-small, with the measured numbers, the truncation verdict, and a recommended model (small vs base vs keep bge-m3) | 0.5h | ⬜ |
-| 4.2 | If GO: draft the follow-up "Sprint 11 — E5 migration" task list (prefix wiring, chunking if needed, ChromaDB wipe script, startup-script fix, re-ingest). If NO-GO: record why and close | 0.5h | ⬜ |
+| 4.1 | Review Phase 1–3 numbers. If standalone already shows clear NO-GO (nDCG drop >30% OR >50% docs truncated with no chunking recovery), abort Phase 5 to save time and write report | 0.25h | ⬜ |
+
+### Phase 5 — E2E Docker Validation (added 2026-06-21)
+
+Full production-shaped stack run twice — once per model — to produce paper-style
+resource comparison. Local Docker (macOS arm64, same methodology as Sprint 8
+baseline). One temporary edit to `scripts/docker-startup.sh` on this branch.
+
+| ID | Task | Where | Est | Status |
+|----|------|-------|-----|--------|
+| 5.1 | Backup `data/chroma_db/`. Edit `scripts/docker-startup.sh:21` to read `${EMBED_MODEL:-BAAI/bge-m3}` env var (so the same script works for both runs). Single sample area: **Cengkareng** (233 docs) | `poc/`, `scripts/docker-startup.sh` (revertible) | 0.5h | ⬜ |
+| 5.2 | Run A (bge-m3 baseline): bring stack up, measure idle RAM, trigger Rescrape Cengkareng via UI at `/pipeline`, poll `docker stats` + `/pipeline/status` until done, measure storage delta + per-doc ingest time, time 5 search queries via UI | `poc/e2e_run.py`, `poc/_e2e_logs/run_a_*` | 1.0h | ⬜ |
+| 5.3 | Run B (e5-small): wipe `data/chroma_db/` (dim mismatch), isolate `model-cache` volume via separate compose project name, set `EMBED_MODEL=intfloat/multilingual-e5-small`, repeat the Run A protocol exactly | `poc/e2e_run.py`, `poc/_e2e_logs/run_b_*` | 1.0h | ⬜ |
+| 5.4 | Produce paper-style resource comparison table (storage / RAM / CPU / latency / per-doc ingest time / ChromaDB size) | `poc/e2e_resource_report.md` | 0.5h | ⬜ |
+| 5.5 | Revert `scripts/docker-startup.sh` edit; restore `data/chroma_db/` from backup; cleanup compose project | — | 0.25h | ⬜ |
+
+### Phase 6 — Decision Report
+
+| ID | Task | Est | Status |
+|----|------|-----|--------|
+| 6.1 | Write decision report: go/no-go on e5-small with measured numbers from Phase 1 (standalone), Phase 2 (quality), Phase 3 (truncation), Phase 5 (E2E). Recommend model (small vs base vs keep bge-m3) | `docs/sprint-10/reports/decision.md` | 0.5h | ⬜ |
+| 6.2 | If GO: draft `docs/sprint-11/tasks.md` (prefix wiring, chunking if needed, ChromaDB wipe script, startup-script fix, re-ingest). If NO-GO: record why and close | `docs/sprint-11/tasks.md` | 0.5h | ⬜ |
+
 
 ---
 
@@ -236,12 +276,17 @@ The Sprint-7 pipeline dashboard is the observation tool for re-ingest progress
 
 ## Out of Scope
 
-- **Any production code change** — `config.py`, `ingest.py`, `search.py`,
-  `model_cache.py`, `docker-compose.yml`, `scripts/docker-startup.sh` stay
-  untouched this sprint. That is the entire Sprint 10.
-- **ChromaDB wipe / re-ingest of `kos_indonesia`** — Sprint 10.
+- **Edits to production logic files** — `config.py`, `ingest.py`, `search.py`,
+  `model_cache.py`, `docker-compose.yml`, `Dockerfile.*`, `services/data-processor/**`,
+  `services/scraper/**`, `web/src/**`, `api/src/**`. These are Sprint 11.
+- **`scripts/docker-startup.sh`** — gets ONE temporary edit on this POC branch
+  only (Phase 5), reverted before merge consideration. Original wording (zero
+  edits) was relaxed on 2026-06-21 to enable E2E validation.
+- **ChromaDB wipe of production `kos_indonesia`** — production DB at
+  `data/chroma_db/` is backed up before Phase 5 and restored after. POC uses
+  isolated compose project volumes, not the prod path.
 - **`e5-base` / `e5-large` deep dive** — only revisited if e5-small NO-GOs and a
-  middle ground is wanted (Phase 4.1).
+  middle ground is wanted (Phase 6.1).
 - **Quantization / FP16 / ONNX** — separate optimization track; out of scope.
 - **GPU** — not needed at current scale; CPU inference is the target.
 
@@ -251,15 +296,18 @@ The Sprint-7 pipeline dashboard is the observation tool for re-ingest progress
 
 | Phase | Tasks | Est |
 |-------|-------|-----|
-| 1 — POC harness + resource measurement | 2 | 1.0h |
-| 2 — Retrieval quality benchmark | 2 | 2.25h |
-| 3 — Truncation impact analysis | 2 | 1.75h |
-| 4 — Decision report + Sprint 10 draft | 2 | 1.0h |
-| **Total** | **8** | **~6.0h** |
+| 0 — Scaffolding (branch, dirs, tasks.md) | — | 0.5h |
+| 1 — Standalone harness + resource measurement | 2 | 1.0h |
+| 2 — Retrieval quality benchmark | 2 | 2.0h |
+| 3 — Truncation impact analysis | 2 | 1.0h |
+| 4 — Standalone decision gate | 1 | 0.25h |
+| 5 — E2E Docker validation (bge-m3 + e5-small) | 5 | 2.5h |
+| 6 — Decision report + Sprint 11 draft | 2 | 0.5h |
+| **Total** | **14** | **~7.75h** |
 
 ---
 
-## Decision (fill in during Phase 4)
+## Decision (fill in during Phase 6)
 
 > *To be completed after POC. Record: chosen model, measured quality delta,
 > measured resource delta, truncation verdict, and go/no-go with rationale.*

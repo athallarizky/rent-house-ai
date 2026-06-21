@@ -40,3 +40,10 @@ build/
 
 # Command Code local state
 .commandcode/
+
+# Sprint 10 POC (standalone scripts tracked; runtime artifacts below gitignored)
+poc/.venv/
+poc/_chroma/
+poc/_backups/
+poc/_e2e_logs/
+poc/_results/
