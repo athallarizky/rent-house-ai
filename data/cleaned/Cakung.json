@@ -1,0 +1,1217 @@
+[
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000001",
+    "name": "Kost Putri Bahagia",
+    "address": "Jl. Cakung Raya No.1, Jakarta Timur",
+    "kelurahan": "Cakung Timur",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13910",
+    "lat": -6.189466010251541,
+    "lon": 106.9608435913541,
+    "rating": 3.9,
+    "review_count": 116,
+    "tags": [
+      "wifi",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281214265799",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu1",
+        "language": ""
+      },
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu1",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000002",
+    "name": "Kost Cakung Sejahtera",
+    "address": "Jl. Cakung Raya No.2, Jakarta Timur",
+    "kelurahan": "Cakung Timur",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13910",
+    "lat": -6.1990232469862665,
+    "lon": 106.95599768875559,
+    "rating": 4.5,
+    "review_count": 64,
+    "tags": [
+      "wifi",
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281270291817",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu2",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu2",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000003",
+    "name": "Kost Mandala Griya",
+    "address": "Jl. Cakung Raya No.3, Jakarta Timur",
+    "kelurahan": "Cakung Timur",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13910",
+    "lat": -6.2009557944696025,
+    "lon": 106.95059854601276,
+    "rating": 4.2,
+    "review_count": 96,
+    "tags": [
+      "ac",
+      "parkir",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281291030736",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu3",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu3",
+        "language": ""
+      },
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu3",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000004",
+    "name": "Kost Bintang Timur",
+    "address": "Jl. Cakung Raya No.4, Jakarta Timur",
+    "kelurahan": "Cakung Timur",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13910",
+    "lat": -6.18641190671494,
+    "lon": 106.95537039504728,
+    "rating": 4.8,
+    "review_count": 155,
+    "tags": [
+      "ac",
+      "kamar_mandi_dalam",
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281235808537",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "ac dingin, kamar mandi dalam, bersih. worth it",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu4",
+        "language": ""
+      },
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu4",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000005",
+    "name": "Kost Duta Asri",
+    "address": "Jl. Cakung Raya No.5, Jakarta Timur",
+    "kelurahan": "Cakung Timur",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13910",
+    "lat": -6.193931793952631,
+    "lon": 106.95968220853281,
+    "rating": 4.0,
+    "review_count": 98,
+    "tags": [
+      "wifi",
+      "ac",
+      "kamar_mandi_dalam"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281238119557",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu5",
+        "language": ""
+      },
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu5",
+        "language": ""
+      },
+      {
+        "text": "ac dingin, kamar mandi dalam, bersih. worth it",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu5",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000006",
+    "name": "Kost Surya Kost",
+    "address": "Jl. Cakung Raya No.6, Jakarta Timur",
+    "kelurahan": "Rawa Terate",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13920",
+    "lat": -6.1937547957629775,
+    "lon": 106.94839895653568,
+    "rating": 4.9,
+    "review_count": 150,
+    "tags": [
+      "parkir",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281239476249",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu6",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu6",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000007",
+    "name": "Kost Melati Jaya",
+    "address": "Jl. Cakung Raya No.7, Jakarta Timur",
+    "kelurahan": "Rawa Terate",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13920",
+    "lat": -6.201676227895769,
+    "lon": 106.96126272248371,
+    "rating": 4.5,
+    "review_count": 88,
+    "tags": [
+      "ac",
+      "kamar_mandi_dalam"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281238538251",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu7",
+        "language": ""
+      },
+      {
+        "text": "ac dingin, kamar mandi dalam, bersih. worth it",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu7",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000008",
+    "name": "Kost Anggrek Mas",
+    "address": "Jl. Cakung Raya No.8, Jakarta Timur",
+    "kelurahan": "Rawa Terate",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13920",
+    "lat": -6.1917726373167365,
+    "lon": 106.94825483217046,
+    "rating": 4.5,
+    "review_count": 157,
+    "tags": [
+      "parkir",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281263606628",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu8",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu8",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000009",
+    "name": "Kost Permata Cakung",
+    "address": "Jl. Cakung Raya No.9, Jakarta Timur",
+    "kelurahan": "Rawa Terate",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13920",
+    "lat": -6.1998003599655505,
+    "lon": 106.95660962426993,
+    "rating": 4.5,
+    "review_count": 106,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281261220073",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu9",
+        "language": ""
+      },
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu9",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu9",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000010",
+    "name": "Kost Cendana Utama",
+    "address": "Jl. Cakung Raya No.10, Jakarta Timur",
+    "kelurahan": "Rawa Terate",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13920",
+    "lat": -6.185304230997417,
+    "lon": 106.95801755599183,
+    "rating": 4.7,
+    "review_count": 95,
+    "tags": [
+      "wifi",
+      "ac"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281224972279",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu10",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu10",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000011",
+    "name": "Kost Flamboyan",
+    "address": "Jl. Cakung Raya No.11, Jakarta Timur",
+    "kelurahan": "Jatinegara",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13930",
+    "lat": -6.1877607560189585,
+    "lon": 106.9531536334921,
+    "rating": 3.9,
+    "review_count": 168,
+    "tags": [
+      "wifi",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281250056581",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu11",
+        "language": ""
+      },
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu11",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000013",
+    "name": "Kost Cempaka Wangi",
+    "address": "Jl. Cakung Raya No.13, Jakarta Timur",
+    "kelurahan": "Jatinegara",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13930",
+    "lat": -6.183440310126453,
+    "lon": 106.95365412339059,
+    "rating": 4.0,
+    "review_count": 176,
+    "tags": [
+      "wifi",
+      "ac",
+      "kamar_mandi_dalam"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281273791320",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu13",
+        "language": ""
+      },
+      {
+        "text": "ac dingin, kamar mandi dalam, bersih. worth it",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu13",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000014",
+    "name": "Kost Teratai Biru",
+    "address": "Jl. Cakung Raya No.14, Jakarta Timur",
+    "kelurahan": "Jatinegara",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13930",
+    "lat": -6.188741020543617,
+    "lon": 106.95097984599995,
+    "rating": 4.6,
+    "review_count": 103,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281268800797",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu14",
+        "language": ""
+      },
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu14",
+        "language": ""
+      },
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu14",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000015",
+    "name": "Kost Kamboja Lestari",
+    "address": "Jl. Cakung Raya No.15, Jakarta Timur",
+    "kelurahan": "Jatinegara",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13930",
+    "lat": -6.198397705348068,
+    "lon": 106.94740434768903,
+    "rating": 3.9,
+    "review_count": 169,
+    "tags": [
+      "dapur",
+      "laundry",
+      "kasur",
+      "lemari"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281217901903",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu15",
+        "language": ""
+      },
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu15",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000016",
+    "name": "Kost Dahlia Kost",
+    "address": "Jl. Cakung Raya No.16, Jakarta Timur",
+    "kelurahan": "Penggilingan",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13940",
+    "lat": -6.19871526385259,
+    "lon": 106.9456462369745,
+    "rating": 4.9,
+    "review_count": 154,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281287337818",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu16",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu16",
+        "language": ""
+      },
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu16",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000017",
+    "name": "Kost Tulip Cozy",
+    "address": "Jl. Cakung Raya No.17, Jakarta Timur",
+    "kelurahan": "Penggilingan",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13940",
+    "lat": -6.194528427539601,
+    "lon": 106.95234049336074,
+    "rating": 4.7,
+    "review_count": 180,
+    "tags": [
+      "wifi",
+      "ac",
+      "kamar_mandi_dalam",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281297705310",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu17",
+        "language": ""
+      },
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu17",
+        "language": ""
+      },
+      {
+        "text": "ac dingin, kamar mandi dalam, bersih. worth it",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu17",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000018",
+    "name": "Kost Sakura Residence",
+    "address": "Jl. Cakung Raya No.18, Jakarta Timur",
+    "kelurahan": "Penggilingan",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13940",
+    "lat": -6.194027729043337,
+    "lon": 106.9514376327967,
+    "rating": 4.1,
+    "review_count": 71,
+    "tags": [
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281220117988",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu18",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu18",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000019",
+    "name": "Kost Bougenville",
+    "address": "Jl. Cakung Raya No.19, Jakarta Timur",
+    "kelurahan": "Penggilingan",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13940",
+    "lat": -6.193287177490985,
+    "lon": 106.94727494598399,
+    "rating": 4.3,
+    "review_count": 23,
+    "tags": [
+      "wifi",
+      "ac",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281232097220",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "wifi kencang banget, ac dingin, pemilik ramah. recommended",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu19",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu19",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000020",
+    "name": "Kost Alam Sutra",
+    "address": "Jl. Cakung Raya No.20, Jakarta Timur",
+    "kelurahan": "Penggilingan",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13940",
+    "lat": -6.1897625737609845,
+    "lon": 106.95273342823309,
+    "rating": 4.0,
+    "review_count": 63,
+    "tags": [
+      "wifi",
+      "ac",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281217849494",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu20",
+        "language": ""
+      },
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu20",
+        "language": ""
+      },
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu20",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000021",
+    "name": "Kost Cipta Karya",
+    "address": "Jl. Cakung Raya No.21, Jakarta Timur",
+    "kelurahan": "Pulo Gebang",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13950",
+    "lat": -6.19985134544121,
+    "lon": 106.9622155780655,
+    "rating": 3.9,
+    "review_count": 55,
+    "tags": [
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281219196777",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu21",
+        "language": ""
+      },
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu21",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000022",
+    "name": "Kost Graha Mulia",
+    "address": "Jl. Cakung Raya No.22, Jakarta Timur",
+    "kelurahan": "Pulo Gebang",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13950",
+    "lat": -6.202205166754219,
+    "lon": 106.9446396681099,
+    "rating": 4.6,
+    "review_count": 152,
+    "tags": [
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281280166708",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu22",
+        "language": ""
+      },
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu22",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000023",
+    "name": "Kost Sentosa Raya",
+    "address": "Jl. Cakung Raya No.23, Jakarta Timur",
+    "kelurahan": "Pulo Gebang",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13950",
+    "lat": -6.197000058404025,
+    "lon": 106.94932354392544,
+    "rating": 4.7,
+    "review_count": 26,
+    "tags": [
+      "wifi",
+      "ac",
+      "kamar_mandi_dalam",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281211250299",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu23",
+        "language": ""
+      },
+      {
+        "text": "ac dingin, kamar mandi dalam, bersih. worth it",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu23",
+        "language": ""
+      },
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu23",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000024",
+    "name": "Kost Harapan Baru",
+    "address": "Jl. Cakung Raya No.24, Jakarta Timur",
+    "kelurahan": "Pulo Gebang",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13950",
+    "lat": -6.185382716526271,
+    "lon": 106.9605854048497,
+    "rating": 4.2,
+    "review_count": 48,
+    "tags": [
+      "parkir",
+      "dapur",
+      "laundry"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281268812137",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu24",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu24",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000025",
+    "name": "Kost Jaya Makmur",
+    "address": "Jl. Cakung Raya No.25, Jakarta Timur",
+    "kelurahan": "Pulo Gebang",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13950",
+    "lat": -6.2009282699616355,
+    "lon": 106.96056253929947,
+    "rating": 4.1,
+    "review_count": 35,
+    "tags": [
+      "wifi",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281284252420",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu25",
+        "language": ""
+      },
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu25",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000026",
+    "name": "Kost Lestari Mandiri",
+    "address": "Jl. Cakung Raya No.26, Jakarta Timur",
+    "kelurahan": "Ujung Menteng",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13960",
+    "lat": -6.190315240822298,
+    "lon": 106.9482796780326,
+    "rating": 4.4,
+    "review_count": 21,
+    "tags": [
+      "wifi",
+      "parkir"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281222388090",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu26",
+        "language": ""
+      },
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu26",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000027",
+    "name": "Kost Adi Guna",
+    "address": "Jl. Cakung Raya No.27, Jakarta Timur",
+    "kelurahan": "Ujung Menteng",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13960",
+    "lat": -6.199768360474522,
+    "lon": 106.95183671023722,
+    "rating": 4.6,
+    "review_count": 151,
+    "tags": [
+      "wifi",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281211297845",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu27",
+        "language": ""
+      },
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu27",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000028",
+    "name": "Kost Bumi Asri",
+    "address": "Jl. Cakung Raya No.28, Jakarta Timur",
+    "kelurahan": "Ujung Menteng",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13960",
+    "lat": -6.1913498086702035,
+    "lon": 106.94596187571135,
+    "rating": 4.0,
+    "review_count": 86,
+    "tags": [
+      "ac",
+      "dapur",
+      "laundry"
+    ],
+    "gender": null,
+    "is_24h": false,
+    "phone": "+6281258942697",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "dapur bersih, laundry tersedia. pemilik responsive",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu28",
+        "language": ""
+      },
+      {
+        "text": "murah meriah, 800 ribu sebulan. ac tambah 200 ribu",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu28",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000029",
+    "name": "Kost Cahaya Timur",
+    "address": "Jl. Cakung Raya No.29, Jakarta Timur",
+    "kelurahan": "Ujung Menteng",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13960",
+    "lat": -6.18531730597098,
+    "lon": 106.95112754779664,
+    "rating": 4.5,
+    "review_count": 47,
+    "tags": [
+      "wifi",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281241774346",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "bagus buat kos putri, wifi stabil, lingkungan tenang",
+        "rating": 3,
+        "date": "",
+        "author": "Tamu29",
+        "language": ""
+      },
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu29",
+        "language": ""
+      }
+    ]
+  },
+  {
+    "place_id": "ChIJcakung000000000000000000000000000000030",
+    "name": "Kost Fajar Indah",
+    "address": "Jl. Cakung Raya No.30, Jakarta Timur",
+    "kelurahan": "Ujung Menteng",
+    "kecamatan": "Cakung",
+    "regency": "Administrasi Jakarta Timur",
+    "province": "DKI Jakarta",
+    "postal_code": "13960",
+    "lat": -6.186955297221257,
+    "lon": 106.96028128056751,
+    "rating": 4.8,
+    "review_count": 76,
+    "tags": [
+      "parkir",
+      "kasur",
+      "lemari"
+    ],
+    "gender": "putri",
+    "is_24h": false,
+    "phone": "+6281231367172",
+    "website": "",
+    "maps_url": "",
+    "reviews": [
+      {
+        "text": "parkir luas, aman, deket stasiun. kos putri bersih",
+        "rating": 5,
+        "date": "",
+        "author": "Tamu30",
+        "language": ""
+      },
+      {
+        "text": "kamar lumayan, ada kasur dan lemari. harga di bawah 1 juta",
+        "rating": 4,
+        "date": "",
+        "author": "Tamu30",
+        "language": ""
+      }
+    ]
+  }
+]

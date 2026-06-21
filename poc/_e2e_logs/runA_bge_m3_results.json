@@ -1,0 +1,1071 @@
+{
+  "label": "runA_bge_m3",
+  "area": "Cengkareng",
+  "timestamp": "2026-06-21T08:39:16.989038",
+  "health_wait_s": 0.0,
+  "idle_samples": [
+    {
+      "container": "kos-api",
+      "cpu_percent": "0.19%",
+      "mem_used": "727.3MiB",
+      "mem_percent": "9.18%"
+    },
+    {
+      "container": "kos-api",
+      "cpu_percent": "0.23%",
+      "mem_used": "727.3MiB",
+      "mem_percent": "9.18%"
+    },
+    {
+      "container": "kos-api",
+      "cpu_percent": "0.23%",
+      "mem_used": "727.3MiB",
+      "mem_percent": "9.18%"
+    }
+  ],
+  "pre_chroma_size": "184K",
+  "post_chroma_size": "4.5M",
+  "pipeline_trigger": {
+    "status": 200,
+    "path": "/pipeline/index",
+    "body": {
+      "success": true,
+      "pipeline_started": true,
+      "message": "Action dimulai untuk 'Cengkareng'. Poll /pipeline/status.",
+      "pipeline": {
+        "running": "Cengkareng",
+        "status": "scraping",
+        "queued": null,
+        "progress": "Starting pipeline for Cengkareng...",
+        "elapsed_seconds": 0.0
+      }
+    }
+  },
+  "pipeline_final_status": {
+    "running": null,
+    "status": "completed",
+    "queued": null,
+    "progress": "Done: 233 new, 0 skipped",
+    "elapsed_seconds": null
+  },
+  "pipeline_total_s": 232.9,
+  "pipeline_samples": [
+    {
+      "t": 1.0,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "250.30%",
+        "mem_used": "1.259GiB",
+        "mem_percent": "16.27%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 0.0
+      }
+    },
+    {
+      "t": 7.2,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "342.30%",
+        "mem_used": "1.879GiB",
+        "mem_percent": "24.28%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 6.1
+      }
+    },
+    {
+      "t": 13.2,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "373.87%",
+        "mem_used": "2.337GiB",
+        "mem_percent": "30.20%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 12.2
+      }
+    },
+    {
+      "t": 19.3,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "313.61%",
+        "mem_used": "2.449GiB",
+        "mem_percent": "31.66%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 18.3
+      }
+    },
+    {
+      "t": 25.4,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "380.32%",
+        "mem_used": "2.61GiB",
+        "mem_percent": "33.73%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 24.3
+      }
+    },
+    {
+      "t": 31.5,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "347.49%",
+        "mem_used": "2.773GiB",
+        "mem_percent": "35.84%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 30.5
+      }
+    },
+    {
+      "t": 37.6,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "360.14%",
+        "mem_used": "2.955GiB",
+        "mem_percent": "38.20%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 36.6
+      }
+    },
+    {
+      "t": 43.7,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "296.23%",
+        "mem_used": "3.158GiB",
+        "mem_percent": "40.82%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 42.7
+      }
+    },
+    {
+      "t": 49.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "385.28%",
+        "mem_used": "3.183GiB",
+        "mem_percent": "41.14%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 48.8
+      }
+    },
+    {
+      "t": 55.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "390.61%",
+        "mem_used": "3.183GiB",
+        "mem_percent": "41.14%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 54.8
+      }
+    },
+    {
+      "t": 61.9,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "397.36%",
+        "mem_used": "3.183GiB",
+        "mem_percent": "41.14%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 60.9
+      }
+    },
+    {
+      "t": 67.9,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "398.48%",
+        "mem_used": "3.183GiB",
+        "mem_percent": "41.14%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 66.9
+      }
+    },
+    {
+      "t": 74.0,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "391.69%",
+        "mem_used": "3.209GiB",
+        "mem_percent": "41.48%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 73.0
+      }
+    },
+    {
+      "t": 80.1,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "390.53%",
+        "mem_used": "3.209GiB",
+        "mem_percent": "41.48%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 79.0
+      }
+    },
+    {
+      "t": 86.1,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "390.10%",
+        "mem_used": "3.213GiB",
+        "mem_percent": "41.53%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 85.1
+      }
+    },
+    {
+      "t": 92.2,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "380.27%",
+        "mem_used": "3.225GiB",
+        "mem_percent": "41.69%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 91.2
+      }
+    },
+    {
+      "t": 98.2,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "390.20%",
+        "mem_used": "3.225GiB",
+        "mem_percent": "41.69%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 97.2
+      }
+    },
+    {
+      "t": 104.3,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "361.70%",
+        "mem_used": "3.238GiB",
+        "mem_percent": "41.85%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 103.2
+      }
+    },
+    {
+      "t": 110.3,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "384.68%",
+        "mem_used": "3.235GiB",
+        "mem_percent": "41.82%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 109.3
+      }
+    },
+    {
+      "t": 116.4,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "379.50%",
+        "mem_used": "3.239GiB",
+        "mem_percent": "41.86%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 115.4
+      }
+    },
+    {
+      "t": 122.4,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "387.26%",
+        "mem_used": "3.245GiB",
+        "mem_percent": "41.94%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 121.4
+      }
+    },
+    {
+      "t": 128.5,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "382.87%",
+        "mem_used": "3.241GiB",
+        "mem_percent": "41.89%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 127.4
+      }
+    },
+    {
+      "t": 134.7,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "369.60%",
+        "mem_used": "3.248GiB",
+        "mem_percent": "41.98%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 133.5
+      }
+    },
+    {
+      "t": 140.7,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "387.42%",
+        "mem_used": "3.246GiB",
+        "mem_percent": "41.95%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 139.7
+      }
+    },
+    {
+      "t": 146.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "394.32%",
+        "mem_used": "3.266GiB",
+        "mem_percent": "42.22%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 145.8
+      }
+    },
+    {
+      "t": 152.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "381.72%",
+        "mem_used": "3.268GiB",
+        "mem_percent": "42.24%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 151.8
+      }
+    },
+    {
+      "t": 158.9,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "370.97%",
+        "mem_used": "3.285GiB",
+        "mem_percent": "42.46%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 157.8
+      }
+    },
+    {
+      "t": 165.2,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "295.56%",
+        "mem_used": "3.294GiB",
+        "mem_percent": "42.58%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 163.9
+      }
+    },
+    {
+      "t": 171.2,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "370.53%",
+        "mem_used": "3.295GiB",
+        "mem_percent": "42.59%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 170.2
+      }
+    },
+    {
+      "t": 177.3,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "388.98%",
+        "mem_used": "3.277GiB",
+        "mem_percent": "42.36%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 176.2
+      }
+    },
+    {
+      "t": 183.3,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "385.52%",
+        "mem_used": "3.284GiB",
+        "mem_percent": "42.45%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 182.3
+      }
+    },
+    {
+      "t": 189.4,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "382.60%",
+        "mem_used": "3.293GiB",
+        "mem_percent": "42.57%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 188.3
+      }
+    },
+    {
+      "t": 195.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "321.92%",
+        "mem_used": "3.272GiB",
+        "mem_percent": "42.30%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 194.4
+      }
+    },
+    {
+      "t": 201.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "384.26%",
+        "mem_used": "3.298GiB",
+        "mem_percent": "42.63%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 200.8
+      }
+    },
+    {
+      "t": 207.9,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "383.27%",
+        "mem_used": "3.298GiB",
+        "mem_percent": "42.63%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 206.8
+      }
+    },
+    {
+      "t": 213.9,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "380.29%",
+        "mem_used": "3.266GiB",
+        "mem_percent": "42.21%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 212.9
+      }
+    },
+    {
+      "t": 220.0,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "375.57%",
+        "mem_used": "3.257GiB",
+        "mem_percent": "42.10%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 219.0
+      }
+    },
+    {
+      "t": 226.8,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "0.25%",
+        "mem_used": "3.273GiB",
+        "mem_percent": "42.30%"
+      },
+      "pipeline_status": {
+        "running": "Cengkareng",
+        "status": "indexing",
+        "queued": null,
+        "progress": "Indexing Cengkareng...",
+        "elapsed_seconds": 225.8
+      }
+    },
+    {
+      "t": 232.9,
+      "stats": {
+        "container": "kos-api",
+        "cpu_percent": "0.22%",
+        "mem_used": "3.273GiB",
+        "mem_percent": "42.30%"
+      },
+      "pipeline_status": {
+        "running": null,
+        "status": "completed",
+        "queued": null,
+        "progress": "Done: 233 new, 0 skipped",
+        "elapsed_seconds": null
+      }
+    }
+  ],
+  "searches": [
+    {
+      "query": "wifi kenceng buat wfh",
+      "area": "Cengkareng",
+      "runs": [
+        {
+          "label": "cold",
+          "status": 200,
+          "latency_s": 0.51,
+          "n_results": 5
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.216,
+          "n_results": 5
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.209,
+          "n_results": 5
+        }
+      ]
+    },
+    {
+      "query": "kos putri murah",
+      "area": "Cilandak",
+      "runs": [
+        {
+          "label": "cold",
+          "status": 200,
+          "latency_s": 0.186,
+          "n_results": 0
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.184,
+          "n_results": 0
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.19,
+          "n_results": 0
+        }
+      ]
+    },
+    {
+      "query": "ac dingin parkir luas",
+      "area": "Kebon Jeruk",
+      "runs": [
+        {
+          "label": "cold",
+          "status": 200,
+          "latency_s": 0.192,
+          "n_results": 5
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.187,
+          "n_results": 5
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.187,
+          "n_results": 5
+        }
+      ]
+    },
+    {
+      "query": "kamar mandi dalam",
+      "area": "Grogol Petamburan",
+      "runs": [
+        {
+          "label": "cold",
+          "status": 200,
+          "latency_s": 0.189,
+          "n_results": 5
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.189,
+          "n_results": 5
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.186,
+          "n_results": 5
+        }
+      ]
+    },
+    {
+      "query": "dapur buat masak",
+      "area": "Kalideres",
+      "runs": [
+        {
+          "label": "cold",
+          "status": 200,
+          "latency_s": 0.183,
+          "n_results": 1
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.191,
+          "n_results": 1
+        },
+        {
+          "label": "warm",
+          "status": 200,
+          "latency_s": 0.186,
+          "n_results": 1
+        }
+      ]
+    }
+  ],
+  "pipeline_data": {
+    "areas": [
+      {
+        "area": "Bangsri",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 54,
+        "docs_count": 49,
+        "indexed_count": 0,
+        "scrape_date": 1781967535.8648279
+      },
+      {
+        "area": "Batur",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 12,
+        "docs_count": 12,
+        "indexed_count": 0,
+        "scrape_date": 1781967497.8500195
+      },
+      {
+        "area": "Bekasi Timur",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 3,
+        "scraped_count": 9,
+        "docs_count": 54,
+        "indexed_count": 0,
+        "scrape_date": 1781958358.5429888
+      },
+      {
+        "area": "Cakung",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 6,
+        "scraped_count": 30,
+        "docs_count": 29,
+        "indexed_count": 0,
+        "scrape_date": 1781964193.0965114
+      },
+      {
+        "area": "Cengkareng",
+        "scraped": true,
+        "processed": true,
+        "indexed": true,
+        "postal_codes": 5,
+        "scraped_count": 302,
+        "docs_count": 233,
+        "indexed_count": 201,
+        "scrape_date": 1781979344.5746748
+      },
+      {
+        "area": "Cidadap",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 30,
+        "docs_count": 28,
+        "indexed_count": 0,
+        "scrape_date": 1781967523.267123
+      },
+      {
+        "area": "Cilandak",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 5,
+        "scraped_count": 301,
+        "docs_count": 249,
+        "indexed_count": 0,
+        "scrape_date": 1781972835.4180632
+      },
+      {
+        "area": "Cilincing",
+        "scraped": true,
+        "processed": false,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 2,
+        "docs_count": null,
+        "indexed_count": 0,
+        "scrape_date": 1781958358.5432596
+      },
+      {
+        "area": "Cipondoh",
+        "scraped": true,
+        "processed": true,
+        "indexed": true,
+        "postal_codes": 4,
+        "scraped_count": 220,
+        "docs_count": 137,
+        "indexed_count": 2,
+        "scrape_date": 1781973867.115907
+      },
+      {
+        "area": "Grogol Petamburan",
+        "scraped": true,
+        "processed": true,
+        "indexed": true,
+        "postal_codes": 4,
+        "scraped_count": 195,
+        "docs_count": 156,
+        "indexed_count": 11,
+        "scrape_date": 1781976238.6295953
+      },
+      {
+        "area": "Jatiasih",
+        "scraped": false,
+        "processed": false,
+        "indexed": false,
+        "postal_codes": 0,
+        "scraped_count": 0,
+        "docs_count": null,
+        "indexed_count": 0,
+        "scrape_date": null
+      },
+      {
+        "area": "Kalideres",
+        "scraped": true,
+        "processed": true,
+        "indexed": true,
+        "postal_codes": 5,
+        "scraped_count": 283,
+        "docs_count": 210,
+        "indexed_count": 1,
+        "scrape_date": 1781976518.0122175
+      },
+      {
+        "area": "Kebon Jeruk",
+        "scraped": true,
+        "processed": true,
+        "indexed": true,
+        "postal_codes": 6,
+        "scraped_count": 338,
+        "docs_count": 237,
+        "indexed_count": 7,
+        "scrape_date": 1781976839.4209611
+      },
+      {
+        "area": "Kembangan",
+        "scraped": true,
+        "processed": false,
+        "indexed": true,
+        "postal_codes": 1,
+        "scraped_count": 32,
+        "docs_count": null,
+        "indexed_count": 6,
+        "scrape_date": 1781976911.482844
+      },
+      {
+        "area": "Komet",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 29,
+        "docs_count": 29,
+        "indexed_count": 0,
+        "scrape_date": 1781983512.0149908
+      },
+      {
+        "area": "Lembang",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 62,
+        "docs_count": 58,
+        "indexed_count": 0,
+        "scrape_date": 1781967541.658721
+      },
+      {
+        "area": "Pameungpeuk",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 67,
+        "docs_count": 62,
+        "indexed_count": 0,
+        "scrape_date": 1781967542.7413406
+      },
+      {
+        "area": "Pasar Kemis",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 60,
+        "docs_count": 58,
+        "indexed_count": 0,
+        "scrape_date": 1781985225.153453
+      },
+      {
+        "area": "Penjaringan",
+        "scraped": false,
+        "processed": false,
+        "indexed": true,
+        "postal_codes": 0,
+        "scraped_count": 0,
+        "docs_count": null,
+        "indexed_count": 4,
+        "scrape_date": null
+      },
+      {
+        "area": "Pulo Gadung",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 6,
+        "scraped_count": 30,
+        "docs_count": 30,
+        "indexed_count": 0,
+        "scrape_date": 1781964313.6577618
+      },
+      {
+        "area": "Taman Sari",
+        "scraped": true,
+        "processed": true,
+        "indexed": true,
+        "postal_codes": 3,
+        "scraped_count": 16,
+        "docs_count": 14,
+        "indexed_count": 1,
+        "scrape_date": 1781977749.4627182
+      },
+      {
+        "area": "Tanjung Priok",
+        "scraped": true,
+        "processed": false,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 1,
+        "docs_count": null,
+        "indexed_count": 0,
+        "scrape_date": 1781958358.5433538
+      },
+      {
+        "area": "Tenjo",
+        "scraped": true,
+        "processed": true,
+        "indexed": false,
+        "postal_codes": 1,
+        "scraped_count": 50,
+        "docs_count": 48,
+        "indexed_count": 0,
+        "scrape_date": 1781966639.8417637
+      }
+    ],
+    "pipeline": {
+      "running": null,
+      "status": "completed",
+      "queued": null,
+      "progress": "Done: 233 new, 0 skipped",
+      "elapsed_seconds": null
+    },
+    "totals": {
+      "areas": 23,
+      "scraped": 21,
+      "processed": 18,
+      "indexed": 8,
+      "total_kos": 233
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# Sprint 10 baseline test — production bge-m3.
+# This file is gitignored. Safe to delete after testing.
+#
+# NOTE: web port had to move from 5000 → 5080 because macOS AirPlay Receiver
+# (ControlCenter) binds host:5000 at boot. 5001 (API) and 5002 (geo) work fine.
+services:
+  geo-router:
+    ports:
+      - "5002:3001"
+  api:
+    ports:
+      - "5001:8080"
+  web:
+    ports:
+      - "5080:80"

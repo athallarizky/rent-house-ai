@@ -1,0 +1,466 @@
+{
+  "bge_m3": {
+    "avg_ndcg_5": 0.571168,
+    "avg_recall_5": 0.129796,
+    "avg_hits_5": 2.84,
+    "per_query": [
+      {
+        "id": "q01",
+        "query": "wifi kenceng buat wfh",
+        "area": "Cengkareng",
+        "n_relevant": 34,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1471
+      },
+      {
+        "id": "q02",
+        "query": "kos putri murah",
+        "area": "Cilandak",
+        "n_relevant": 28,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1786
+      },
+      {
+        "id": "q03",
+        "query": "kos putra dekat stasiun",
+        "area": "Cengkareng",
+        "n_relevant": 5,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      },
+      {
+        "id": "q04",
+        "query": "ac dingin parkir luas",
+        "area": "Kebon Jeruk",
+        "n_relevant": 17,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      },
+      {
+        "id": "q05",
+        "query": "kamar mandi dalam",
+        "area": "Grogol Petamburan",
+        "n_relevant": 17,
+        "hits_5": 2,
+        "ndcg_5": 0.2773,
+        "recall_5": 0.1176
+      },
+      {
+        "id": "q06",
+        "query": "dekat kampus murah buat mahasiswa",
+        "area": "Cengkareng",
+        "n_relevant": 27,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1852
+      },
+      {
+        "id": "q07",
+        "query": "kos putri aman ada cctv",
+        "area": "Cipondoh",
+        "n_relevant": 14,
+        "hits_5": 4,
+        "ndcg_5": 0.8304,
+        "recall_5": 0.2857
+      },
+      {
+        "id": "q08",
+        "query": "dapur buat masak",
+        "area": "Kalideres",
+        "n_relevant": 23,
+        "hits_5": 4,
+        "ndcg_5": 0.8688,
+        "recall_5": 0.1739
+      },
+      {
+        "id": "q09",
+        "query": "kamar ber ac",
+        "area": "Cengkareng",
+        "n_relevant": 49,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.102
+      },
+      {
+        "id": "q10",
+        "query": "kamar luas",
+        "area": "Kebon Jeruk",
+        "n_relevant": 53,
+        "hits_5": 2,
+        "ndcg_5": 0.3601,
+        "recall_5": 0.0377
+      },
+      {
+        "id": "q11",
+        "query": "akses 24 jam",
+        "area": "Cilandak",
+        "n_relevant": 21,
+        "hits_5": 4,
+        "ndcg_5": 0.8304,
+        "recall_5": 0.1905
+      },
+      {
+        "id": "q12",
+        "query": "wifi fiber cepat",
+        "area": "Cengkareng",
+        "n_relevant": 34,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1471
+      },
+      {
+        "id": "q13",
+        "query": "parkir motor aman",
+        "area": "Grogol Petamburan",
+        "n_relevant": 33,
+        "hits_5": 4,
+        "ndcg_5": 0.786,
+        "recall_5": 0.1212
+      },
+      {
+        "id": "q14",
+        "query": "kos dekat halte transjakarta",
+        "area": "Kebon Jeruk",
+        "n_relevant": 18,
+        "hits_5": 2,
+        "ndcg_5": 0.3836,
+        "recall_5": 0.1111
+      },
+      {
+        "id": "q15",
+        "query": "kos putri depan kampus",
+        "area": "Cilandak",
+        "n_relevant": 5,
+        "hits_5": 2,
+        "ndcg_5": 0.5531,
+        "recall_5": 0.4
+      },
+      {
+        "id": "q16",
+        "query": "kost budget satu juta",
+        "area": "Cengkareng",
+        "n_relevant": 7,
+        "hits_5": 1,
+        "ndcg_5": 0.1312,
+        "recall_5": 0.1429
+      },
+      {
+        "id": "q17",
+        "query": "kos bersih bagus rapi",
+        "area": "Cilandak",
+        "n_relevant": 80,
+        "hits_5": 3,
+        "ndcg_5": 0.7227,
+        "recall_5": 0.0375
+      },
+      {
+        "id": "q18",
+        "query": "kos buat anak kerja",
+        "area": "Kalideres",
+        "n_relevant": 23,
+        "hits_5": 3,
+        "ndcg_5": 0.5296,
+        "recall_5": 0.1304
+      },
+      {
+        "id": "q19",
+        "query": "kos putri ada satpam",
+        "area": "Cengkareng",
+        "n_relevant": 5,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      },
+      {
+        "id": "q20",
+        "query": "kamar ac kamar mandi dalam",
+        "area": "Cilandak",
+        "n_relevant": 14,
+        "hits_5": 4,
+        "ndcg_5": 0.8304,
+        "recall_5": 0.2857
+      },
+      {
+        "id": "q21",
+        "query": "wifi stabil buat kerja",
+        "area": "Grogol Petamburan",
+        "n_relevant": 52,
+        "hits_5": 4,
+        "ndcg_5": 0.8304,
+        "recall_5": 0.0769
+      },
+      {
+        "id": "q22",
+        "query": "kos populer rating tinggi",
+        "area": "Bangsri",
+        "n_relevant": 10,
+        "hits_5": 1,
+        "ndcg_5": 0.214,
+        "recall_5": 0.1
+      },
+      {
+        "id": "q23",
+        "query": "parkir luas buat mobil",
+        "area": "Cengkareng",
+        "n_relevant": 24,
+        "hits_5": 2,
+        "ndcg_5": 0.3452,
+        "recall_5": 0.0833
+      },
+      {
+        "id": "q24",
+        "query": "kos putra murah",
+        "area": "Cengkareng",
+        "n_relevant": 21,
+        "hits_5": 4,
+        "ndcg_5": 0.786,
+        "recall_5": 0.1905
+      },
+      {
+        "id": "q25",
+        "query": "kos harian sewa harian",
+        "area": "Cilandak",
+        "n_relevant": 4,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      }
+    ]
+  },
+  "e5_small": {
+    "avg_ndcg_5": 0.55198,
+    "avg_recall_5": 0.122948,
+    "avg_hits_5": 2.64,
+    "per_query": [
+      {
+        "id": "q01",
+        "query": "wifi kenceng buat wfh",
+        "area": "Cengkareng",
+        "n_relevant": 34,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1471
+      },
+      {
+        "id": "q02",
+        "query": "kos putri murah",
+        "area": "Cilandak",
+        "n_relevant": 28,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1786
+      },
+      {
+        "id": "q03",
+        "query": "kos putra dekat stasiun",
+        "area": "Cengkareng",
+        "n_relevant": 5,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      },
+      {
+        "id": "q04",
+        "query": "ac dingin parkir luas",
+        "area": "Kebon Jeruk",
+        "n_relevant": 17,
+        "hits_5": 2,
+        "ndcg_5": 0.3452,
+        "recall_5": 0.1176
+      },
+      {
+        "id": "q05",
+        "query": "kamar mandi dalam",
+        "area": "Grogol Petamburan",
+        "n_relevant": 17,
+        "hits_5": 1,
+        "ndcg_5": 0.1696,
+        "recall_5": 0.0588
+      },
+      {
+        "id": "q06",
+        "query": "dekat kampus murah buat mahasiswa",
+        "area": "Cengkareng",
+        "n_relevant": 27,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.1852
+      },
+      {
+        "id": "q07",
+        "query": "kos putri aman ada cctv",
+        "area": "Cipondoh",
+        "n_relevant": 14,
+        "hits_5": 4,
+        "ndcg_5": 0.786,
+        "recall_5": 0.2857
+      },
+      {
+        "id": "q08",
+        "query": "dapur buat masak",
+        "area": "Kalideres",
+        "n_relevant": 23,
+        "hits_5": 4,
+        "ndcg_5": 0.8688,
+        "recall_5": 0.1739
+      },
+      {
+        "id": "q09",
+        "query": "kamar ber ac",
+        "area": "Cengkareng",
+        "n_relevant": 49,
+        "hits_5": 4,
+        "ndcg_5": 0.6608,
+        "recall_5": 0.0816
+      },
+      {
+        "id": "q10",
+        "query": "kamar luas",
+        "area": "Kebon Jeruk",
+        "n_relevant": 53,
+        "hits_5": 3,
+        "ndcg_5": 0.6844,
+        "recall_5": 0.0566
+      },
+      {
+        "id": "q11",
+        "query": "akses 24 jam",
+        "area": "Cilandak",
+        "n_relevant": 21,
+        "hits_5": 2,
+        "ndcg_5": 0.3601,
+        "recall_5": 0.0952
+      },
+      {
+        "id": "q12",
+        "query": "wifi fiber cepat",
+        "area": "Cengkareng",
+        "n_relevant": 34,
+        "hits_5": 4,
+        "ndcg_5": 0.8688,
+        "recall_5": 0.1176
+      },
+      {
+        "id": "q13",
+        "query": "parkir motor aman",
+        "area": "Grogol Petamburan",
+        "n_relevant": 33,
+        "hits_5": 4,
+        "ndcg_5": 0.8688,
+        "recall_5": 0.1212
+      },
+      {
+        "id": "q14",
+        "query": "kos dekat halte transjakarta",
+        "area": "Kebon Jeruk",
+        "n_relevant": 18,
+        "hits_5": 2,
+        "ndcg_5": 0.4704,
+        "recall_5": 0.1111
+      },
+      {
+        "id": "q15",
+        "query": "kos putri depan kampus",
+        "area": "Cilandak",
+        "n_relevant": 5,
+        "hits_5": 2,
+        "ndcg_5": 0.5531,
+        "recall_5": 0.4
+      },
+      {
+        "id": "q16",
+        "query": "kost budget satu juta",
+        "area": "Cengkareng",
+        "n_relevant": 7,
+        "hits_5": 1,
+        "ndcg_5": 0.3392,
+        "recall_5": 0.1429
+      },
+      {
+        "id": "q17",
+        "query": "kos bersih bagus rapi",
+        "area": "Cilandak",
+        "n_relevant": 80,
+        "hits_5": 2,
+        "ndcg_5": 0.5531,
+        "recall_5": 0.025
+      },
+      {
+        "id": "q18",
+        "query": "kos buat anak kerja",
+        "area": "Kalideres",
+        "n_relevant": 23,
+        "hits_5": 2,
+        "ndcg_5": 0.2773,
+        "recall_5": 0.087
+      },
+      {
+        "id": "q19",
+        "query": "kos putri ada satpam",
+        "area": "Cengkareng",
+        "n_relevant": 5,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      },
+      {
+        "id": "q20",
+        "query": "kamar ac kamar mandi dalam",
+        "area": "Cilandak",
+        "n_relevant": 14,
+        "hits_5": 5,
+        "ndcg_5": 1.0,
+        "recall_5": 0.3571
+      },
+      {
+        "id": "q21",
+        "query": "wifi stabil buat kerja",
+        "area": "Grogol Petamburan",
+        "n_relevant": 52,
+        "hits_5": 3,
+        "ndcg_5": 0.6992,
+        "recall_5": 0.0577
+      },
+      {
+        "id": "q22",
+        "query": "kos populer rating tinggi",
+        "area": "Bangsri",
+        "n_relevant": 10,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      },
+      {
+        "id": "q23",
+        "query": "parkir luas buat mobil",
+        "area": "Cengkareng",
+        "n_relevant": 24,
+        "hits_5": 2,
+        "ndcg_5": 0.5087,
+        "recall_5": 0.0833
+      },
+      {
+        "id": "q24",
+        "query": "kos putra murah",
+        "area": "Cengkareng",
+        "n_relevant": 21,
+        "hits_5": 4,
+        "ndcg_5": 0.786,
+        "recall_5": 0.1905
+      },
+      {
+        "id": "q25",
+        "query": "kos harian sewa harian",
+        "area": "Cilandak",
+        "n_relevant": 4,
+        "hits_5": 0,
+        "ndcg_5": 0.0,
+        "recall_5": 0.0
+      }
+    ]
+  }
+}

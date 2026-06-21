@@ -1,152 +1,209 @@
-# Kos AI — AI-Powered Boarding House Search
+# Google Maps Scraper — SaaS Mode (Standalone Deployment)
 
-Natural-language search for Indonesian boarding houses (*kos*).
-Example: *"kos di Cengkareng wifi kencang AC murah"* → AI scrapes, processes, and recommends.
+> Service scraper Google Maps terpisah dari Kos AI monorepo. Berjalan sebagai
+> service SaaS dengan REST API + admin dashboard + worker pool (Chromium-based).
+> Didesign untuk di-deploy di server/VPS manapun secara isolated.
 
----
-
-## Quick Start (for AI Agents)
-
-Run these commands in order. The user needs **Docker + Git** installed.
-
-### Step 1 — Install prerequisites (if missing)
-
-**macOS:**
-```bash
-# Install Homebrew first if needed: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install --cask docker git
-# Start Docker Desktop, then return to terminal
-```
-
-**Linux:**
-```bash
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER   # log out/in after this
-# Git is usually pre-installed
-```
-
-### Step 2 — Clone and run
-
-```bash
-git clone https://github.com/athallarizky/rent-house-ai.git
-cd rent-house-ai
-./scripts/setup.sh
-```
-
-`setup.sh` handles everything: checks deps → builds Go binary → builds Docker images → starts all services → waits for healthy → prints the URL.
-
-**First run takes 2–5 minutes** (downloads embedding model ~449 MB — `intfloat/multilingual-e5-small`, ~5× smaller than the previous `bge-m3`). Subsequent runs take ~30 seconds.
-
-### Step 3 — Open browser
-
-```
-http://localhost:4000
-```
-
-**Login:**
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@kos.ai` | `admin123` |
-| User  | `user@kos.ai` | `user123` |
+[![deploy](https://img.shields.io/badge/deploy-EC2%2FVPS-blue)](docs/deployment.md)
+[![docker](https://img.shields.io/badge/docker-compose-ec2-2496ED)](services/scraper/google-maps-scraper/docker-compose.ec2.yaml)
 
 ---
 
-## Pages
+## Apa ini?
 
-| Page | URL |
-|------|-----|
-| Landing | http://localhost:4000 |
-| Login | http://localhost:4000/login |
-| Search | http://localhost:4000/search |
-| Settings (admin only) | http://localhost:4000/settings |
-| Pipeline dashboard (admin only) | http://localhost:4000/pipeline |
+Branch `services/scraper` berisi **hanya service scraper** (Google Maps data
+acquisition), terpisah dari aplikasi Kos AI utama. Tujuannya:
 
----
+- ✅ Bisa di-deploy di server terpisah (EC2/VPS manapun)
+- ✅ Bebas dependency ke kos-api/kos-web/kos-geo
+- ✅ Resource (RAM/CPU) ter-isolated — Chromium heavy load nggak ganggu app lain
+- ✅ Bisa di-scale horizontal (multi-instance worker)
 
-## Troubleshooting
+## Arsitektur
 
-### Port conflict (4000, 4001, or 4002 already in use)
+```
+                     Internet
+                         │
+                ┌────────▼────────┐
+                │  gmapssaas      │  ← REST API + admin dashboard (:8080)
+                │     serve       │     Auth: API Key (Bearer gms_xxx)
+                └────────┬────────┘
+                         │
+                ┌────────▼────────┐
+                │   Postgres      │  ← Job queue (River) + results + admin users
+                └────────┬────────┘
+                         │
+                ┌────────▼────────┐
+                │  gmapssaas      │  ← Worker (Chromium headless)
+                │     worker      │     Concurrency configurable
+                └─────────────────┘
+```
+
+## Komponen utama
+
+| Komponen | Lokasi | Fungsi |
+|----------|--------|--------|
+| **Go source** | `services/scraper/google-maps-scraper/` | Binary `gmapssaas` (serve + worker + admin) |
+| **Dockerfile** | `.../Dockerfile.saas` | Multi-stage build (Go builder + Debian runtime) |
+| **Compose EC2** | `.../docker-compose.ec2.yaml` | Production compose: postgres + serve + worker |
+| **Migrations** | `.../migrations/` | SQL migrations (auto-applied via sql-migrate) |
+| **Admin dashboard** | `.../admin/templates/` | Web UI (login, jobs, workers, API keys, terminal) |
+
+## Quick start
+
+### 1. Prerequisite
+
+- Linux server (Ubuntu 24.04 LTS recommended)
+- Docker + Docker Compose v2
+- Minimum: 2 GB RAM + 2 GB swap, 20 GB disk
+- Recommended: 4 GB RAM, 2 vCPU, Singapore region (untuk target Indonesia)
+
+### 2. Setup environment
 
 ```bash
-lsof -i :4000 -i :4001 -i :4002   # find what's using the port
+# Generate secrets
+ENCRYPTION_KEY=$(openssl rand -hex 32)
+POSTGRES_PASSWORD=$(openssl rand -hex 16)
+
+# Write .env.saas
+cat > services/scraper/google-maps-scraper/.env.saas << EOF
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+DATABASE_URL=postgres://postgres:$POSTGRES_PASSWORD@postgres:5432/gmaps_pro?sslmode=disable
+ENCRYPTION_KEY=$ENCRYPTION_KEY
+CONCURRENCY=1
+MAX_JOBS_PER_CYCLE=100
+EOF
+
+chmod 600 services/scraper/google-maps-scraper/.env.saas
 ```
 
-If a port is taken (e.g. macOS AirPlay Receiver grabs :5000), edit `docker-compose.yml`, change the host port (e.g. `4080:80`), then update `.env.docker`:
-```
-PUBLIC_API_URL=http://localhost:4080
-```
+> ⚠️ **Wajib backup `ENCRYPTION_KEY`**. Kalau hilang, data terenkripsi di DB
+> nggak bisa di-decrypt lagi → data hilang permanen.
 
-### Containers unhealthy
+### 3. Build & start
 
 ```bash
-docker compose ps           # check status
-docker compose logs api     # see API logs
-docker compose logs geo-router
-docker compose restart      # restart all
+cd services/scraper/google-maps-scraper
+
+# Bikin alias biar singkat
+echo "alias dc='cd $(pwd) && docker compose -f docker-compose.ec2.yaml --env-file .env.saas'" >> ~/.bashrc
+source ~/.bashrc
+
+dc build         # 5-15 menit
+dc up -d         # Start 3 container
+dc ps            # Verify healthy
 ```
 
-### Reset all data (fresh start)
+### 4. Run DB migration
 
 ```bash
-docker compose down
-rm -rf data/raw data/cleaned data/chroma_db data/auth.db data/search_history.db
-docker compose up -d
+PP=$(grep POSTGRES_PASSWORD .env.saas | cut -d= -f2)
+cat > /tmp/dbconfig.yml << EOF
+development:
+  dialect: postgres
+  datasource: postgres://postgres:$PP@postgres:5432/gmaps_pro?sslmode=disable
+  dir: migrations
+  table: migrations
+EOF
+
+docker run --rm \
+  --network gmaps-saas_saas-net \
+  -v "$PWD/migrations:/work/migrations" \
+  -v "/tmp/dbconfig.yml:/work/dbconfig.yml" \
+  -w /work \
+  golang:1.24-alpine sh -c '
+    go install github.com/rubenv/sql-migrate/sql-migrate@latest &&
+    $(go env GOPATH)/bin/sql-migrate up -config=dbconfig.yml
+  '
+
+rm /tmp/dbconfig.yml
 ```
 
-### Model download failed
+### 5. Create admin user
 
 ```bash
-docker compose down
-docker volume rm rent-house-ai_model-cache   # or <project>_model-cache
-docker compose up -d    # retries download
+dc exec serve /app/gmapssaas admin create-user -u admin -p 'YOUR_PASSWORD'
 ```
 
-### Not enough RAM
-
-Docker needs **≥ 2 GB RAM** for `e5-small` (was 8 GB for `bge-m3`). On macOS: Docker Desktop → Settings → Resources → increase Memory limit. On Colima: `colima start --memory 4`.
-
----
-
-## Architecture
+### 6. Akses dashboard
 
 ```
-docker compose up
-  ├── kos-geo:4002  →  internal :3001  Node.js (Fastify)     area name resolution
-  ├── kos-api:4001  →  internal :8080  Python (FastAPI)      orchestrator + RAG engine + scraper + data processor
-  └── kos-web:4000  →  internal :80    nginx (static)        Astro frontend
+http://SERVER_IP:8080/
 ```
 
-All Python services (API, RAG, scraper, data-processor) run inside a single `kos-api` container via subprocess calls — no refactoring needed.
+Login dengan username/password yang baru dibuat.
 
-**Embedding model** (`intfloat/multilingual-e5-small`, 384-dim, 449 MB):
-  - Loaded resident in the kos-api process at startup (Sprint 8)
-  - `query: ` / `passage: ` prefixes applied centrally via `services/rag-engine/src/prefixes.py` (Sprint 11)
-  - ~12× faster ingest + ~3-4× faster search vs the previous `bge-m3` (Sprint 10 measurements)
+## Environment variables
 
----
+Lihat [`.env.saas.example`](.env.saas.example) untuk template lengkap.
 
-## Tech Stack
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `POSTGRES_PASSWORD` | ✅ | — | Password postgres |
+| `DATABASE_URL` | ✅ | — | DSN untuk serve & worker |
+| `ENCRYPTION_KEY` | ✅ | — | 32-byte hex (generate via `openssl rand -hex 32`) |
+| `CONCURRENCY` | — | `1` | Worker concurrency ( Chromium instances) |
+| `MAX_JOBS_PER_CYCLE` | — | `100` | Restart worker setiap N jobs |
+| `PROXIES` | — | — | Comma-separated proxy URLs (highly recommended for production) |
+| `FAST_MODE` | — | `false` | Stealth HTTP mode (faster but easier to block) |
 
-| Layer | Tech |
-|-------|------|
-| Frontend | Astro 6 + React 19 + Tailwind 4 |
-| Backend | FastAPI (Python 3.11) |
-| Auth | JWT + bcrypt |
-| Search / RAG | ChromaDB + multilingual-e5-small + Z.AI (glm-4.5-air) |
-| Scraper | Go (Google Maps) + Chromium |
-| Geo resolution | Fastify (Node.js) + Fuse.js |
-| Infra | Docker Compose (3 containers) |
+## Security
 
----
+Service ini punya **3 lapis auth built-in**:
 
-## Migration from bge-m3 (Sprint 11)
+1. **API Key** (REST API `/api/v1/*`) — `Authorization: Bearer gms_xxx`
+2. **Session + 2FA** (admin dashboard `/admin/*`)
+3. **Rate limiting** per user/IP
 
-If you're upgrading an existing deployment from `BAAI/bge-m3` to `intfloat/multilingual-e5-small`, the vector dimensions change (1024 → 384) and ChromaDB must be wiped + re-indexed. See `scripts/migrate-to-e5-small.sh` for a one-shot migration script that:
+Plus yang harus kamu set sendiri:
+- **AWS Security Group / firewall** — restrict port 8080 ke IP whitelist
+- **HTTPS** — via Caddy/nginx + Let's Encrypt (kalau pakai domain)
+- **Proxy residensial** — untuk cegah IP block Google (Webshare, Bright Data)
 
-1. Backs up the existing `data/chroma_db/`
-2. Wipes it (dim mismatch makes old vectors unusable)
-3. Restarts the API (loads e5-small + creates fresh collection)
-4. Loops over every `data/cleaned/*_docs.json` and triggers `/pipeline/index` per area
-5. Verifies the final doc count
+## API endpoints
 
-Estimated time on a 1700-doc corpus: ~3 minutes total (vs ~30 minutes for bge-m3).
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/scrape` | Submit scrape job |
+| `GET` | `/api/v1/jobs` | List jobs (pagination) |
+| `GET` | `/api/v1/jobs/{id}` | Get job status + results |
+| `DELETE` | `/api/v1/jobs/{id}` | Delete job |
+| `GET` | `/api/v1/health` | Health check |
+
+Swagger docs: `http://SERVER_IP:8080/swagger/index.html`
+
+## Operations
+
+```bash
+# Lihat log
+dc logs -f
+dc logs -f serve
+dc logs -f worker
+
+# Restart
+dc restart serve
+
+# Stop semua
+dc down
+
+# Backup DB
+dc exec postgres pg_dump -U postgres gmaps_pro > backup_$(date +%F).sql
+
+# Update code
+git pull && dc build && dc up -d
+```
+
+## Documentation
+
+- **Deployment guide lengkap** — ada di vault Obsidian `reference/deploy-scraper-to-ec2.md`
+- **RCA setup (8 issues + solutions)** — `rca/2026-06-21 RCA - Kos AI Scraper EC2 Deployment.md`
+- **Risk & mitigation scraping di AWS** — `reference/scraping-on-aws-ec2.md`
+
+## Upstream
+
+Based on [gosom/google-maps-scraper](https://github.com/gosom/google-maps-scraper)
+with SaaS layer (admin dashboard, REST API, job queue, multi-user).
+
+## License
+
+Following upstream: see `services/scraper/google-maps-scraper/LICENSE`.
