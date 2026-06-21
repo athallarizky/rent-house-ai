@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "../lib/utils";
+import { getAuth } from "../lib/auth";
 
 const NAV = [
   { href: "/", label: "Beranda", emoji: "🏡" },
   { href: "/search", label: "Pencarian", emoji: "🔍" },
-  { href: "/pipeline", label: "Pipeline", emoji: "📊" },
+  { href: "/pipeline", label: "Pipeline", emoji: "📊", admin: true },
+  { href: "/users", label: "Users", emoji: "👥", admin: true },
   { href: "/settings", label: "Pengaturan", emoji: "⚙️" },
 ];
 
@@ -24,6 +26,9 @@ export default function MobileNav({ currentPath }: MobileNavProps) {
 
   const isActive = (href: string) =>
     currentPath === href || (href !== "/" && currentPath.startsWith(href + "/"));
+
+  const isAdmin = getAuth().user?.role === "admin";
+  const visibleNav = NAV.filter((item) => !item.admin || isAdmin);
 
   return (
     <>
@@ -64,7 +69,7 @@ export default function MobileNav({ currentPath }: MobileNavProps) {
             </div>
 
             <nav className="flex-1 p-3 space-y-1">
-              {NAV.map((item) => (
+              {visibleNav.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}

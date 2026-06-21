@@ -12,6 +12,7 @@ from .intent import router as intent_router
 from .poi import router as poi_router
 from .auth_routes import router as auth_router
 from .pipeline_data import router as pipeline_data_router
+from .user_routes import router as user_router
 from .users import seed_admin
 
 app = FastAPI(
@@ -36,6 +37,7 @@ app.include_router(intent_router)
 app.include_router(poi_router)
 app.include_router(auth_router)
 app.include_router(pipeline_data_router)
+app.include_router(user_router)
 
 
 @app.on_event("startup")
