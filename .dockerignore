@@ -4,12 +4,23 @@ services/scraper/google-maps-scraper/gmaps-scraper
 # Data files (mounted as volume)
 data/
 
+# Sprint 10 POC (local venv + artifacts; not part of production image)
+poc/.venv/
+poc/_chroma/
+poc/_backups/
+poc/_e2e_logs/
+poc/_results/
+
 # Git
 .git
 .gitignore
 
 # Node
 node_modules/
+
+# Python venvs (any .venv in any service)
+.venv/
+**/.venv/
 
 # Env files (use .env.docker)
 .env
