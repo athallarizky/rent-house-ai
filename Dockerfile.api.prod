@@ -1,0 +1,47 @@
+# ============================================================
+# Dockerfile.api.prod — Slim production API image (Sprint 12)
+# ============================================================
+# Differences vs Dockerfile.api (local dev):
+#   - NO Go scraper build stage (scraper now runs on EC2)
+#   - NO Chromium / playwright / Node.js (not needed without in-process scraper)
+#   - NO services/scraper/ COPY (saves ~50 MB source + avoids confusion)
+#   Result: image ~600-900 MB smaller, faster build, smaller attack surface.
+#
+# Scraper is reached via REMOTE_SCRAPER_URL + REMOTE_SCRAPER_API_KEY env vars
+# (see api/src/scraper_client.py + api/src/orchestrator.py ensure_scraped).
+# ============================================================
+
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install PyTorch CPU-only FIRST so sentence-transformers won't pull CUDA torch
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir \
+    fastapi>=0.115 "uvicorn[standard]" \
+    "python-jose[cryptography]>=3.3" "passlib[bcrypt]>=1.7" "bcrypt==4.0.1" \
+    "chromadb>=0.5" "sentence-transformers>=3.0" "openai>=1.0"
+
+COPY api/ ./api/
+COPY services/data-processor/ ./services/data-processor/
+COPY services/rag-engine/ ./services/rag-engine/
+COPY services/geo-router/kodepos/data/kodepos.json ./services/geo-router/kodepos/data/kodepos.json
+COPY scripts/docker-startup.sh /usr/local/bin/docker-startup.sh
+RUN chmod +x /usr/local/bin/docker-startup.sh
+
+RUN mkdir -p data/raw data/cleaned data/chroma_db && \
+    ln -sf /app/services/geo-router/kodepos/data/kodepos.json /app/data/kodepos.json
+
+ENV GEO_ROUTER_URL=http://geo-router:3001
+
+EXPOSE 8080
+
+CMD ["docker-startup.sh"]

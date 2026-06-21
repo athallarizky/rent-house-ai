@@ -1,0 +1,30 @@
+---
+import '../styles/globals.css';
+import { noFlashScript } from '../lib/theme';
+import LoginForm from '../components/LoginForm';
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Masuk — Kos AI</title>
+    <script is:inline set:html={noFlashScript} />
+  </head>
+  <body class="bg-background text-foreground min-h-screen flex items-center justify-center p-4">
+    <main class="w-full max-w-sm">
+      <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold tracking-tight">Kos AI</h1>
+        <p class="text-sm text-muted-foreground mt-1">
+          Masuk untuk mencari kos terbaik
+        </p>
+      </div>
+
+      <div class="bg-card border border-border rounded-xl p-6 shadow-sm">
+        <LoginForm client:load />
+      </div>
+    </main>
+  </body>
+</html>
