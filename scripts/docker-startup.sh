@@ -10,16 +10,15 @@ echo "  Kos AI — Starting..."
 echo "========================================="
 
 # Pre-download the embedding model (first run: large download).
-# Sprint 10/11 POC: read model from $EMBED_MODEL env (default bge-m3) so the
-# same script works for both the bge-m3 baseline run and the e5-small POC run.
-# Revert before merging (Sprint 10 only).
-EMBED_MODEL="${EMBED_MODEL:-BAAI/bge-m3}"
+# Default since Sprint 11 is intfloat/multilingual-e5-small (~449 MB, 384-dim).
+# Override with EMBED_MODEL env to swap models (e.g. back to BAAI/bge-m3).
+EMBED_MODEL="${EMBED_MODEL:-intfloat/multilingual-e5-small}"
 echo ""
 echo "[1/2] Checking embedding model ($EMBED_MODEL)..."
 python -c "
 import os, sys, time
 start = time.time()
-model_name = os.environ.get('EMBED_MODEL', 'BAAI/bge-m3')
+model_name = os.environ.get('EMBED_MODEL', 'intfloat/multilingual-e5-small')
 print(f'  Loading sentence-transformers ({model_name})...', flush=True)
 from sentence_transformers import SentenceTransformer
 print(f'  Downloading model (first run may take a while)...', flush=True)
@@ -31,7 +30,8 @@ print(f'  Model ready ({elapsed:.0f}s)', flush=True)
 # Seed admin user
 echo ""
 echo "[2/2] Starting API server..."
-# Sprint 8: bge-m3 (~2.3 GB) is loaded resident in each worker. Multi-worker
-# uvicorn would duplicate the model and OOM an 8 GB VM. Pin to 1 worker; scale
-# out via a separate TEI/embedding container (Sprint 9), not more workers.
+# The embedding model (~449 MB for e5-small, ~2.3 GB for bge-m3) is loaded
+# resident in each worker. Multi-worker uvicorn would duplicate the model and
+# OOM a small VM. Pin to 1 worker; scale out via a separate embedding
+# container if needed, not more workers.
 exec python -m uvicorn api.src.main:app --host 0.0.0.0 --port 8080 --workers 1

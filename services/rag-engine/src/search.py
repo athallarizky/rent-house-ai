@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 from .config import SEARCH_TOP_K
 from .db import get_collection
 from .model_cache import get_model
+from .prefixes import prefix_query
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -36,7 +37,8 @@ def search(
     collection = get_collection()
 
     model = get_model()
-    query_embedding = model.encode([query_text]).tolist()
+    # Apply asymmetric-retrieval prefix (e5-family models). No-op for bge-m3.
+    query_embedding = model.encode([prefix_query(query_text)]).tolist()
 
     where: Optional[Dict] = _build_where(kecamatan, province, min_rating)
 
