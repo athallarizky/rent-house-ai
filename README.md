@@ -35,12 +35,12 @@ cd rent-house-ai
 
 `setup.sh` handles everything: checks deps → builds Go binary → builds Docker images → starts all services → waits for healthy → prints the URL.
 
-**First run takes 5–15 minutes** (downloads embedding model ~2.3 GB). Subsequent runs take ~30 seconds.
+**First run takes 2–5 minutes** (downloads embedding model ~449 MB — `intfloat/multilingual-e5-small`, ~5× smaller than the previous `bge-m3`). Subsequent runs take ~30 seconds.
 
 ### Step 3 — Open browser
 
 ```
-http://localhost
+http://localhost:4000
 ```
 
 **Login:**
@@ -55,24 +55,25 @@ http://localhost
 
 | Page | URL |
 |------|-----|
-| Landing | http://localhost |
-| Login | http://localhost/login |
-| Search | http://localhost/search |
-| Settings (admin only) | http://localhost/settings |
+| Landing | http://localhost:4000 |
+| Login | http://localhost:4000/login |
+| Search | http://localhost:4000/search |
+| Settings (admin only) | http://localhost:4000/settings |
+| Pipeline dashboard (admin only) | http://localhost:4000/pipeline |
 
 ---
 
 ## Troubleshooting
 
-### Port conflict (80, 8080, or 3001 already in use)
+### Port conflict (4000, 4001, or 4002 already in use)
 
 ```bash
-lsof -i :80 -i :8080 -i :3001   # find what's using the port
+lsof -i :4000 -i :4001 -i :4002   # find what's using the port
 ```
 
-If a port is taken, edit `docker-compose.yml`, change the host port (e.g. `8081:8080`), then update `.env.docker`:
+If a port is taken (e.g. macOS AirPlay Receiver grabs :5000), edit `docker-compose.yml`, change the host port (e.g. `4080:80`), then update `.env.docker`:
 ```
-PUBLIC_API_URL=http://localhost:8081
+PUBLIC_API_URL=http://localhost:4080
 ```
 
 ### Containers unhealthy
@@ -96,13 +97,13 @@ docker compose up -d
 
 ```bash
 docker compose down
-rm -rf model-cache/
+docker volume rm rent-house-ai_model-cache   # or <project>_model-cache
 docker compose up -d    # retries download
 ```
 
 ### Not enough RAM
 
-Docker needs **≥ 8 GB RAM**. On macOS: Docker Desktop → Settings → Resources → increase Memory limit.
+Docker needs **≥ 2 GB RAM** for `e5-small` (was 8 GB for `bge-m3`). On macOS: Docker Desktop → Settings → Resources → increase Memory limit. On Colima: `colima start --memory 4`.
 
 ---
 
@@ -110,12 +111,17 @@ Docker needs **≥ 8 GB RAM**. On macOS: Docker Desktop → Settings → Resourc
 
 ```
 docker compose up
-  ├── kos-geo:3001    Node.js (Fastify)     area name resolution
-  ├── kos-api:8080    Python (FastAPI)      orchestrator + RAG engine + scraper + data processor
-  └── kos-web:80      nginx (static)        Astro frontend
+  ├── kos-geo:4002  →  internal :3001  Node.js (Fastify)     area name resolution
+  ├── kos-api:4001  →  internal :8080  Python (FastAPI)      orchestrator + RAG engine + scraper + data processor
+  └── kos-web:4000  →  internal :80    nginx (static)        Astro frontend
 ```
 
 All Python services (API, RAG, scraper, data-processor) run inside a single `kos-api` container via subprocess calls — no refactoring needed.
+
+**Embedding model** (`intfloat/multilingual-e5-small`, 384-dim, 449 MB):
+  - Loaded resident in the kos-api process at startup (Sprint 8)
+  - `query: ` / `passage: ` prefixes applied centrally via `services/rag-engine/src/prefixes.py` (Sprint 11)
+  - ~12× faster ingest + ~3-4× faster search vs the previous `bge-m3` (Sprint 10 measurements)
 
 ---
 
@@ -126,7 +132,21 @@ All Python services (API, RAG, scraper, data-processor) run inside a single `kos
 | Frontend | Astro 6 + React 19 + Tailwind 4 |
 | Backend | FastAPI (Python 3.11) |
 | Auth | JWT + bcrypt |
-| Search / RAG | ChromaDB + bge-m3 + Z.AI (glm-4.5-air) |
+| Search / RAG | ChromaDB + multilingual-e5-small + Z.AI (glm-4.5-air) |
 | Scraper | Go (Google Maps) + Chromium |
 | Geo resolution | Fastify (Node.js) + Fuse.js |
 | Infra | Docker Compose (3 containers) |
+
+---
+
+## Migration from bge-m3 (Sprint 11)
+
+If you're upgrading an existing deployment from `BAAI/bge-m3` to `intfloat/multilingual-e5-small`, the vector dimensions change (1024 → 384) and ChromaDB must be wiped + re-indexed. See `scripts/migrate-to-e5-small.sh` for a one-shot migration script that:
+
+1. Backs up the existing `data/chroma_db/`
+2. Wipes it (dim mismatch makes old vectors unusable)
+3. Restarts the API (loads e5-small + creates fresh collection)
+4. Loops over every `data/cleaned/*_docs.json` and triggers `/pipeline/index` per area
+5. Verifies the final doc count
+
+Estimated time on a 1700-doc corpus: ~3 minutes total (vs ~30 minutes for bge-m3).

@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent.parent
 CHROMA_PATH = str(ROOT / "data" / "chroma_db")
 COLLECTION_NAME = "kos_indonesia"
 
-EMBED_MODEL = os.environ.get("EMBED_MODEL", "BAAI/bge-m3")
+EMBED_MODEL = os.environ.get("EMBED_MODEL", "intfloat/multilingual-e5-small")
 
 _SETTINGS_PATH = ROOT / "data" / "settings.json"
 

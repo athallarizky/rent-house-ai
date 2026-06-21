@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 from .config import COLLECTION_NAME
 from .db import get_client, reset_collection_cache
 from .model_cache import get_model
+from .prefixes import prefix_passage
 
 
 def load_docs(docs_path: Path) -> List[Dict[str, Any]]:
@@ -82,8 +83,13 @@ def ingest(docs_path: Path, force: bool = False) -> Dict[str, Any]:
     # bge-m3 supports an 8192-token context, so a batch of long docs produces a
     # huge attention buffer ([B,H,S,S]) and crashes with "Invalid buffer size".
     # Cap each doc to a safe char budget and encode in small batches.
+    # Note (Sprint 11): e5-small truncates at 512 tokens (~1 500-2 000 chars)
+    # natively; the cap below is still a safe upper bound for either model.
+    # See docs/sprint-10/reports/ for the truncation analysis (9.6% of docs
+    # exceed 512 tokens with e5-small — accepted trade-off).
     MAX_DOC_CHARS = 4000
-    safe_texts = [t[:MAX_DOC_CHARS] for t in texts]
+    # Apply asymmetric-retrieval prefix (e5-family models). No-op for bge-m3.
+    safe_texts = [prefix_passage(t[:MAX_DOC_CHARS]) for t in texts]
     print(f"Embedding {len(new_docs)} documents...")
     embeddings = model.encode(
         safe_texts, batch_size=8, show_progress_bar=True

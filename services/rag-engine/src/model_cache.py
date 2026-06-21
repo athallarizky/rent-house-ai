@@ -1,8 +1,13 @@
-"""Singleton model cache — loads bge-m3 once per process lifetime.
+"""Singleton model cache — loads the configured embedding model once per process.
 
 Used by both subprocess and in-process callers. The SentenceTransformer model
-is ~2.3 GB and takes 3-5s to load; reusing it across requests eliminates that
+is ~449 MB for `intfloat/multilingual-e5-small` (the default since Sprint 11)
+and takes 10-25s to load cold; reusing it across requests eliminates that
 overhead completely.
+
+Override with the `EMBED_MODEL` env var to swap models (e.g. back to
+`BAAI/bge-m3` for A/B testing — note that the ChromaDB collection must then
+be wiped + re-ingested because the vector dimensions differ).
 """
 
 from sentence_transformers import SentenceTransformer

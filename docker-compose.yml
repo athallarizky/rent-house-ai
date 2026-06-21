@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.geo
     container_name: kos-geo
     ports:
-      - "3001:3001"
+      - "4002:3001"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/resolve?q=bandung',r=>{process.exit(r.statusCode===200?0:1)})"]
@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile.api
     container_name: kos-api
     ports:
-      - "8080:8080"
+      - "4001:8080"
     volumes:
       - ./data:/app/data
       - model-cache:/root/.cache/huggingface
@@ -48,7 +48,7 @@ services:
         PUBLIC_API_URL: /api
     container_name: kos-web
     ports:
-      - "80:80"
+      - "4000:80"
     restart: unless-stopped
     depends_on:
       api:
