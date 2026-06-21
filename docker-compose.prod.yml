@@ -1,0 +1,32 @@
+# ============================================================
+# docker-compose.prod.yml — Production override (Sprint 12)
+# ============================================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Changes vs base docker-compose.yml:
+#   - api builds from Dockerfile.api.prod (slim, no scraper/Chromium)
+#   - api reads .env.production (real creds, NOT committed)
+#   - all services restart: always (production hardening)
+# ============================================================
+
+services:
+  geo-router:
+    # Don't publish to host — web/api reach this via internal docker network
+    # (geo-router:3001). No public exposure needed in production.
+    ports: !reset []
+    restart: always
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api.prod
+    env_file:
+      - .env.production
+    # Don't publish to host — web reaches this via internal docker network
+    # (kos-api:8080). Public access is only via web container (port 4000).
+    ports: !reset []
+    restart: always
+
+  web:
+    restart: always

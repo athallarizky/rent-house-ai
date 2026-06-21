@@ -1,0 +1,10 @@
+# Sprint 10 POC — standalone benchmark deps.
+# Pinned loose; resolver picks compatible versions.
+# Production runtime (api/Dockerfile.api) installs torch CPU-only from a
+# separate index URL. For the POC venv we let pip resolve a CPU torch wheel
+# from PyPI directly — fine for measurement, not for prod.
+torch
+sentence-transformers>=3.0
+chromadb>=0.5
+numpy
+scikit-learn
