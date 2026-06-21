@@ -47,3 +47,6 @@ poc/_chroma/
 poc/_backups/
 poc/_e2e_logs/
 poc/_results/
+
+# Sprint 10/11 — local Docker port-mapping override (POC vs baseline side-by-side)
+docker-compose.override.yml
