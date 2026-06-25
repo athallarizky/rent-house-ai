@@ -87,7 +87,12 @@ export async function* streamSearch(
 
 export async function resolveLocation(q: string): Promise<ResolveLocationResponse> {
   const resp = await fetch(`${API_URL}/locations/resolve?q=${encodeURIComponent(q)}`);
-  if (!resp.ok) throw new Error(`resolveLocation failed (${resp.status})`);
+  if (!resp.ok) {
+    // Surface the API's detail (e.g. "Geo-router unavailable: ...") so the UI
+    // can tell a real geo-router outage apart from the backend being down.
+    const detail = await resp.text().catch(() => "");
+    throw new Error(`resolveLocation failed (${resp.status}): ${detail.slice(0, 160)}`);
+  }
   return resp.json();
 }
 
@@ -469,6 +474,18 @@ export async function resolveSearchQuery(query: string): Promise<ResolveSearchRe
 
 // === Pipeline Data (per-area inventory) ===
 
+export type ScrapeCodeStatus = "waiting" | "running" | "completed" | "failed";
+
+export interface ScrapeCode {
+  code: number;
+  status: ScrapeCodeStatus;
+  count?: number;
+  error?: string | null;
+  updated_at?: number;
+}
+
+export type ScrapeAreaStatus = "scraping" | "completed" | "partial" | "failed";
+
 export interface PipelineArea {
   area: string;
   scraped: boolean;
@@ -479,6 +496,8 @@ export interface PipelineArea {
   docs_count: number | null;
   indexed_count: number;
   scrape_date: number | null;
+  scrape_status?: ScrapeAreaStatus | null;
+  codes?: ScrapeCode[];
 }
 
 export interface PipelineTotals {
@@ -540,6 +559,10 @@ export const indexArea = (area: string) => pipelineAction("index", area);
 export const rebuildArea = (area: string) => pipelineAction("rebuild", area);
 /** Full re-scrape → process → index. Expensive (Google Maps). */
 export const rescrapeArea = (area: string) => pipelineAction("rescrape", area);
+/** Resume/retry — re-scrape only missing/failed postal codes (or one `code`),
+ * then process + index. Safe to repeat. */
+export const resumeArea = (area: string, code?: number) =>
+  pipelineAction("resume", area, code != null ? { code } : {});
 /** Delete an area's index + docs. wipe_raw=true also removes raw data. */
 export const deleteArea = (area: string, wipe_raw = false) =>
   pipelineAction("delete", area, { wipe_raw });

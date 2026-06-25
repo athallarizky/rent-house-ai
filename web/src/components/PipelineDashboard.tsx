@@ -12,15 +12,22 @@ import {
   Zap,
   Globe,
   Trash2,
+  RotateCw,
+  ChevronRight,
+  ChevronDown,
+  Clock,
+  XCircle,
 } from "lucide-react";
 import {
   getPipelineData,
   indexArea,
   rebuildArea,
   rescrapeArea,
+  resumeArea,
   deleteArea,
   type PipelineDataResponse,
   type PipelineArea,
+  type ScrapeCode,
 } from "../lib/api";
 import ConfirmModal from "./ConfirmModal";
 import { cn } from "../lib/utils";
@@ -85,6 +92,7 @@ export default function PipelineDashboard() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState>(null);
+  const [wipeRaw, setWipeRaw] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async (silent = false) => {
@@ -149,8 +157,9 @@ export default function PipelineDashboard() {
     const { kind, area } = confirm;
     setConfirm(null);
     if (kind === "rescrape") runAction(rescrapeArea, area);
-    else if (kind === "delete") runAction((a) => deleteArea(a, false), area);
-  }, [confirm, runAction]);
+    else if (kind === "delete") runAction((a) => deleteArea(a, wipeRaw), area);
+    setWipeRaw(false);
+  }, [confirm, runAction, wipeRaw]);
 
   if (loading) {
     return (
@@ -264,10 +273,16 @@ export default function PipelineDashboard() {
                   number={i + 1}
                   area={area}
                   busy={pipelineRunning}
+                  running={pipeline?.running === area.area}
                   onIndex={(a) => runAction(indexArea, a)}
                   onRebuild={(a) => runAction(rebuildArea, a)}
                   onRescrape={(a) => setConfirm({ kind: "rescrape", area: a })}
-                  onDelete={(a) => setConfirm({ kind: "delete", area: a })}
+                  onResume={(a) => runAction((x) => resumeArea(x), a)}
+                  onResumeCode={(a, code) => runAction((x) => resumeArea(x, code), a)}
+                  onDelete={(a) => {
+                    setWipeRaw(false);
+                    setConfirm({ kind: "delete", area: a });
+                  }}
                 />
               ))}
             </tbody>
@@ -289,13 +304,33 @@ export default function PipelineDashboard() {
           confirm?.kind === "rescrape"
             ? "Akan mengambil ulang semua data dari Google Maps (butuh beberapa menit, berisiko rate-limit). Data lama ditimpa."
             : confirm?.kind === "delete"
-            ? "Menghapus dari index + cleaned docs. Raw data dipertahankan (bisa Rebuild/Index ulang)."
+            ? wipeRaw
+              ? "Menghapus dari index + cleaned docs + raw data. Area akan hilang dari dashboard dan tidak bisa di-Rebuild tanpa scrape ulang."
+              : "Menghapus dari index + cleaned docs. Raw data dipertahankan (bisa Rebuild/Index ulang)."
             : undefined
         }
         confirmLabel={confirm?.kind === "delete" ? "Hapus" : "Re-scrape"}
         onConfirm={onConfirm}
-        onClose={() => setConfirm(null)}
-      />
+        onClose={() => {
+          setConfirm(null);
+          setWipeRaw(false);
+        }}
+      >
+        {confirm?.kind === "delete" && (
+          <label className="flex items-start gap-2 cursor-pointer select-none rounded-lg border border-border bg-background/50 p-2.5">
+            <input
+              type="checkbox"
+              checked={wipeRaw}
+              onChange={(e) => setWipeRaw(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-destructive"
+            />
+            <span className="text-xs leading-relaxed text-muted-foreground">
+              Hapus <strong className="text-foreground">raw data</strong> juga
+              (scrape Google Maps). Area hilang permanen dari dashboard.
+            </span>
+          </label>
+        )}
+      </ConfirmModal>
     </div>
   );
 }
@@ -304,62 +339,191 @@ interface AreaRowProps {
   number: number;
   area: PipelineArea;
   busy: boolean;
+  running: boolean;
   onIndex: (area: string) => void;
   onRebuild: (area: string) => void;
   onRescrape: (area: string) => void;
+  onResume: (area: string) => void;
+  onResumeCode: (area: string, code: number) => void;
   onDelete: (area: string) => void;
 }
 
-function AreaRow({ number, area, busy, onIndex, onRebuild, onRescrape, onDelete }: AreaRowProps) {
+function AreaRow({
+  number,
+  area,
+  busy,
+  running,
+  onIndex,
+  onRebuild,
+  onRescrape,
+  onResume,
+  onResumeCode,
+  onDelete,
+}: AreaRowProps) {
   const count = area.indexed_count || area.docs_count || area.scraped_count || 0;
   const isRawFallback =
     area.indexed_count === 0 && area.docs_count == null && area.scraped_count > 0;
   const warn = warnFor(area);
 
+  const codes = area.codes ?? [];
+  const hasCodes = codes.length > 0;
+  const failedCodes = codes.filter((c) => c.status === "failed");
+
+  const [expanded, setExpanded] = useState(false);
+  // Auto-(un)fold following the live pipeline: open the running area, and any
+  // area that ended with failures so the retry controls are visible.
+  useEffect(() => {
+    if (running) setExpanded(true);
+  }, [running]);
+
+  const toggleable = hasCodes;
+  const chevron = expanded ? (
+    <ChevronDown className="w-3.5 h-3.5" />
+  ) : (
+    <ChevronRight className="w-3.5 h-3.5" />
+  );
+
   return (
-    <tr className="border-b border-border last:border-0 hover:bg-accent/40 transition-colors">
-      <td className="px-3 py-2.5 text-center text-xs text-muted-foreground tabular-nums">
-        {number}
-      </td>
-      <td className="px-4 py-2.5 font-medium">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <span>{area.area}</span>
-          {warn && (
-            <Tooltip label={warn.msg.replace(/\*\*/g, "")}>
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-            </Tooltip>
-          )}
-        </div>
-      </td>
-      <td className="px-3 py-2.5 text-center">
-        <StatusBadge on={area.scraped} count={area.scraped_count} label="Scraped" />
-      </td>
-      <td className="px-3 py-2.5 text-center">
-        <StatusBadge on={area.processed} count={area.docs_count ?? undefined} label="Processed" />
-      </td>
-      <td className="px-3 py-2.5 text-center">
-        <StatusBadge on={area.indexed} count={area.indexed_count} label="Indexed" />
-      </td>
-      <td className={cn(
-        "px-4 py-2.5 text-right tabular-nums",
-        isRawFallback && "text-muted-foreground italic"
-      )}>
-        {count > 0 ? count.toLocaleString("id-ID") : "—"}
-      </td>
-      <td className="px-3 py-2.5">
-        <div className="flex items-center justify-end gap-1">
-          {area.scraped && !area.indexed && (
-            <ActionBtn icon={Zap} label="Index" title="Index: process + index raw" disabled={busy} onClick={() => onIndex(area.area)} />
-          )}
-          {area.scraped && (
-            <ActionBtn icon={RefreshCw} label="Rebuild" title="Rebuild: reprocess + reingest (fix data)" disabled={busy} onClick={() => onRebuild(area.area)} />
-          )}
-          <ActionBtn icon={Globe} label="Rescrape" title="Rescrape: full refresh from Google Maps" disabled={busy} onClick={() => onRescrape(area.area)} />
-          <ActionBtn icon={Trash2} label="Delete" title="Delete: remove from index (keep raw)" disabled={busy} danger onClick={() => onDelete(area.area)} />
-        </div>
-      </td>
-    </tr>
+    <>
+      <tr className="border-b border-border last:border-0 hover:bg-accent/40 transition-colors">
+        <td className="px-3 py-2.5 text-center text-xs text-muted-foreground tabular-nums">
+          {number}
+        </td>
+        <td className="px-4 py-2.5 font-medium">
+          <div className="flex items-center gap-2">
+            {toggleable ? (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={expanded ? "Sembunyikan kodepos" : "Tampilkan kodepos"}
+              >
+                {chevron}
+              </button>
+            ) : (
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            )}
+            <span>{area.area}</span>
+            {running && (
+              <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin shrink-0" />
+            )}
+            {warn && (
+              <Tooltip label={warn.msg.replace(/\*\*/g, "")}>
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+              </Tooltip>
+            )}
+            {failedCodes.length > 0 && (
+              <Tooltip label={`${failedCodes.length} kodepos gagal — bisa di-retry`}>
+                <span className="inline-flex items-center gap-1 rounded-full border border-red-300 dark:border-red-900 px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">
+                  <XCircle className="w-3 h-3" />
+                  {failedCodes.length} gagal
+                </span>
+              </Tooltip>
+            )}
+          </div>
+        </td>
+        <td className="px-3 py-2.5 text-center">
+          <StatusBadge on={area.scraped} count={area.scraped_count} label="Scraped" />
+        </td>
+        <td className="px-3 py-2.5 text-center">
+          <StatusBadge on={area.processed} count={area.docs_count ?? undefined} label="Processed" />
+        </td>
+        <td className="px-3 py-2.5 text-center">
+          <StatusBadge on={area.indexed} count={area.indexed_count} label="Indexed" />
+        </td>
+        <td className={cn(
+          "px-4 py-2.5 text-right tabular-nums",
+          isRawFallback && "text-muted-foreground italic"
+        )}>
+          {count > 0 ? count.toLocaleString("id-ID") : "—"}
+        </td>
+        <td className="px-3 py-2.5">
+          <div className="flex items-center justify-end gap-1">
+            {failedCodes.length > 0 && (
+              <ActionBtn
+                icon={RotateCw}
+                label="Retry"
+                title="Retry: scrape ulang hanya kodepos yang gagal, lalu process + index"
+                disabled={busy}
+                onClick={() => onResume(area.area)}
+              />
+            )}
+            {area.scraped && !area.indexed && (
+              <ActionBtn icon={Zap} label="Index" title="Index: process + index raw" disabled={busy} onClick={() => onIndex(area.area)} />
+            )}
+            {area.scraped && (
+              <ActionBtn icon={RefreshCw} label="Rebuild" title="Rebuild: reprocess + reingest (fix data)" disabled={busy} onClick={() => onRebuild(area.area)} />
+            )}
+            <ActionBtn icon={Globe} label="Rescrape" title="Rescrape: full refresh from Google Maps" disabled={busy} onClick={() => onRescrape(area.area)} />
+            <ActionBtn icon={Trash2} label="Delete" title="Delete: remove from index (keep raw)" disabled={busy} danger onClick={() => onDelete(area.area)} />
+          </div>
+        </td>
+      </tr>
+
+      {expanded && hasCodes && (
+        <tr className="border-b border-border last:border-0 bg-muted/30">
+          <td colSpan={7} className="px-4 py-2.5">
+            <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+              {codes.map((c) => (
+                <CodeStatusBadge
+                  key={c.code}
+                  code={c}
+                  busy={busy}
+                  onRetry={() => onResumeCode(area.area, c.code)}
+                />
+              ))}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function CodeStatusBadge({
+  code,
+  busy,
+  onRetry,
+}: {
+  code: ScrapeCode;
+  busy: boolean;
+  onRetry: () => void;
+}) {
+  const failed = code.status === "failed";
+  const tooltip =
+    code.status === "completed"
+      ? `Selesai — ${code.count ?? 0} kos`
+      : code.status === "running"
+      ? "Sedang di-scrape…"
+      : code.status === "waiting"
+      ? "Menunggu giliran"
+      : `Gagal — ${code.error || "error tidak diketahui"}`;
+
+  return (
+    <Tooltip label={tooltip}>
+      <span className="inline-flex items-center gap-1.5 text-xs tabular-nums">
+        <span className="text-muted-foreground">{code.code}</span>
+        {code.status === "completed" && <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />}
+        {code.status === "running" && <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />}
+        {code.status === "waiting" && <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />}
+        {failed && <XCircle className="w-3.5 h-3.5 text-red-500" />}
+        {code.status === "completed" && (
+          <span className="text-muted-foreground">{(code.count ?? 0).toLocaleString("id-ID")}</span>
+        )}
+        {failed && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onRetry}
+            title="Retry kodepos ini"
+            className="inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <RotateCw className="w-3 h-3" />
+            retry
+          </button>
+        )}
+      </span>
+    </Tooltip>
   );
 }
 

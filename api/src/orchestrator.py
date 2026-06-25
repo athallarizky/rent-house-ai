@@ -81,7 +81,7 @@ def _format_kos_items(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def resolve_area(query: str) -> Dict[str, Any]:
     try:
         url = f"{GEO_ROUTER_URL}/resolve?q={urllib.parse.quote(query)}"
-        resp = urllib.request.urlopen(url, timeout=5)
+        resp = urllib.request.urlopen(url, timeout=15)
         data = json.loads(resp.read())
         if data.get("success"):
             return data["data"]
@@ -90,46 +90,83 @@ def resolve_area(query: str) -> Dict[str, Any]:
     return {"type": "AREA", "regency": query, "districts": [], "province": ""}
 
 
-def ensure_scraped(area: str, postal_codes: List[int], force: bool = False, stale_days: int = 30) -> Dict[str, Any]:
+def _scrape_manifest(area: str) -> Dict[str, Any]:
+    """Read data/raw/<area>/_scrape_state.json (or {})."""
+    path = ROOT / "data" / "raw" / area / "_scrape_state.json"
+    if not path.exists():
+        return {}
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def ensure_scraped(
+    area: str,
+    postal_codes: List[int],
+    force: bool = False,
+    stale_days: int = 30,
+    only_code: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Run the scraper for an area (resume-aware).
+
+    The outer 600s timeout was intentionally removed: each postal code is
+    already bounded by a 300s per-code timeout inside scrape_area, so the whole
+    area now runs to completion instead of being killed mid-way (the root cause
+    of partial scrapes). Resume semantics live in scrape_area itself — only
+    codes lacking a complete ``.jsonl`` (or previously failed) get re-scraped.
+    """
     cache_dir = ROOT / "data" / "raw" / area
 
-    max_age = 0.0
-    all_fresh = True
-    for code in postal_codes:
-        path = cache_dir / f"{code}.jsonl"
-        if path.exists():
-            mtime = datetime.fromtimestamp(os.path.getmtime(path))
-            age = (datetime.now() - mtime).total_seconds() / 86400
-            max_age = max(max_age, age)
-            if stale_days > 0 and age > stale_days:
+    # Fast path: nothing force-requested, and every code is complete & fresh.
+    if not force and only_code is None:
+        max_age = 0.0
+        all_fresh = True
+        for code in postal_codes:
+            path = cache_dir / f"{code}.jsonl"
+            if path.exists():
+                age = (datetime.now() - datetime.fromtimestamp(os.path.getmtime(path))).total_seconds() / 86400
+                max_age = max(max_age, age)
+                if stale_days > 0 and age > stale_days:
+                    all_fresh = False
+            else:
                 all_fresh = False
-        else:
-            all_fresh = False
-
-    if not force and all_fresh:
-        count = len(list(cache_dir.glob("*.jsonl")))
-        return {"status": "cached", "files": count, "scrape_age_days": round(max_age, 1)}
+        if all_fresh:
+            count = len(list(cache_dir.glob("*.jsonl")))
+            return {"status": "cached", "files": count, "scrape_age_days": round(max_age, 1)}
 
     codes_arg = ",".join(str(c) for c in postal_codes)
     scraper_dir = ROOT / "services" / "scraper"
-    flags = "force=True" if force else f"stale_days={stale_days}"
+    parts = ["force=True" if force else f"stale_days={stale_days}"]
+    if only_code is not None:
+        parts.append(f"only_code={only_code}")
+    flags = ", ".join(parts)
 
-    proc = subprocess.run(
-        [sys.executable, "-c",
-         f"from src.run import scrape_area, ScraperConfig; "
-         f"config = ScraperConfig(depth=2, concurrency=1, lang='id'); "
-         f"scrape_area('{area}', [{codes_arg}], config=config, {flags})"],
-        cwd=str(scraper_dir),
-        timeout=600,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c",
+             f"from src.run import scrape_area, ScraperConfig; "
+             f"config = ScraperConfig(depth=2, concurrency=1, lang='id'); "
+             f"scrape_area('{area}', [{codes_arg}], config=config, {flags})"],
+            cwd=str(scraper_dir),
+            capture_output=True,
+            text=True,
+            start_new_session=True,
+        )
+    except Exception as exc:  # noqa: BLE001 — surface, don't crash the pipeline runner
+        return {"status": "error", "message": f"Scrape process crashed: {exc}"}
 
     if proc.returncode != 0:
-        return {"status": "error", "message": proc.stderr[-300:]}
+        return {"status": "error", "message": (proc.stderr or "")[-300:]}
 
+    manifest = _scrape_manifest(area)
+    failed = [c["code"] for c in manifest.get("codes", []) if c.get("status") == "failed"]
+    done = [c["code"] for c in manifest.get("codes", []) if c.get("status") == "completed"]
     count = len(list(cache_dir.glob("*.jsonl")))
-    return {"status": "scraped", "files": count, "scrape_age_days": 0.0}
+    status = "scraped" if not failed else "partial"
+    return {"status": status, "files": count, "scrape_age_days": 0.0,
+            "done": done, "failed": failed}
 
 
 def ensure_processed(area: str) -> Dict[str, Any]:
@@ -595,6 +632,60 @@ async def run_rescrape_background(area: str, postal_codes: List[int]) -> None:
             state.progress = f"Indexing failed: {idx.get('message', '')}"
             return
         state.progress = f"Done: re-scraped, {idx.get('new', 0)} new docs for {area}"
+    except Exception as exc:
+        state.progress = f"Pipeline error: {exc}"
+    finally:
+        state.finish()
+
+
+async def run_resume_background(area: str, postal_codes: List[int], only_code: Optional[int] = None) -> None:
+    """Resume / retry a scrape without redoing completed work.
+
+    Scrapes only postal codes that are missing or previously failed (or a single
+    ``only_code`` for a per-code retry), then mirrors Rebuild — delete the area
+    from the index, reprocess all raw data, and reingest — so retried data shows
+    up in search. Completed codes are skipped (idempotent), and ingest dedups by
+    doc id, so re-running after partial failures is safe.
+    """
+    state = get_pipeline_state()
+    try:
+        scope = f"kodepos {only_code}" if only_code is not None else f"{len(postal_codes)} kodepos"
+        state.status = "scraping"
+        state.progress = f"Resume scrape {area} ({scope})..."
+        scrape = await asyncio.to_thread(ensure_scraped, area, postal_codes, False, 30, only_code)
+        if scrape["status"] == "error":
+            state.progress = f"Scrape failed: {scrape.get('message', '')}"
+            return
+        if scrape["status"] == "partial":
+            done = len(scrape.get("done", []))
+            failed = len(scrape.get("failed", []))
+            state.progress = f"Scrape partial: {done} ok, {failed} masih gagal untuk {area}"
+
+        # Mirror rebuild: drop area index → reprocess → reingest (consistent,
+        # dedup-safe) so newly scraped kos are searchable.
+        state.status = "rebuilding"
+        state.progress = f"Clearing old index for {area}..."
+
+        def _clear() -> int:
+            (ROOT / "data" / "cleaned" / f"{area}_docs.json").unlink(missing_ok=True)
+            return _rag().delete_area_from_index(area)
+
+        removed = await asyncio.to_thread(_clear)
+
+        state.status = "processing"
+        state.progress = f"Re-processing {area} (removed {removed} old)..."
+        proc = await asyncio.to_thread(ensure_processed, area)
+        if proc["status"] == "error":
+            state.progress = f"Processing failed: {proc.get('message', '')}"
+            return
+
+        state.status = "indexing"
+        state.progress = f"Indexing {area}..."
+        idx = await asyncio.to_thread(ensure_indexed, area)
+        if idx["status"] == "error":
+            state.progress = f"Indexing failed: {idx.get('message', '')}"
+            return
+        state.progress = f"Done: resumed, {idx.get('new', 0)} docs for {area}"
     except Exception as exc:
         state.progress = f"Pipeline error: {exc}"
     finally:

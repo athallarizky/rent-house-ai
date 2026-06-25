@@ -1,14 +1,30 @@
 import Fuse from "fuse.js";
-import type { KodeposEntry, ResolveResult, District } from "./types.js";
+import type { KodeposEntry, ResolveResult } from "./types.js";
 import { resolveAlias } from "./alias.js";
 import { isPoi } from "./classify.js";
 
-export function resolve(
-  fuse: Fuse<KodeposEntry>,
+/** Minimal slice of an entry needed to finish a fuzzy resolution. */
+export type FuzzyEntry = Pick<KodeposEntry, "regency" | "district" | "province">;
+
+/**
+ * Outcome of the exact (cheap, no-Fuse) resolution stage.
+ *  - `{ done: true, result }`  : resolved definitively (a hit, or `null` = not found / POI)
+ *  - `{ done: false, aliased }`: nothing exact matched — caller should run Fuse with `aliased`.
+ */
+export type ResolveStep =
+  | { done: true; result: ResolveResult | null }
+  | { done: false; aliased: string };
+
+/**
+ * Cheap exact resolution — regency-exact, then district-exact, then POI guard.
+ * Everything here is O(n) scanning (fast) and never touches Fuse, so it is safe
+ * to run on the event loop. Returns `done:false` when a fuzzy search is needed.
+ */
+export function resolveExact(
   data: KodeposEntry[],
   query: string,
   regencyNames?: Set<string>
-): ResolveResult | null {
+): ResolveStep {
   const aliased = resolveAlias(query);
 
   // Known regency wins first — a regency-level query like "Bandung" must yield
@@ -17,33 +33,41 @@ export function resolve(
   if (regencyNames?.has(aliased.toLowerCase())) {
     const regencyEntries = data.filter((e) => e.regency.toLowerCase() === aliased.toLowerCase());
     if (regencyEntries.length > 0) {
-      return buildRegencyResult(data, query, regencyEntries[0].regency, regencyEntries[0].province);
+      return {
+        done: true,
+        result: buildRegencyResult(data, query, regencyEntries[0].regency, regencyEntries[0].province),
+      };
     }
   }
 
   // Exact district-name match next. Avoids two classes of geo-router bugs:
   //  - fuzzy mis-resolve across provinces: "Buahbatu" (Bandung) -> "Blahbatuh" (Gianyar)
   //  - real district names containing POI words: "Kebon Jeruk"
-  // (Runs after the regency check so regencies aren't shadowed by same-named districts.)
-  const exactDistrict = data.find(
-    (e) => e.district.toLowerCase() === aliased.toLowerCase()
-  );
+  const exactDistrict = data.find((e) => e.district.toLowerCase() === aliased.toLowerCase());
   if (exactDistrict) {
-    return buildDistrictResult(
-      data,
-      query,
-      exactDistrict.district,
-      exactDistrict.regency,
-      exactDistrict.province
-    );
+    return {
+      done: true,
+      result: buildDistrictResult(data, query, exactDistrict.district, exactDistrict.regency, exactDistrict.province),
+    };
   }
 
-  if (isPoi(aliased)) return null;
+  if (isPoi(aliased)) return { done: true, result: null };
 
-  const results = fuse.search(aliased, { limit: 20 });
-  if (results.length === 0) return null;
+  return { done: false, aliased };
+}
 
-  const entries = results.map((r) => r.item);
+/**
+ * Finish a fuzzy resolution from Fuse result entries (already computed, e.g. in
+ * a worker thread). Pure + synchronous — safe on the event loop.
+ */
+export function resolveFuzzy(
+  data: KodeposEntry[],
+  query: string,
+  aliased: string,
+  entries: FuzzyEntry[],
+  regencyNames?: Set<string>
+): ResolveResult | null {
+  if (entries.length === 0) return null;
 
   const bestRegency = findBestMatch(entries, "regency");
   const bestDistrict = findBestMatch(entries, "district");
@@ -66,13 +90,31 @@ export function resolve(
   return buildDistrictResult(data, query, bestDistrict, bestRegency, province);
 }
 
+/**
+ * Synchronous resolve using an in-process Fuse — kept for tests and as a
+ * fallback. The server uses the worker-thread path (`resolveExact` +
+ * `resolveFuzzy`) so Fuse never blocks the event loop.
+ */
+export function resolve(
+  fuse: Fuse<KodeposEntry>,
+  data: KodeposEntry[],
+  query: string,
+  regencyNames?: Set<string>
+): ResolveResult | null {
+  const step = resolveExact(data, query, regencyNames);
+  if (step.done) return step.result;
+  const results = fuse.search(step.aliased, { limit: 20 });
+  const entries: FuzzyEntry[] = results.map((r) => r.item);
+  return resolveFuzzy(data, query, step.aliased, entries, regencyNames);
+}
+
 function buildRegencyResult(
   data: KodeposEntry[],
   query: string,
   regency: string,
   province: string
 ): ResolveResult {
-  const districtMap = new Map<string, District>();
+  const districtMap = new Map<string, ResolveResult["districts"][number]>();
   const regencyEntries = data.filter((e) => e.regency === regency);
 
   for (const entry of regencyEntries) {
@@ -120,11 +162,10 @@ function buildDistrictResult(
   };
 }
 
-function findBestMatch(entries: KodeposEntry[], field: "regency" | "district"): string {
+function findBestMatch(entries: FuzzyEntry[], field: "regency" | "district"): string {
   const counts = new Map<string, number>();
   for (const e of entries) {
-    const value = e[field];
-    counts.set(value, (counts.get(value) ?? 0) + 1);
+    counts.set(e[field], (counts.get(e[field]) ?? 0) + 1);
   }
   let best = entries[0][field];
   let bestCount = 0;

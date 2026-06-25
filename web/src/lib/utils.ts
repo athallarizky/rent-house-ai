@@ -100,11 +100,14 @@ export function friendlyError(e: unknown, fallback: string): string {
   if (/failed to fetch|networkerror|load failed/i.test(msg)) {
     return "Tidak bisa terhubung ke server. Pastikan FastAPI (:8080) & geo-router (:3001) berjalan.";
   }
-  if (/resolveLocation failed \(502\)|geo-router unavailable/i.test(msg)) {
-    return "Geo-router tidak tersedia (:3001). Jalankan `npm run dev` di services/geo-router.";
+  // Only the API's own "Geo-router unavailable" detail means the geo-router is
+  // truly down. A bare 502 on /locations/resolve usually means the backend
+  // (kos-api) was restarting — don't blame geo-router for that.
+  if (/geo-router unavailable/i.test(msg)) {
+    return "Geo-router sedang tidak tersedia. Cek container kos-geo, atau untuk dev lokal jalankan `npm run dev` di services/geo-router.";
   }
   if (/502|bad gateway/i.test(msg)) {
-    return "Server upstream tidak tersedia (502). Cek service backend.";
+    return "Server upstream tidak tersedia saat ini (502). Backend kemungkinan sedang restart — coba lagi sebentar.";
   }
   return fallback || msg;
 }

@@ -12,6 +12,11 @@ from fastapi import APIRouter, HTTPException, Query
 router = APIRouter(prefix="/locations", tags=["locations"])
 
 GEO_ROUTER_URL = os.environ.get("GEO_ROUTER_URL", "http://localhost:3001")
+# Fuse.js resolution in geo-router is synchronous and blocks the Node event
+# loop, so an ambiguous/heavy query can stall concurrent resolves for 1-2s+.
+# 15s gives headroom over those spikes instead of surfacing "Geo-router
+# unavailable" to the user on every transient slowdown.
+GEO_TIMEOUT = 15
 KODEPOS_PATH = Path(__file__).resolve().parent.parent.parent / "services" / "geo-router" / "kodepos" / "data" / "kodepos.json"
 
 _regencies_cache: List[dict] = []
@@ -61,20 +66,20 @@ async def list_areas(q: str = Query(default="", description="Filter by name")):
 
 
 @router.get("/resolve")
-async def resolve_location(q: str = Query(..., description="Location name")):
+def resolve_location(q: str = Query(..., description="Location name")):
     try:
         url = f"{GEO_ROUTER_URL}/resolve?q={urllib.parse.quote(q)}"
-        resp = urllib.request.urlopen(url, timeout=5)
+        resp = urllib.request.urlopen(url, timeout=GEO_TIMEOUT)
         return json.loads(resp.read())
     except Exception as e:
         raise HTTPException(502, f"Geo-router unavailable: {e}")
 
 
 @router.get("/expand")
-async def expand_location(q: str = Query(..., description="Regency name")):
+def expand_location(q: str = Query(..., description="Regency name")):
     try:
         url = f"{GEO_ROUTER_URL}/expand?q={urllib.parse.quote(q)}"
-        resp = urllib.request.urlopen(url, timeout=5)
+        resp = urllib.request.urlopen(url, timeout=GEO_TIMEOUT)
         return json.loads(resp.read())
     except Exception as e:
         raise HTTPException(502, f"Geo-router unavailable: {e}")
