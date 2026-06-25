@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { AlertTriangle, X, Info } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -12,6 +12,8 @@ interface ConfirmModalProps {
   /** Custom cancel label; pass `null` to hide the cancel button (alert/info mode). */
   cancelLabel?: string | null;
   variant?: ConfirmVariant;
+  /** Optional extra content rendered between the message and the action buttons. */
+  children?: ReactNode;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -33,6 +35,7 @@ export default function ConfirmModal({
   confirmLabel = "Konfirmasi",
   cancelLabel = "Batal",
   variant = "default",
+  children,
   onConfirm,
   onClose,
 }: ConfirmModalProps) {
@@ -96,6 +99,8 @@ export default function ConfirmModal({
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {children && <div className="px-5 pb-2">{children}</div>}
 
         <div className="flex items-center justify-end gap-2 px-5 pb-5">
           {cancelLabel !== null && (

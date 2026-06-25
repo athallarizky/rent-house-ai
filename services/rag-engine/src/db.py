@@ -44,8 +44,16 @@ def delete_area_from_index(area: str) -> int:
     Per-area, safe — does NOT touch other areas (unlike `ingest(force=True)`
     which calls `delete_collection` and nukes the whole DB). Returns the number
     of entries removed. Used by the Rebuild / Rescrape / Delete actions (Sprint 9).
+
+    Idempotent: returns 0 when the collection does not exist yet (fresh DB,
+    nothing indexed) instead of raising — a DELETE on an empty index is a no-op.
     """
-    col = get_collection()
+    try:
+        col = get_collection()
+    except Exception as exc:  # collection not created yet on a fresh DB
+        if "does not exist" in str(exc):
+            return 0
+        raise
     before = col.count()
     col.delete(where={"kecamatan": area})
     return before - col.count()

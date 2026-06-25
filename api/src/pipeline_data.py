@@ -12,6 +12,7 @@ Keyed by area name (which equals the kecamatan name in this system).
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -24,12 +25,14 @@ from .orchestrator import (
     run_index_background,
     run_rebuild_background,
     run_rescrape_background,
+    run_resume_background,
 )
 from .pipeline_state import get_pipeline_state
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 CLEANED_DIR = ROOT / "data" / "cleaned"
+SCRAPE_STATE_NAME = "_scrape_state.json"
 
 # Skip parsing individual JSONL files larger than this when counting records
 # (see docs/sprint-7/tasks.md risk mitigation). Dir-level scan still counts
@@ -50,7 +53,57 @@ def _new_area_entry(area: str) -> Dict[str, Any]:
         "docs_count": None,
         "indexed_count": 0,
         "scrape_date": None,
+        "scrape_status": None,   # scraping | completed | partial | failed (manifest)
+        "codes": [],             # per-postal-code detail: [{code,status,count,error}]
     }
+
+
+def _read_scrape_state(area: str, active: bool) -> Dict[str, Any]:
+    """Read + reconcile the per-code scrape manifest for an area.
+
+    Returns ``{}`` when no scrape has ever been attempted (no manifest). When the
+    manifest is stale (says "scraping" but nothing is running for the area), any
+    codes left running/waiting are marked failed and the file is rewritten so the
+    UI never shows a permanently "running" code after a crash/kill.
+    """
+    path = RAW_DIR / area / SCRAPE_STATE_NAME
+    if not path.exists():
+        return {}
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    # Reconcile a manifest left mid-run by a crash/kill.
+    if not active and data.get("status") == "scraping":
+        changed = False
+        for c in data.get("codes", []):
+            if c.get("status") in ("running", "waiting"):
+                c["status"] = "failed"
+                if not c.get("error"):
+                    c["error"] = "Dihentikan — proses scrape berakhir sebelum kodepos ini selesai"
+                changed = True
+        if data.get("codes"):
+            has_failed = any(c.get("status") == "failed" for c in data["codes"])
+            has_done = any(c.get("status") == "completed" for c in data["codes"])
+            new_status = (
+                "completed" if not has_failed
+                else "partial" if has_done
+                else "failed"
+            )
+            if new_status != data.get("status") or changed:
+                data["status"] = new_status
+                changed = True
+        if changed:
+            try:
+                tmp = path.with_name(path.name + ".tmp")
+                with open(tmp, "w") as f:
+                    json.dump(data, f, ensure_ascii=False)
+                os.replace(tmp, path)
+            except OSError:
+                pass
+    return data
 
 
 def _count_jsonl_records(area_dir: Path) -> Tuple[int, int]:
@@ -170,6 +223,14 @@ async def get_pipeline_data(user: dict = Depends(require_admin)):
 
     area_list = [areas[k] for k in sorted(areas.keys())]
 
+    # Source 4: per-postal-code scrape manifest (only for areas that have one).
+    running_area = get_pipeline_state().running
+    for entry in area_list:
+        state = _read_scrape_state(entry["area"], active=(running_area == entry["area"]))
+        if state:
+            entry["scrape_status"] = state.get("status")
+            entry["codes"] = state.get("codes", [])
+
     totals = {
         "areas": len(area_list),
         "scraped": sum(1 for a in area_list if a["scraped"]),
@@ -194,11 +255,23 @@ async def get_pipeline_data(user: dict = Depends(require_admin)):
 class ActionRequest(BaseModel):
     area: str
     wipe_raw: bool = False  # /delete only: True = also remove data/raw/<area>
+    code: Optional[int] = None  # /resume only: retry a single postal code
 
 
-def _start_or_queue(area: str, runner_factory, background_tasks: BackgroundTasks) -> dict:
+def _start_or_queue(
+    area: str,
+    runner,
+    background_tasks: BackgroundTasks,
+    *runner_args,
+) -> dict:
     """Try to start a background action for `area`; queue behind the running one
-    if the single slot is occupied. Mirrors the Sprint-6 3-layer check."""
+    if the single slot is occupied. Mirrors the Sprint-6 3-layer check.
+
+    `runner` must be an async function called as ``runner(area, *runner_args)``.
+    It is passed directly to ``BackgroundTasks.add_task`` so Starlette awaits it
+    — wrapping it in a sync lambda would discard the returned coroutine (the
+    runner would silently never run and the pipeline slot would stick forever).
+    """
     state = get_pipeline_state()
     if state.running is not None:
         state.queue(area)
@@ -215,7 +288,7 @@ def _start_or_queue(area: str, runner_factory, background_tasks: BackgroundTasks
             "message": "Pipeline slot sibuk, coba lagi sebentar.",
             "pipeline": state.state(),
         }
-    background_tasks.add_task(runner_factory, area)
+    background_tasks.add_task(runner, area, *runner_args)
     return {
         "success": True,
         "pipeline_started": True,
@@ -251,7 +324,29 @@ async def trigger_rescrape(req: ActionRequest, background_tasks: BackgroundTasks
     postal_codes = _postal_codes_for(req.area)
     if not postal_codes:
         raise HTTPException(400, f"Tidak ada postal code untuk '{req.area}'.")
-    return _start_or_queue(req.area, lambda a: run_rescrape_background(a, postal_codes), background_tasks)
+    return _start_or_queue(req.area, run_rescrape_background, background_tasks, postal_codes)
+
+
+@router.post("/resume")
+async def trigger_resume(req: ActionRequest, background_tasks: BackgroundTasks, user: dict = Depends(require_admin)):
+    """Resume / retry a scrape without redoing completed postal codes.
+
+    Re-scrapes only codes that are missing or previously failed (or a single
+    ``code`` for a per-code retry), then reprocesses + reindexes the area. Safe
+    to repeat. Admin only.
+    """
+    postal_codes = _postal_codes_for(req.area)
+    if not postal_codes:
+        raise HTTPException(400, f"Tidak ada postal code untuk '{req.area}'.")
+    if req.code is not None and req.code not in postal_codes:
+        raise HTTPException(400, f"Kodepos {req.code} bukan milik area '{req.area}'.")
+    return _start_or_queue(
+        req.area,
+        run_resume_background,
+        background_tasks,
+        postal_codes,
+        req.code,
+    )
 
 
 @router.post("/delete")
