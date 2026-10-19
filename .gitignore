@@ -37,4 +37,3 @@ build/
 
 # Command Code local state
 .commandcode/
-config.bat
